@@ -731,39 +731,54 @@
   transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* === Staggered UI Reveal System ===
+   Timeline for each 16s cycle:
+   Items slide up & fade in staggered, hold, then fade out.
+   Each ui-seq-N is offset so items appear one by one. */
+
 @keyframes uiReveal {
-  0%, 5% { opacity: 0; transform: translateY(8px); }
-  15%, 85% { opacity: 1; transform: translateY(0); }
-  95%, 100% { opacity: 0; transform: translateY(-4px); }
+  0%, 6%   { opacity: 0; transform: translateY(10px); }
+  14%, 78% { opacity: 1; transform: translateY(0);    }
+  88%,100% { opacity: 0; transform: translateY(-6px); }
 }
 
 @keyframes uiRevealDelay1 {
-  0%, 20% { opacity: 0; transform: translateY(8px); }
-  30%, 85% { opacity: 1; transform: translateY(0); }
-  95%, 100% { opacity: 0; transform: translateY(-4px); }
+  0%, 22%  { opacity: 0; transform: translateY(10px); }
+  30%, 78% { opacity: 1; transform: translateY(0);    }
+  88%,100% { opacity: 0; transform: translateY(-6px); }
 }
 
 @keyframes uiRevealDelay2 {
-  0%, 35% { opacity: 0; transform: translateY(8px); }
-  45%, 85% { opacity: 1; transform: translateY(0); }
-  95%, 100% { opacity: 0; transform: translateY(-4px); }
+  0%, 38%  { opacity: 0; transform: translateY(10px); }
+  46%, 78% { opacity: 1; transform: translateY(0);    }
+  88%,100% { opacity: 0; transform: translateY(-6px); }
 }
 
 @keyframes uiFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  0%, 100% { transform: translateY(0px);  }
+  50%      { transform: translateY(-5px); }
 }
 
 .animate-step1 > div,
 .animate-step2 > div,
 .animate-step3 > div {
-  animation: uiFloat 8s ease-in-out infinite;
-  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.4);
+  animation: uiFloat 9s ease-in-out infinite;
+  will-change: transform;
 }
 
-.ui-seq-1 { animation: uiReveal 12s cubic-bezier(0.2, 0.8, 0.2, 1) infinite; }
-.ui-seq-2 { animation: uiRevealDelay1 12s cubic-bezier(0.2, 0.8, 0.2, 1) infinite; }
-.ui-seq-3 { animation: uiRevealDelay2 12s cubic-bezier(0.2, 0.8, 0.2, 1) infinite; }
+.ui-seq-1 {
+  animation: uiReveal 16s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  will-change: opacity, transform;
+}
+.ui-seq-2 {
+  animation: uiRevealDelay1 16s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  will-change: opacity, transform;
+}
+.ui-seq-3 {
+  animation: uiRevealDelay2 16s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  will-change: opacity, transform;
+}
+
 
 .setup-steps h3 {
   font-size: 17px;

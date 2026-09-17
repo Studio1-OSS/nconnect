@@ -395,11 +395,6 @@ function Home() {
                 <span className="step-number">0{i + 1}</span>
                 <h3>{step.title}</h3>
                 <p>{step.body}</p>
-                {i === 1 ? (
-                  <code>nconnect.sh configure</code>
-                ) : i === 2 ? (
-                  <code>ncodex</code>
-                ) : null}
                 {step.graphic}
               </li>
             ))}
@@ -784,6 +779,11 @@ function Step2Graphic() {
         <div className="relative w-[88%] max-w-[360px]">
           <div className="rounded-lg border shadow-lg bg-black border-[#262626] text-left overflow-hidden">
             <div className="p-4 font-mono pro-mono text-[11px] leading-relaxed text-gray-300">
+              <div className="mb-2 text-gray-400 flex items-center gap-2">
+                <span className="text-green-400">~</span>
+                <span className="text-gray-500">$</span>
+                <span className="text-white">nconnect.sh configure</span>
+              </div>
               <div className="flex items-start gap-2 ui-seq-1">
                 <span className="text-blue-400 mt-0.5">?</span>
                 <span className="text-white">Enter nConnect API Key:</span>
