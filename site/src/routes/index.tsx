@@ -14,6 +14,7 @@ import {
   Settings,
   ShieldCheck,
   Terminal,
+  ChevronRight,
 } from "lucide-react";
 import "../styles/landing.css";
 import { ProviderBrand } from "../components/ProviderBrand";
@@ -300,7 +301,11 @@ function Home() {
                   <img src="/logos/opensource.png" alt="" style={{ width: '14px', height: '14px', objectFit: 'contain' }} /> Open source
                 </span>
                 <span>
-                  <img src="/logos/linux.png" alt="" style={{ width: '14px', height: '14px', objectFit: 'contain' }} /> macOS & Linux
+                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    <img src="/logos/mac.png" alt="" style={{ width: '14px', height: '14px', objectFit: 'contain' }} />
+                    <img src="/logos/linux.png" alt="" style={{ width: '14px', height: '14px', objectFit: 'contain' }} />
+                  </div>
+                  macOS & Linux
                 </span>
                 <span>
                   <img src="/logos/config.png" alt="" style={{ width: '14px', height: '14px', objectFit: 'contain' }} /> Config-free
@@ -442,7 +447,10 @@ function Home() {
             <div className="desktop-integration">
               <div>
                 <p className="eyebrow">DESKTOP INTEGRATION / ALPHA</p>
-                <h3>ChatGPT / Codex Desktop</h3>
+                <h3 style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <img src="/chatgpt-icon.png" alt="" width={28} height={28} />
+                  ChatGPT / Codex Desktop
+                </h3>
                 <p>
                   An optional managed profile routes compatible desktop coding tasks through Relay.
                   It changes the shared Codex config until you restore it; it does not replace
@@ -534,20 +542,21 @@ function Home() {
           </div>
         </section>
         <section className="closing-section wrap">
-          <div className="closing-left">
-            <img src="/relay-logo.png" className="closing-logo" alt="" width="42" height="42" />
-            <p className="eyebrow">LESS SETUP. MORE BUILDING.</p>
-            <h2>
-              Your next coding session,
-              <br />
-              powered by Open Models.
-            </h2>
-          </div>
-          <div className="closing-right">
-            <a href="#install" className="button button-dark">
-              Get started <ArrowRight size={17} />
-            </a>
-            <p>Free to install. MIT licensed. Yours to explore.</p>
+          <div className="closing-inner">
+            <div className="closing-left">
+              <p className="eyebrow">LESS SETUP. MORE BUILDING.</p>
+              <h2>
+                Your next coding session,
+                <br />
+                powered by Open Models.
+              </h2>
+              <p className="closing-sub">Free to install. MIT licensed. Yours to explore.</p>
+            </div>
+            <div className="closing-right">
+              <a href="#install" className="button button-dark closing-cta">
+                Get started <ArrowRight size={17} />
+              </a>
+            </div>
           </div>
         </section>
       </main>
@@ -752,7 +761,7 @@ function Step1Graphic() {
     <div className="step-graphic">
       <div className="step-icon-wrapper w-full flex items-center justify-center pointer-events-none animate-step1">
         <div className="relative w-[88%] max-w-[360px]">
-          <div className="rounded-lg border shadow-lg bg-black border-[#262626] text-left overflow-hidden">
+          <div className="rounded-lg border shadow-lg bg-black border-[#262626] text-left overflow-hidden h-[240px] flex flex-col relative">
             <div className="p-4 font-mono pro-mono text-[11px] leading-relaxed text-gray-300">
               <div className="flex items-center gap-2 ui-seq-1">
                 <span className="text-green-400">~</span>
@@ -765,6 +774,7 @@ function Step1Graphic() {
                 <span className="text-green-400 font-medium">✓ Success</span>
               </div>
             </div>
+            <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
           </div>
         </div>
       </div>
@@ -777,7 +787,7 @@ function Step2Graphic() {
     <div className="step-graphic">
       <div className="step-icon-wrapper w-full flex items-center justify-center pointer-events-none animate-step2">
         <div className="relative w-[88%] max-w-[360px]">
-          <div className="rounded-lg border shadow-lg bg-black border-[#262626] text-left overflow-hidden">
+          <div className="rounded-lg border shadow-lg bg-black border-[#262626] text-left overflow-hidden h-[240px] flex flex-col relative">
             <div className="p-4 font-mono pro-mono text-[11px] leading-relaxed text-gray-300">
               <div className="mb-2 text-gray-400 flex items-center gap-2">
                 <span className="text-green-400">~</span>
@@ -785,17 +795,18 @@ function Step2Graphic() {
                 <span className="text-white">nconnect.sh configure</span>
               </div>
               <div className="flex items-start gap-2 ui-seq-1">
-                <span className="text-blue-400 mt-0.5">?</span>
+                <ChevronRight size={14} className="text-purple-400 mt-[3px]" />
                 <span className="text-white">Enter nConnect API Key:</span>
               </div>
               <div className="mt-0.5 ml-4 flex items-center gap-1 text-gray-500 tracking-widest ui-seq-2">
                 ************************
               </div>
               <div className="mt-3 flex items-start gap-2 opacity-80 ui-seq-3">
-                <span className="text-blue-400 mt-0.5">?</span>
+                <ChevronRight size={14} className="text-purple-400 mt-[3px]" />
                 <span className="text-white">Enter Tavily API Key (optional):</span>
               </div>
             </div>
+            <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
           </div>
         </div>
       </div>
@@ -808,7 +819,7 @@ function Step3Graphic() {
     <div className="step-graphic">
       <div className="step-icon-wrapper w-full flex items-center justify-center pointer-events-none animate-step3">
         <div className="relative w-[90%] max-w-[380px]">
-          <div className="rounded-lg border shadow-xl bg-black border-[#262626] text-left overflow-hidden flex flex-col h-[180px]">
+          <div className="rounded-lg border shadow-xl bg-black border-[#262626] text-left overflow-hidden flex flex-col h-[240px] relative">
             <div className="flex-1 p-3 font-mono pro-mono text-[10px] leading-relaxed text-gray-300 overflow-hidden relative">
               <div className="mb-2 text-gray-400">~/project</div>
               <div className="mb-3 text-[#e5e5e5] border border-[#333] bg-[#1a1a1a] px-2 py-1.5 rounded shadow-sm">
@@ -842,7 +853,7 @@ function Step3Graphic() {
                   </div>
                 </div>
               </div>
-              <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
             </div>
           </div>
         </div>
