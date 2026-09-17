@@ -15,9 +15,13 @@ import {
   ShieldCheck,
   Terminal,
   ChevronRight,
+  Loader2,
+  CircleHelp,
 } from "lucide-react";
 import "../styles/landing.css";
 import { ProviderBrand } from "../components/ProviderBrand";
+import { ThinkingState, useSequence } from "../components/ThinkingState";
+import { SpinnerRing, Badge, CheckIcon } from "../components/TaskRows";
 import { pageHead, siteUrl, structuredData } from "../lib/seo";
 import { useEffect, useRef, useState } from "react";
 
@@ -522,17 +526,9 @@ function Home() {
                 const Icon = [Cable, Search, ChartNoAxesCombined, ShieldCheck][i];
                 return (
                   <article key={feature.title}>
-                    {i === 1 ? (
-                      <img
-                        className="feature-provider-logo"
-                        src="/tavily-icon.png"
-                        alt="Tavily"
-                        width="32"
-                        height="32"
-                      />
-                    ) : (
-                      <Icon size={24} />
-                    )}
+                    <div className="feature-icon-wrapper">
+                      <Icon size={28} strokeWidth={1.5} />
+                    </div>
                     <h3>{feature.title}</h3>
                     <p>{feature.body}</p>
                   </article>
@@ -561,17 +557,21 @@ function Home() {
         </section>
       </main>
       <footer className="relay-footer wrap">
-        <a href="/" className="relay-brand" aria-label="nConnect home">
-          <img src="/hero/logo.png" alt="nConnect" />
-        </a>
-        <span>An open-source project by Studio1.</span>
-        <nav aria-label="Footer navigation">
-          <a href={docsUrl}>Docs</a>
-          <a href={githubUrl} target="_blank" rel="noopener noreferrer">
-            GitHub
+        <div className="footer-big-logo">
+          <a href="/" aria-label="nConnect home" className="logo-mask">
+            <span className="sr-only">nConnect</span>
           </a>
-          <a href={llmsUrl}>llms.txt</a>
-        </nav>
+        </div>
+        <div className="footer-bottom">
+          <span>An open-source project by Studio1.</span>
+          <nav aria-label="Footer navigation">
+            <a href={docsUrl}>Docs</a>
+            <a href={githubUrl} target="_blank" rel="noopener noreferrer">
+              GitHub
+            </a>
+            <a href={llmsUrl}>llms.txt</a>
+          </nav>
+        </div>
       </footer>
     </div>
   );
@@ -757,22 +757,43 @@ function MacWindowControls() {
 }
 
 function Step1Graphic() {
+  const stage = useSequence([1500, 1500, 2000]);
+
   return (
     <div className="step-graphic">
       <div className="step-icon-wrapper w-full flex items-center justify-center pointer-events-none animate-step1">
         <div className="relative w-[88%] max-w-[360px]">
           <div className="rounded-lg border shadow-lg bg-black border-[#262626] text-left overflow-hidden h-[240px] flex flex-col relative">
-            <div className="p-4 font-mono pro-mono text-[11px] leading-relaxed text-gray-300">
-              <div className="flex items-center gap-2 ui-seq-1">
+            <div className="p-4 font-mono text-[11px] leading-relaxed text-gray-300">
+              <div className="flex items-center gap-2">
                 <span className="text-green-400">~</span>
                 <span className="text-gray-500">$</span>
                 <span className="text-white">curl -sL nconnect.sh | bash</span>
               </div>
-              <div className="mt-2 text-gray-400 opacity-90 ui-seq-2">
-                Installing nconnect.sh...<br />
-                Adding nclaude, ncodex to PATH...<br />
-                <span className="text-green-400 font-medium">✓ Success</span>
-              </div>
+              
+              {stage >= 1 && (
+                <div className="mt-2 flex flex-col gap-1.5 opacity-90" style={{ animation: "fade-in 300ms ease-out both" }}>
+                  <div className="flex items-center gap-2">
+                    <span className="scale-75 origin-left flex items-center justify-center w-5 h-5">
+                      {stage === 1 ? <SpinnerRing active /> : <Badge tone="green">{CheckIcon}</Badge>}
+                    </span>
+                    <span>Installing nconnect.sh...</span>
+                  </div>
+                  {stage >= 2 && (
+                    <div className="flex items-center gap-2" style={{ animation: "fade-up 300ms cubic-bezier(0.23,1,0.32,1) both" }}>
+                      <span className="scale-75 origin-left flex items-center justify-center w-5 h-5">
+                        {stage === 2 ? <SpinnerRing active /> : <Badge tone="green">{CheckIcon}</Badge>}
+                      </span>
+                      <span>Adding nclaude, ncodex to PATH...</span>
+                    </div>
+                  )}
+                  {stage >= 3 && (
+                    <div className="mt-1 flex items-center gap-2 text-green-400 font-medium" style={{ animation: "fade-up 300ms cubic-bezier(0.23,1,0.32,1) both" }}>
+                      <span className="px-2 py-0.5 rounded-full bg-green-500/20">✓ Success</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
           </div>
@@ -783,28 +804,46 @@ function Step1Graphic() {
 }
 
 function Step2Graphic() {
+  const stage = useSequence([1500, 1500, 1500, 2000]);
+
   return (
     <div className="step-graphic">
       <div className="step-icon-wrapper w-full flex items-center justify-center pointer-events-none animate-step2">
         <div className="relative w-[88%] max-w-[360px]">
-          <div className="rounded-lg border shadow-lg bg-black border-[#262626] text-left overflow-hidden h-[240px] flex flex-col relative">
-            <div className="p-4 font-mono pro-mono text-[11px] leading-relaxed text-gray-300">
+          <div className="rounded-xl border shadow-2xl bg-[#0a0a0a] border-white/10 text-left overflow-hidden h-[240px] flex flex-col relative">
+            <div className="p-4 font-mono text-[11px] leading-relaxed text-gray-300">
               <div className="mb-2 text-gray-400 flex items-center gap-2">
                 <span className="text-green-400">~</span>
                 <span className="text-gray-500">$</span>
                 <span className="text-white">nconnect.sh configure</span>
               </div>
-              <div className="flex items-start gap-2 ui-seq-1">
-                <ChevronRight size={14} className="text-purple-400 mt-[3px]" />
-                <span className="text-white">Enter nConnect API Key:</span>
-              </div>
-              <div className="mt-0.5 ml-4 flex items-center gap-1 text-gray-500 tracking-widest ui-seq-2">
-                ************************
-              </div>
-              <div className="mt-3 flex items-start gap-2 opacity-80 ui-seq-3">
-                <ChevronRight size={14} className="text-purple-400 mt-[3px]" />
-                <span className="text-white">Enter Tavily API Key (optional):</span>
-              </div>
+              
+              {stage >= 1 && (
+                <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1" style={{ animation: "fade-up 300ms ease-out both" }}>
+                  <div className="flex items-center gap-2">
+                    <ChevronRight size={14} strokeWidth={3} className="text-blue-400" />
+                    <span className={stage === 1 ? "text-transparent bg-clip-text" : "text-white font-medium"} style={stage === 1 ? { backgroundImage: "linear-gradient(90deg, #52525b 35%, #fff 50%, #52525b 65%)", backgroundSize: "200% 100%", animation: "shimmer-text 1.4s linear infinite" } : undefined}>Enter nConnect API Key:</span>
+                  </div>
+                  {stage >= 2 && (
+                    <div className="text-gray-500 tracking-[0.2em] flex items-center" style={{ animation: "fade-in 200ms ease-out both" }}>
+                      ••••••••••••••••
+                    </div>
+                  )}
+                </div>
+              )}
+              {stage >= 3 && (
+                <div className="mt-3 flex items-center flex-wrap gap-x-2 gap-y-1 opacity-90" style={{ animation: "fade-up 300ms ease-out both" }}>
+                  <div className="flex items-center gap-2">
+                    <ChevronRight size={14} strokeWidth={3} className="text-blue-400" />
+                    <span className={stage === 3 ? "text-transparent bg-clip-text" : "text-white font-medium"} style={stage === 3 ? { backgroundImage: "linear-gradient(90deg, #52525b 35%, #fff 50%, #52525b 65%)", backgroundSize: "200% 100%", animation: "shimmer-text 1.4s linear infinite" } : undefined}>Enter Tavily API Key <span className="text-gray-500 font-normal">(optional)</span>:</span>
+                  </div>
+                  {stage >= 4 && (
+                    <div className="text-gray-500 tracking-[0.2em] flex items-center" style={{ animation: "fade-in 200ms ease-out both" }}>
+                      ••••••••
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
           </div>
@@ -817,41 +856,17 @@ function Step2Graphic() {
 function Step3Graphic() {
   return (
     <div className="step-graphic">
-      <div className="step-icon-wrapper w-full flex items-center justify-center pointer-events-none animate-step3">
-        <div className="relative w-[90%] max-w-[380px]">
-          <div className="rounded-lg border shadow-xl bg-black border-[#262626] text-left overflow-hidden flex flex-col h-[240px] relative">
-            <div className="flex-1 p-3 font-mono pro-mono text-[10px] leading-relaxed text-gray-300 overflow-hidden relative">
+      <div className="step-icon-wrapper w-full flex items-center justify-center animate-step3">
+        <div className="relative w-[90%] max-w-[380px] pointer-events-auto">
+          <div className="rounded-xl border shadow-2xl bg-[#0a0a0a] border-white/10 text-left overflow-hidden flex flex-col h-[240px] relative">
+            <div className="flex-1 p-3 font-mono text-[10px] leading-relaxed text-gray-300 overflow-hidden relative">
               <div className="mb-2 text-gray-400">~/project</div>
               <div className="mb-3 text-[#e5e5e5] border border-[#333] bg-[#1a1a1a] px-2 py-1.5 rounded shadow-sm">
                 $ ncodex --config "Use nconnect endpoint"
               </div>
               
-              <div className="space-y-1.5">
-                <div className="flex items-start gap-2 ui-seq-1">
-                  <span className="text-purple-500">⬢</span>
-                  <div className="flex-1 truncate">
-                    <span className="text-white">Thought</span> <span className="text-gray-500">2s</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-2 ui-seq-2">
-                  <span className="text-purple-500">⬢</span>
-                  <div className="flex-1 truncate">
-                    <span className="text-white">Read</span> <span className="text-gray-500">api/relay.ts, settings.ts</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-2 ui-seq-3">
-                  <span className="text-purple-500">⬢</span>
-                  <div className="flex-1">
-                    <div className="text-white mb-1">I'll configure the endpoint...</div>
-                    <div className="border border-[#333] bg-[#1a1a1a] px-2 py-1 rounded flex items-center">
-                      <span className="font-medium text-[#e5e5e5]">api/relay.ts</span>
-                      <span className="text-green-400 ml-2">+12</span>
-                      <span className="text-red-400 ml-1">-2</span>
-                    </div>
-                  </div>
-                </div>
+              <div className="mt-2" style={{ marginLeft: "-4px" }}>
+                <ThinkingState variant="Coding" />
               </div>
               <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
             </div>
