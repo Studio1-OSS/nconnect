@@ -15,8 +15,8 @@ const RECENT_SESSIONS_LIMIT = 10;
 
 async function dashboardSession() {
   return useSession<{ authed?: boolean }>({
-    name: "nebiusrelay-dashboard",
-    password: process.env.DASHBOARD_SESSION_SECRET ?? "nebiusrelay-dashboard-dev-secret-change-me",
+    name: "nconnect-dashboard",
+    password: process.env.DASHBOARD_SESSION_SECRET ?? "nconnect-dashboard-dev-secret-change-me",
     maxAge: 60 * 60 * 24 * 30,
     cookie: {
       path: "/",
@@ -81,7 +81,7 @@ const saveInstallNickname = createServerFn({ method: "POST" })
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard | Nebius TF Relay" },
+      { title: "Dashboard | nConnect" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -131,7 +131,7 @@ function DashboardRoute() {
   if (!isAuthed) {
     return (
       <div className="mx-auto mt-24 max-w-sm px-6">
-        <h1 className="font-mono text-lg font-semibold text-ink">nebiusrelay analytics</h1>
+        <h1 className="font-mono text-lg font-semibold text-ink">nconnect analytics</h1>
         <form
           className="mt-4 flex flex-col gap-2"
           onSubmit={async (e) => {
@@ -186,15 +186,15 @@ function DashboardRoute() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
       <header className="mb-6 flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="font-mono text-lg font-semibold text-ink">nebiusrelay analytics</h1>
+        <h1 className="font-mono text-lg font-semibold text-ink">nconnect analytics</h1>
         <RefreshStatus refreshing={refreshing} lastUpdated={lastUpdated} />
       </header>
 
       <div className="mb-6 rounded-md border border-line-strong bg-code px-4 py-3 text-sm text-muted">
         Scope: this dashboard only sees sessions launched through{" "}
-        <code className="font-mono text-ink">nebiusrelay claude</code> /{" "}
-        <code className="font-mono text-ink">nebiusrelay codex</code>, which route through our
-        proxy. OpenCode sessions and any direct Nebius API key usage bypass the proxy entirely and
+        <code className="font-mono text-ink">nconnect claude</code> /{" "}
+        <code className="font-mono text-ink">nconnect codex</code>, which route through our
+        proxy. OpenCode sessions and any direct nConnect API key usage bypass the proxy entirely and
         are not counted here - so these numbers are a lower bound on total usage, not the whole
         picture.
       </div>

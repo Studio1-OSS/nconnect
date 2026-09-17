@@ -14,7 +14,7 @@
     Helvetica, Arial, sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
 
-  /* Nebius Token Factory palette */
+  /* nConnect palette */
   --color-ink: #0b1120; /* near-black navy - primary text */
   --color-muted: #55607a; /* secondary text */
   --color-faint: #8b95ad; /* tertiary text */
@@ -23,7 +23,7 @@
   --color-code: #f6f7fb; /* light fill */
   --color-canvas: #f4f5f9; /* page tint */
 
-  --color-lime: #c6f135; /* Nebius signature green (on dark) */
+  --color-lime: #c6f135; /* nConnect signature green (on dark) */
   --color-lime-ink: #4d6b00; /* lime, darkened for text on light */
   --color-violet: #6a5cf3; /* primary CTA / accents */
   --color-violet-soft: #efedff;

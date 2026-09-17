@@ -8,30 +8,30 @@ import "../styles/landing.css";
 import "../styles/docs.css";
 import { ClaudeMark, PiMark, PrimeMark, DeepSeekMark, GrokMark } from "./index";
 
-const installCommand = "curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | bash";
-const githubUrl = "https://github.com/Studio1-OSS/nebius-tf-relay";
-const changelogUrl = "https://github.com/Studio1-OSS/nebius-tf-relay/blob/main/CHANGELOG.md";
-const nebiusApiKeysUrl = "https://tokenfactory.nebius.com/?modals=create-api-key";
+const installCommand = "curl -fsSL https://nconnect.sh/install.sh | bash";
+const githubUrl = "https://github.com/pradhan-not-found/nconnect-";
+const changelogUrl = "https://github.com/pradhan-not-found/nconnect-/blob/main/CHANGELOG.md";
+const nconnectApiKeysUrl = "https://tokenfactory.nebius.com/?modals=create-api-key";
 const tavilyUrl = "https://app.tavily.com";
-const llmsUrl = "https://nebius-tf-relay.vercel.app/llms.txt";
+const llmsUrl = "https://nconnect.sh/llms.txt";
 
 export const Route = createFileRoute("/docs")({
   component: Docs,
   head: () => ({
     ...pageHead(
-      "Documentation | Install & Configure Nebius TF Relay",
-      "Install Nebius TF Relay, configure Nebius and Tavily API keys, choose coding agents and models, track costs, and troubleshoot your local relay.",
+      "Documentation | Install & Configure nConnect",
+      "Install nConnect, configure nConnect and Tavily API keys, choose coding agents and models, track costs, and troubleshoot your local relay.",
       "/docs",
     ),
     scripts: [
       structuredData({
         "@context": "https://schema.org",
         "@type": "TechArticle",
-        headline: "Nebius TF Relay documentation",
+        headline: "nConnect documentation",
         url: `${siteUrl}/docs`,
         description:
-          "Installation, configuration, commands, web search, and troubleshooting for Nebius TF Relay.",
-        about: { "@type": "SoftwareApplication", name: "Nebius TF Relay", url: `${siteUrl}/` },
+          "Installation, configuration, commands, web search, and troubleshooting for nConnect.",
+        about: { "@type": "SoftwareApplication", name: "nConnect", url: `${siteUrl}/` },
       }),
       structuredData({
         "@context": "https://schema.org",
@@ -62,16 +62,16 @@ const sections = [
 ];
 
 const harnesses: Array<[string, string, string, string, ReactNode]> = [
-  ["Claude Code", "nclaude", "Proxied", "Anthropic Messages API translated to Nebius.", <ClaudeMark />],
-  ["Codex CLI", "ncodex", "Proxied", "OpenAI Responses API translated to Nebius.", "/chatgpt-icon.png"],
-  ["OpenCode", "nopencode", "Spawned", "Nebius wired in as an OpenAI-compatible provider.", "/logos/opensource.png"],
-  ["Pi Code", "npi", "Spawned", "Custom Nebius provider in a temporary config directory.", <PiMark />],
-  ["Prime Agent", "nprime", "Spawned", "PrimeIntellect's RLM agent on Nebius models.", <PrimeMark />],
+  ["Claude Code", "nclaude", "Proxied", "Anthropic Messages API translated to nConnect.", <ClaudeMark />],
+  ["Codex CLI", "ncodex", "Proxied", "OpenAI Responses API translated to nConnect.", "/chatgpt-icon.png"],
+  ["OpenCode", "nopencode", "Spawned", "nConnect wired in as an OpenAI-compatible provider.", "/logos/opensource.png"],
+  ["Pi Code", "npi", "Spawned", "Custom nConnect provider in a temporary config directory.", <PiMark />],
+  ["Prime Agent", "nprime", "Spawned", "PrimeIntellect's RLM agent on nConnect models.", <PrimeMark />],
   ["Hermes Agent", "nhermes", "Spawned", "Nous Research's agent, isolated home overlay.", "/hermes-icon.png"],
-  ["DeepSeek Harness", "ndeepseek", "Spawned", "DeepSeek's web profile with Nebius layered in.", <DeepSeekMark />],
+  ["DeepSeek Harness", "ndeepseek", "Spawned", "DeepSeek's web profile with nConnect layered in.", <DeepSeekMark />],
   ["Grok Build", "ngrok", "Spawned", "xAI's terminal harness; your key never reaches api.x.ai.", <GrokMark />],
-  ["Cursor", "", "Editor", "Native Nebius configuration.", "/logos/cursor.png"],
-  ["Antigravity IDE", "", "Editor", "Native Nebius configuration.", "/logos/antigravity.png"],
+  ["Cursor", "", "Editor", "Native nConnect configuration.", "/logos/cursor.png"],
+  ["Antigravity IDE", "", "Editor", "Native nConnect configuration.", "/logos/antigravity.png"],
 ];
 
 const models: Array<[string, string, string, string, boolean, ReactNode]> = [
@@ -90,9 +90,9 @@ const models: Array<[string, string, string, string, boolean, ReactNode]> = [
 
 const envVars: Array<[string, ReactNode]> = [
   [
-    "NEBIUS_API_KEY",
+    "NCONNECT_API_KEY",
     <>
-      Nebius Token Factory key (or set it via <Code>configure</Code>).
+      nConnect key (or set it via <Code>configure</Code>).
     </>,
   ],
   [
@@ -102,53 +102,53 @@ const envVars: Array<[string, ReactNode]> = [
     </>,
   ],
   [
-    "NEBIUS_BASE_URL",
+    "NCONNECT_BASE_URL",
     <>
       Override the API base. Default <Code>https://api.tokenfactory.nebius.com/v1</Code>.
     </>,
   ],
   [
-    "NEBIUSRELAY_REASONING_EFFORT",
+    "NCONNECTRELAY_REASONING_EFFORT",
     <>
       <Code>none</Code> | <Code>low</Code> | <Code>medium</Code> | <Code>high</Code> |{" "}
       <Code>max</Code>. Default <Code>none</Code> for speed; raise it for harder tasks.
     </>,
   ],
   [
-    "NEBIUSRELAY_FALLBACK_MODEL",
+    "NCONNECTRELAY_FALLBACK_MODEL",
     <>
       Model to fail over to when the target returns no response headers. Default{" "}
       <Code>moonshotai/Kimi-K2.6</Code>; set <Code>off</Code> to disable.
     </>,
   ],
   [
-    "NEBIUSRELAY_METER=1",
+    "NCONNECTRELAY_METER=1",
     <>
       Route the spawned harnesses through the daemon so they get cost metering, model fallback and
       retries. Off by default.
     </>,
   ],
   [
-    "NEBIUSRELAY_REASONING_HISTORY",
+    "NCONNECTRELAY_REASONING_HISTORY",
     <>
       <Code>full</Code> (default) | <Code>interleaved</Code> | <Code>off</Code>. How much prior
       reasoning is replayed each turn. <Code>off</Code> is cheapest on long sessions.
     </>,
   ],
   [
-    "NEBIUSRELAY_CACHE_READ_RATIO",
+    "NCONNECTRELAY_CACHE_READ_RATIO",
     <>
       Price of a cached input token as a fraction of the input price. Default <Code>1</Code>, since
-      Nebius publishes no cached rate - so the total is an upper bound.
+      nConnect publishes no cached rate - so the total is an upper bound.
     </>,
   ],
   [
-    "NEBIUSRELAY_CODEX_MEMORY_MODEL",
+    "NCONNECTRELAY_CODEX_MEMORY_MODEL",
     <>Model that summarizes Codex traces for durable memory. Defaults to MiniMax M3.</>,
   ],
-  ["NEBIUSRELAY_DISABLE_AUTOUPDATE=1", <>Stop the installed binary from self-updating.</>],
+  ["NCONNECTRELAY_DISABLE_AUTOUPDATE=1", <>Stop the installed binary from self-updating.</>],
   [
-    "NEBIUSRELAY_TELEMETRY_URL",
+    "NCONNECTRELAY_TELEMETRY_URL",
     <>Opt in to telemetry by pointing at your own collector. Off by default.</>,
   ],
 ];
@@ -190,10 +190,10 @@ function Docs() {
       </a>
       <header className="relay-nav-container docs-header">
         <div className="relay-nav wrap">
-          <a className="relay-brand" href="/" aria-label="Nebius TF Relay home">
+          <a className="relay-brand" href="/" aria-label="nConnect home">
             <img src="/relay-logo.png" alt="" width="36" height="36" />
             <span>
-              Nebius <b>TF Relay</b>
+              nConnect <b>TF Relay</b>
             </span>
           </a>
           <nav aria-label="Main navigation">
@@ -270,15 +270,15 @@ function Docs() {
           </div>
           <div className="docs-intro">
             <p className="eyebrow">
-              NEBIUS <span className="relay-name">TF RELAY</span> / DOCS
+              NCONNECT <span className="relay-name">TF RELAY</span> / DOCS
             </p>
             <h1>Documentation</h1>
             <p>
-              Everything you need to run your coding agents on Nebius Token Factory, with optional
+              Everything you need to run your coding agents on nConnect, with optional
               Tavily web search.
             </p>
             <div className="docs-provider-row">
-              <ProviderBrand provider="nebius" />
+              <ProviderBrand provider="nconnect" />
               <ProviderBrand provider="tavily" />
             </div>
             <div className="docs-quick-links">
@@ -295,11 +295,11 @@ function Docs() {
           </div>
           <Section id="what-it-does" title="What it does">
             <P>
-              Nebius Token Factory serves open models over an OpenAI-compatible API. It does not
+              nConnect serves open models over an OpenAI-compatible API. It does not
               speak the Anthropic Messages API that Claude Code uses, nor the OpenAI Responses API
               that Codex uses. The relay runs a small local daemon that translates those wire
-              formats to Nebius <Code>/chat/completions</Code> on the fly - your agent believes it
-              is talking to its native backend, while every token is served by Nebius.
+              formats to nConnect <Code>/chat/completions</Code> on the fly - your agent believes it
+              is talking to its native backend, while every token is served by nConnect.
             </P>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <Card title="Proxied harnesses">
@@ -307,33 +307,33 @@ function Docs() {
                 retries transient failures, trims context to fit, and emulates native web search.
               </Card>
               <Card title="Spawned harnesses">
-                Everything else. Launched with a generated provider config pointed at Nebius - no
+                Everything else. Launched with a generated provider config pointed at nConnect - no
                 proxy needed, since they already speak the OpenAI-compatible format.
               </Card>
             </div>
             <Callout>
               CLI launches use temporary provider settings. The optional Codex / ChatGPT Desktop
               integration manages a persistent config separately;{" "}
-              <Code>nebiusrelay chatgpt off</Code>
+              <Code>nconnect chatgpt off</Code>
               restores that integration.
             </Callout>
           </Section>
 
           <Section id="install" title="Install">
             <P>
-              The one-liner installs <Code>nebiusrelay</Code> plus a short alias per harness into{" "}
-              <Code>~/.nebiusrelay/bin/</Code>, and installs Bun for you if it is not already
+              The one-liner installs <Code>nconnect</Code> plus a short alias per harness into{" "}
+              <Code>~/.nconnect/bin/</Code>, and installs Bun for you if it is not already
               present.
             </P>
             <CopyBox className="mt-4" text={installCommand} />
             <P className="mt-5">First run walks you through configuration, or run it directly:</P>
-            <CopyBox className="mt-3" text="nebiusrelay configure" />
+            <CopyBox className="mt-3" text="nconnect configure" />
             <P className="mt-5">You will be asked for two keys:</P>
             <Table head={["Key", "Where to get it", "Required"]}>
               <Row>
-                <Cell strong>Nebius API key</Cell>
+                <Cell strong>nConnect API key</Cell>
                 <Cell>
-                  <Link href={nebiusApiKeysUrl}>tokenfactory.nebius.com</Link>
+                  <Link href={nconnectApiKeysUrl}>tokenfactory.nebius.com</Link>
                 </Cell>
                 <Cell>Yes</Cell>
               </Row>
@@ -346,8 +346,8 @@ function Docs() {
               </Row>
             </Table>
             <Callout>
-              Keys are saved in <Code>~/.nebiusrelay/config.json</Code> and used to authenticate
-              requests to Nebius and Tavily. In an interactive terminal, a missing agent can be
+              Keys are saved in <Code>~/.nconnect/config.json</Code> and used to authenticate
+              requests to nConnect and Tavily. In an interactive terminal, a missing agent can be
               installed after you confirm its displayed install command. Non-interactive runs print
               installation instructions.
             </Callout>
@@ -399,14 +399,14 @@ function Docs() {
           <Section id="commands" title="Commands">
             <Table head={["Command", "What it does"]}>
               {[
-                ["nebiusrelay", "Interactive launcher - pick a harness."],
-                ["nebiusrelay configure", "Set your API keys."],
-                ["nebiusrelay usage --last 7d", "Local spend by model and tool. Never uploaded."],
-                ["nebiusrelay update", "Update to the latest release now."],
-                ["nebiusrelay daemon install", "Start the daemon at login (launchd / systemd)."],
-                ["nebiusrelay daemon status", "Show auto-start status."],
-                ["nebiusrelay daemon stop", "Stop the running daemon."],
-                ["nebiusrelay chatgpt off", "Restore your previous Codex / ChatGPT config."],
+                ["nconnect", "Interactive launcher - pick a harness."],
+                ["nconnect configure", "Set your API keys."],
+                ["nconnect usage --last 7d", "Local spend by model and tool. Never uploaded."],
+                ["nconnect update", "Update to the latest release now."],
+                ["nconnect daemon install", "Start the daemon at login (launchd / systemd)."],
+                ["nconnect daemon status", "Show auto-start status."],
+                ["nconnect daemon stop", "Stop the running daemon."],
+                ["nconnect chatgpt off", "Restore your previous Codex / ChatGPT config."],
               ].map(([cmd, what]) => (
                 <Row key={cmd}>
                   <Cell>
@@ -420,12 +420,12 @@ function Docs() {
 
           <Section id="desktop" title="ChatGPT / Codex Desktop (alpha)">
             <P>
-              The released CLI includes <Code>nebiusrelay chatgpt</Code> (alias:
+              The released CLI includes <Code>nconnect chatgpt</Code> (alias:
               <Code> codex-app</Code>) for compatible desktop coding tasks. It configures a local
               Responses provider in <Code>~/.codex/config.toml</Code>, writes a model catalog, and
               attempts to open the desktop app.
             </P>
-            <CopyBox text="nebiusrelay chatgpt" />
+            <CopyBox text="nconnect chatgpt" />
             <Callout>
               This integration is explicitly alpha in the CLI. It uses a provider-auth workaround
               and changes persistent configuration shared with Codex CLI, unlike the temporary
@@ -434,14 +434,14 @@ function Docs() {
               version.
             </Callout>
             <P>Restore the backed-up configuration when you are finished:</P>
-            <CopyBox text="nebiusrelay chatgpt off" />
+            <CopyBox text="nconnect chatgpt off" />
           </Section>
           <Section id="models" title="Models">
             <div className="docs-provider-inline">
-              <ProviderBrand provider="nebius" />
+              <ProviderBrand provider="nconnect" />
             </div>
             <P>
-              The model list is fetched live from Nebius at startup, so every model they serve is
+              The model list is fetched live from nConnect at startup, so every model they serve is
               available and each model's vision support comes from the API's own modality field -
               never a hand-maintained list. Results are cached locally and fall back to a bundled
               snapshot when offline.
@@ -479,8 +479,8 @@ function Docs() {
               remains the default. Select either new model explicitly:
             </P>
             <pre className="mt-3 overflow-x-auto rounded-lg bg-code px-4 py-3 font-mono text-[13px] leading-relaxed text-muted">
-              <code>{`nebiusrelay --model zai-org/GLM-5.3 codex
-nebiusrelay --model deepseek-ai/DeepSeek-V4-Pro-0813 codex`}</code>
+              <code>{`nconnect --model zai-org/GLM-5.3 codex
+nconnect --model deepseek-ai/DeepSeek-V4-Pro-0813 codex`}</code>
             </pre>
             <Callout>
               In Codex, select a vision-capable model before attaching images. Claude Code uses a
@@ -520,7 +520,7 @@ nebiusrelay --model deepseek-ai/DeepSeek-V4-Pro-0813 codex`}</code>
               Claude Code and Codex expose a native <Code>web_search</Code> tool. The relay backs it
               with Tavily: with a key configured, searches return real results with citations.
               Without one, a search returns a clear "TAVILY_API_KEY not set" message rather than
-              failing silently. Nebius has no hosted search tool, so this is how agents get live web
+              failing silently. nConnect has no hosted search tool, so this is how agents get live web
               access.
             </P>
           </Section>
@@ -528,18 +528,18 @@ nebiusrelay --model deepseek-ai/DeepSeek-V4-Pro-0813 codex`}</code>
           <Section id="metering" title="Cost metering">
             <P>
               Claude and Codex are proxied, so the daemon meters every turn. The other harnesses
-              hold the key and call Nebius directly, which is why they report $0.00.{" "}
-              <Code>NEBIUSRELAY_METER=1</Code> points them at the daemon instead:
+              hold the key and call nConnect directly, which is why they report $0.00.{" "}
+              <Code>NCONNECTRELAY_METER=1</Code> points them at the daemon instead:
             </P>
-            <CopyBox className="mt-4" text={'NEBIUSRELAY_METER=1 npi --print "..."'} />
+            <CopyBox className="mt-4" text={'NCONNECTRELAY_METER=1 npi --print "..."'} />
             <pre className="mt-3 overflow-x-auto rounded-xl bg-code px-4 py-3 font-mono text-[13px] leading-relaxed text-muted">
               {
-                "Nebius TF Relay ▸ Launching Pi Code with Nebius Token Factory.\n[nebiusrelay cost] session total: $0.0056 (1,518 in, 69 out)"
+                "nConnect ▸ Launching Pi Code with nConnect.\n[nconnect cost] session total: $0.0056 (1,518 in, 69 out)"
               }
             </pre>
             <P className="mt-4">
               They then share the same client as everyone else - automatic model fallback, the
-              per-model circuit breaker, transient-fault retries - and the real Nebius key stays
+              per-model circuit breaker, transient-fault retries - and the real nConnect key stays
               inside the daemon, since the harness only ever sees a local session token. If the
               daemon is unreachable the launcher says so and connects directly, so metering can
               never be the reason a session fails to start.
@@ -566,8 +566,8 @@ nebiusrelay --model deepseek-ai/DeepSeek-V4-Pro-0813 codex`}</code>
                 Update the installed CLI, then run configuration again in an interactive terminal.
                 Required keys cannot be blank; press Enter to skip the optional Tavily key.
               </P>
-              <CopyBox text="nebiusrelay update" />
-              <CopyBox text="nebiusrelay configure" />
+              <CopyBox text="nconnect update" />
+              <CopyBox text="nconnect configure" />
             </details>
             <details className="docs-faq">
               <summary>Command not found after installation</summary>
@@ -575,13 +575,13 @@ nebiusrelay --model deepseek-ai/DeepSeek-V4-Pro-0813 codex`}</code>
                 Open a new terminal so your shell picks up the installer&apos;s PATH change. You can
                 also run the installed executable directly:
               </P>
-              <CopyBox text="~/.nebiusrelay/bin/nebiusrelay configure" />
+              <CopyBox text="~/.nconnect/bin/nconnect configure" />
             </details>
             <details className="docs-faq">
               <summary>Web search says TAVILY_API_KEY is not set</summary>
               <P>
-                Add a Tavily key with <Code>nebiusrelay configure</Code>, then launch a new agent
-                session. A Nebius key alone does not enable web search.
+                Add a Tavily key with <Code>nconnect configure</Code>, then launch a new agent
+                session. A nConnect key alone does not enable web search.
               </P>
             </details>
             <details className="docs-faq">
@@ -590,13 +590,13 @@ nebiusrelay --model deepseek-ai/DeepSeek-V4-Pro-0813 codex`}</code>
                 Enable daemon metering for that launch. See <a href="#metering">Cost metering</a>{" "}
                 for details.
               </P>
-              <CopyBox text="NEBIUSRELAY_METER=1 npi" />
+              <CopyBox text="NCONNECTRELAY_METER=1 npi" />
             </details>
           </Section>
           <Section id="agents" title="For AI agents">
             <P>
               An LLM-readable doc is published at <Link href={llmsUrl}>llms.txt</Link>. If you are
-              an agent asked to install, configure or drive nebiusrelay - including headless - read
+              an agent asked to install, configure or drive nconnect - including headless - read
               that first. It covers install, configure, every command, the models, and headless
               usage patterns.
             </P>

@@ -9,7 +9,7 @@ import {
   Copy,
   Cpu,
   FileText,
-  GitBranch,
+  Github,
   Key,
   Search,
   Settings,
@@ -21,10 +21,10 @@ import { ProviderBrand } from "../components/ProviderBrand";
 import { pageHead, siteUrl, structuredData } from "../lib/seo";
 import { useEffect, useRef, useState } from "react";
 
-const installCommand = "curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | bash";
-const githubUrl = "https://github.com/Studio1-OSS/nebius-tf-relay";
+const installCommand = "curl -fsSL https://nconnect.sh | bash";
+const githubUrl = "https://github.com/pradhan-not-found/nconnect-";
 const docsUrl = "/docs";
-const nebiusApiKeysUrl = "https://tokenfactory.nebius.com/?modals=create-api-key";
+const nconnectApiKeysUrl = "https://tokenfactory.nebius.com/?modals=create-api-key";
 const glmFlashUrl =
   "https://tokenfactory.nebius.com/endpoints?modals=endpoint-details&model-id=zai-org/GLM-5.3-Flash";
 const tavilyKeysUrl = "https://app.tavily.com";
@@ -45,7 +45,7 @@ const agents: Agent[] = [
     status: "Proxied",
     mark: <ClaudeMark />,
     blurb:
-      "Routes Claude Code through a local Anthropic-to-Nebius translation proxy. Your subscription, login, and config stay untouched.",
+      "Routes Claude Code through a local Anthropic-to-nConnect translation proxy. Your subscription, login, and config stay untouched.",
   },
   {
     name: "Codex CLI",
@@ -53,7 +53,7 @@ const agents: Agent[] = [
     status: "Proxied",
     mark: <CodexMark />,
     blurb:
-      "Talks to Nebius through a local Responses-to-chat proxy, with headless exec support. Sessions stay resumable across providers.",
+      "Talks to nConnect through a local Responses-to-chat proxy, with headless exec support. Sessions stay resumable across providers.",
   },
   {
     name: "OpenCode",
@@ -61,7 +61,7 @@ const agents: Agent[] = [
     status: "Provider config",
     mark: <OpenCodeMark />,
     blurb:
-      "Launches with Nebius wired in as an OpenAI-compatible provider, injected only for that run. Close it and your setup is exactly as it was.",
+      "Launches with nConnect wired in as an OpenAI-compatible provider, injected only for that run. Close it and your setup is exactly as it was.",
   },
   {
     name: "Pi Code",
@@ -69,7 +69,7 @@ const agents: Agent[] = [
     status: "Provider config",
     mark: <PiMark />,
     blurb:
-      "Starts with a custom Nebius provider and a temporary config directory, while normal local session history keeps persisting.",
+      "Starts with a custom nConnect provider and a temporary config directory, while normal local session history keeps persisting.",
   },
   {
     name: "Hermes Agent",
@@ -85,7 +85,7 @@ const agents: Agent[] = [
     status: "Alpha",
     mark: <DeepSeekMark />,
     blurb:
-      "Boots the DeepSeek web profile with Nebius layered in as a provider. Pairs naturally with DeepSeek V4 Pro and Flash.",
+      "Boots the DeepSeek web profile with nConnect layered in as a provider. Pairs naturally with DeepSeek V4 Pro and Flash.",
   },
   {
     name: "Grok Build",
@@ -93,7 +93,7 @@ const agents: Agent[] = [
     status: "Provider config",
     mark: <GrokMark />,
     blurb:
-      "xAI's terminal harness driving Nebius models. Your key is fenced off from api.x.ai, and the model is told not to claim it is Grok.",
+      "xAI's terminal harness driving nConnect models. Your key is fenced off from api.x.ai, and the model is told not to claim it is Grok.",
   },
   {
     name: "Prime Agent",
@@ -101,7 +101,7 @@ const agents: Agent[] = [
     status: "Provider config",
     mark: <PrimeMark />,
     blurb:
-      "PrimeIntellect's RLM agent, with its persistent IPython tool and subagents running on Nebius models. Your own Prime config stays untouched.",
+      "PrimeIntellect's RLM agent, with its persistent IPython tool and subagents running on nConnect models. Your own Prime config stays untouched.",
   },
 ];
 
@@ -110,7 +110,7 @@ const steps = [
     title: "Install once",
     body: (
       <>
-        Run the one-liner. It drops <code>nebiusrelay</code> plus <code>nclaude</code>,{" "}
+        Run the one-liner. It drops <code>nconnect.sh</code> plus <code>nclaude</code>,{" "}
         <code>ncodex</code>, <code>nopencode</code>, <code>npi</code>, and <code>nprime</code> onto
         your PATH and installs Bun if you don&apos;t have it.
       </>
@@ -121,9 +121,9 @@ const steps = [
     title: "Add your keys",
     body: (
       <>
-        On first run, <code>nebiusrelay configure</code> asks for your{" "}
-        <a className="link" href={nebiusApiKeysUrl} target="_blank" rel="noopener noreferrer">
-          Nebius Token Factory
+        On first run, <code>nconnect.sh configure</code> asks for your{" "}
+        <a className="link" href={nconnectApiKeysUrl} target="_blank" rel="noopener noreferrer">
+          nConnect
         </a>{" "}
         key and an optional{" "}
         <a className="link" href={tavilyKeysUrl} target="_blank" rel="noopener noreferrer">
@@ -138,7 +138,7 @@ const steps = [
     title: "Launch an agent",
     body: (
       <>
-        Type <code>nclaude</code> or <code>ncodex</code> and keep working. The Relay injects Nebius
+        Type <code>nclaude</code> or <code>ncodex</code> and keep working. The Relay injects nConnect
         settings for that run only. Nothing is written to your real agent config.
       </>
     ),
@@ -149,7 +149,7 @@ const steps = [
 const features = [
   {
     title: "One relay, eight harnesses",
-    body: "Claude Code, Codex, OpenCode, Pi Code, Prime Agent, Hermes, DeepSeek Harness, and Grok Build all run on Nebius open models through a single local install.",
+    body: "Claude Code, Codex, OpenCode, Pi Code, Prime Agent, Hermes, DeepSeek Harness, and Grok Build all run on nConnect open models through a single local install.",
   },
   {
     title: "Live web search, built in",
@@ -179,18 +179,18 @@ const modelHighlights = [
 export const Route = createFileRoute("/")({
   head: () => ({
     ...pageHead(
-      "Nebius TF Relay | Open Models for Claude Code, Codex & More",
-      "Run eight coding agents on Nebius Token Factory with a local, open-source relay. Install on macOS or Linux, configure API keys, and add Tavily web search.",
+      "nConnect | Open Models for Claude Code, Codex & More",
+      "Run eight coding agents on nConnect with a local, open-source relay. Install on macOS or Linux, configure API keys, and add Tavily web search.",
       "/",
     ),
     scripts: [
       structuredData({
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
-        name: "Nebius TF Relay",
+        name: "nConnect",
         url: `${siteUrl}/`,
         description:
-          "A local open-source relay connecting eight coding agents to models on Nebius Token Factory.",
+          "A local open-source relay connecting eight coding agents to models on nConnect.",
         applicationCategory: "DeveloperApplication",
         operatingSystem: "macOS, Linux",
         license: "https://opensource.org/license/mit",
@@ -249,14 +249,14 @@ function Home() {
       </a>
       <div className="relay-nav-container">
         <header className="relay-nav wrap">
-          <a className="relay-brand" href="/" aria-label="Nebius TF Relay home">
-            <img src="/hero/logo.png" alt="Nebius TF Relay" />
+          <a className="relay-brand" href="/" aria-label="nConnect home">
+            <img src="/hero/logo.png" alt="nConnect" />
           </a>
           <nav aria-label="Main navigation">
             <a href="#agents">Agents</a>
             <a href={docsUrl}>Docs</a>
             <a className="github-link" href={githubUrl} target="_blank" rel="noopener noreferrer">
-              <GitBranch size={16} /> GitHub
+              <Github size={16} /> GitHub
             </a>
             <a className="button button-dark" href="#install">
               Get started <ArrowRight size={16} />
@@ -291,17 +291,17 @@ function Home() {
             </div>
             <div className="hero-split-right">
               <p className="hero-description">
-                Run the coding agents you love on Nebius Token Factory. One local relay. Eight agents. Your setup stays yours.
+                Run the coding agents you love on nConnect. One local relay. Eight agents. Your setup stays yours.
               </p>
               <div className="hero-meta">
                 <span>
-                  <Check size={14} color="#38b889" /> Open source
+                  <img src="/logos/opensource.png" alt="" style={{ width: '14px', height: '14px', objectFit: 'contain' }} /> Open source
                 </span>
                 <span>
-                  <Terminal size={14} /> macOS & Linux
+                  <img src="/logos/linux.png" alt="" style={{ width: '14px', height: '14px', objectFit: 'contain' }} /> macOS & Linux
                 </span>
                 <span>
-                  <Settings size={14} /> Config-free
+                  <img src="/logos/config.png" alt="" style={{ width: '14px', height: '14px', objectFit: 'contain' }} /> Config-free
                 </span>
               </div>
             </div>
@@ -394,7 +394,7 @@ function Home() {
                 <h3>{step.title}</h3>
                 <p>{step.body}</p>
                 {i === 1 ? (
-                  <code>nebiusrelay configure</code>
+                  <code>nconnect.sh configure</code>
                 ) : i === 2 ? (
                   <code>ncodex</code>
                 ) : null}
@@ -476,7 +476,7 @@ function Home() {
               </p>
               <a
                 className="text-link"
-                href={nebiusApiKeysUrl}
+                href={nconnectApiKeysUrl}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -555,8 +555,8 @@ function Home() {
         </section>
       </main>
       <footer className="relay-footer wrap">
-        <a href="/" className="relay-brand" aria-label="Nebius TF Relay home">
-          <img src="/hero/logo.png" alt="Nebius TF Relay" />
+        <a href="/" className="relay-brand" aria-label="nConnect home">
+          <img src="/hero/logo.png" alt="nConnect" />
         </a>
         <span>An open-source project by Studio1.</span>
         <nav aria-label="Footer navigation">
@@ -727,28 +727,43 @@ function formatReleaseAge(publishedAt: string | undefined) {
   return `${Math.floor(diffMs / week)}w ago`;
 }
 
+function MacWindowControls() {
+  return (
+    <div className="flex gap-1.5 group cursor-default">
+      <div className="w-2.5 h-2.5 rounded-full bg-red-500 opacity-80 flex items-center justify-center">
+        <svg className="w-[6px] h-[6px] opacity-0 group-hover:opacity-100 text-red-950" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <path d="M3 3L11 11M11 3L3 11" />
+        </svg>
+      </div>
+      <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 opacity-80 flex items-center justify-center">
+        <svg className="w-[6px] h-[6px] opacity-0 group-hover:opacity-100 text-yellow-950" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+          <path d="M2 7H12" />
+        </svg>
+      </div>
+      <div className="w-2.5 h-2.5 rounded-full bg-green-500 opacity-80 flex items-center justify-center">
+        <svg className="w-[6px] h-[6px] opacity-0 group-hover:opacity-100 text-green-950" viewBox="0 0 14 14" fill="currentColor">
+          <path d="M2 2H7V4H4V7H2V2Z" />
+          <path d="M12 12H7V10H10V7H12V12Z" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 function Step1Graphic() {
   return (
     <div className="step-graphic">
       <div className="step-icon-wrapper w-full flex items-center justify-center pointer-events-none animate-step1">
         <div className="relative w-[88%] max-w-[360px]">
-          <div className="rounded-lg border shadow-lg bg-gray-900 border-gray-700 text-left overflow-hidden">
-            <div className="px-3 py-2 flex items-center gap-2 border-b border-gray-800 bg-gray-900">
-              <div className="flex gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-500 opacity-80"></div>
-                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 opacity-80"></div>
-                <div className="w-2.5 h-2.5 rounded-full bg-green-500 opacity-80"></div>
-              </div>
-              <div className="text-gray-400 text-[10px] font-mono ml-2">bash</div>
-            </div>
-            <div className="p-4 font-mono text-[11px] leading-relaxed text-gray-300">
+          <div className="rounded-lg border shadow-lg bg-black border-[#262626] text-left overflow-hidden">
+            <div className="p-4 font-mono pro-mono text-[11px] leading-relaxed text-gray-300">
               <div className="flex items-center gap-2 ui-seq-1">
                 <span className="text-green-400">~</span>
                 <span className="text-gray-500">$</span>
-                <span className="text-white">curl -sL nebiusrelay.com | bash</span>
+                <span className="text-white">curl -sL nconnect.sh | bash</span>
               </div>
               <div className="mt-2 text-gray-400 opacity-90 ui-seq-2">
-                Installing nebiusrelay...<br />
+                Installing nconnect.sh...<br />
                 Adding nclaude, ncodex to PATH...<br />
                 <span className="text-green-400 font-medium">✓ Success</span>
               </div>
@@ -765,19 +780,11 @@ function Step2Graphic() {
     <div className="step-graphic">
       <div className="step-icon-wrapper w-full flex items-center justify-center pointer-events-none animate-step2">
         <div className="relative w-[88%] max-w-[360px]">
-          <div className="rounded-lg border shadow-lg bg-gray-900 border-gray-700 text-left overflow-hidden">
-            <div className="px-3 py-2 flex items-center gap-2 border-b border-gray-800 bg-gray-900">
-              <div className="flex gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-gray-600"></div>
-                <div className="w-2.5 h-2.5 rounded-full bg-gray-600"></div>
-                <div className="w-2.5 h-2.5 rounded-full bg-gray-600"></div>
-              </div>
-              <div className="text-gray-400 text-[10px] font-mono ml-2">nebiusrelay</div>
-            </div>
-            <div className="p-4 font-mono text-[11px] leading-relaxed text-gray-300">
+          <div className="rounded-lg border shadow-lg bg-black border-[#262626] text-left overflow-hidden">
+            <div className="p-4 font-mono pro-mono text-[11px] leading-relaxed text-gray-300">
               <div className="flex items-start gap-2 ui-seq-1">
                 <span className="text-blue-400 mt-0.5">?</span>
-                <span className="text-white">Enter Nebius Token Factory API Key:</span>
+                <span className="text-white">Enter nConnect API Key:</span>
               </div>
               <div className="mt-0.5 ml-4 flex items-center gap-1 text-gray-500 tracking-widest ui-seq-2">
                 ************************
@@ -798,49 +805,42 @@ function Step3Graphic() {
   return (
     <div className="step-graphic">
       <div className="step-icon-wrapper w-full flex items-center justify-center pointer-events-none animate-step3">
-                  </button>
-                  <div className="relative">
-                    <button type="button" className="flex items-center gap-0.5 rounded-md bg-transparent py-1 text-xs text-gray-600">
-                      <span>Gemini 3.1 Pro</span>
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" className="h-3 w-3 opacity-60">
-                        <path d="M7.00342 9.62646C6.86377 9.62646 6.74023 9.57275 6.63818 9.4707L2.48096 5.2168C2.38965 5.12012 2.33594 5.00195 2.33594 4.86768C2.33594 4.58838 2.54541 4.37354 2.82471 4.37354C2.96436 4.37354 3.08789 4.42725 3.17383 4.51318L7.00342 8.42334L10.8276 4.51318C10.9189 4.42725 11.0425 4.37354 11.1768 4.37354C11.4561 4.37354 11.6655 4.58838 11.6655 4.86768C11.6655 5.00195 11.6118 5.12012 11.5205 5.21143L7.36328 9.4707C7.27197 9.57275 7.1377 9.62646 7.00342 9.62646Z"></path> 
-                      </svg>
-                    </button>
-                    <div className="absolute left-0 top-[calc(100%+8px)] transition-all duration-200 ease-out origin-top-left opacity-100 scale-100 translate-y-0 text-sm pointer-events-auto">
-                      <div className="bg-white overflow-hidden rounded-md border border-gray-100 z-10" role="menu" aria-label="Model menu" style={{ boxShadow: '0 18px 36px -18px rgba(0,0,0,0.28)', minWidth: '180px' }}>
-                        <div className="p-1">
-                          <button type="button" className="text-gray-600 px-2 py-1 flex w-full items-center rounded-sm text-left hover:bg-gray-50" role="menuitem">
-                            <span className="flex flex-1 items-baseline gap-2"><span className="text-gray-900">Auto</span><span className="text-gray-400 text-xs">Suggested</span></span>
-                          </button>
-                          <button type="button" className="text-gray-600 px-2 py-1 flex w-full items-center rounded-sm text-left hover:bg-gray-50" role="menuitem">
-                            <span className="flex flex-1 items-baseline gap-2"><span className="text-gray-900">Grok 4.6</span></span>
-                          </button>
-                          <button type="button" className="text-gray-600 px-2 py-1 flex w-full items-center rounded-sm text-left hover:bg-gray-50" role="menuitem">
-                            <span className="flex flex-1 items-baseline gap-2"><span className="text-gray-900">GPT-5.6 Sol</span></span>
-                          </button>
-                          <button type="button" className="text-gray-600 px-2 py-1 flex w-full items-center rounded-sm text-left hover:bg-gray-50" role="menuitem">
-                            <span className="flex flex-1 items-baseline gap-2"><span className="text-gray-900">Fable 5.1</span><span className="text-gray-400 text-xs">Max</span></span>
-                          </button>
-                          <button type="button" className="text-gray-600 px-2 py-1 flex w-full items-center rounded-sm text-left hover:bg-gray-50" role="menuitem">
-                            <span className="flex flex-1 items-baseline gap-2"><span className="text-gray-900">Opus 5</span></span>
-                          </button>
-                          <button type="button" className="text-gray-900 px-2 py-1 flex w-full items-center rounded-sm text-left bg-gray-100" role="menuitem">
-                            <span className="flex flex-1 items-baseline gap-2"><span className="text-gray-900">Gemini 3.1 Pro</span></span><span className="ml-2 font-bold text-gray-500">✓</span>
-                          </button>
-                          <button type="button" className="text-gray-600 px-2 py-1 flex w-full items-center rounded-sm text-left hover:bg-gray-50" role="menuitem">
-                            <span className="flex flex-1 items-baseline gap-2"><span className="text-gray-900">Composer 2.5</span></span>
-                          </button>
-                        </div>
-                      </div>
+        <div className="relative w-[90%] max-w-[380px]">
+          <div className="rounded-lg border shadow-xl bg-black border-[#262626] text-left overflow-hidden flex flex-col h-[180px]">
+            <div className="flex-1 p-3 font-mono pro-mono text-[10px] leading-relaxed text-gray-300 overflow-hidden relative">
+              <div className="mb-2 text-gray-400">~/project</div>
+              <div className="mb-3 text-[#e5e5e5] border border-[#333] bg-[#1a1a1a] px-2 py-1.5 rounded shadow-sm">
+                $ ncodex --config "Use nconnect endpoint"
+              </div>
+              
+              <div className="space-y-1.5">
+                <div className="flex items-start gap-2 ui-seq-1">
+                  <span className="text-purple-500">⬢</span>
+                  <div className="flex-1 truncate">
+                    <span className="text-white">Thought</span> <span className="text-gray-500">2s</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-2 ui-seq-2">
+                  <span className="text-purple-500">⬢</span>
+                  <div className="flex-1 truncate">
+                    <span className="text-white">Read</span> <span className="text-gray-500">api/relay.ts, settings.ts</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-2 ui-seq-3">
+                  <span className="text-purple-500">⬢</span>
+                  <div className="flex-1">
+                    <div className="text-white mb-1">I'll configure the endpoint...</div>
+                    <div className="border border-[#333] bg-[#1a1a1a] px-2 py-1 rounded flex items-center">
+                      <span className="font-medium text-[#e5e5e5]">api/relay.ts</span>
+                      <span className="text-green-400 ml-2">+12</span>
+                      <span className="text-red-400 ml-1">-2</span>
                     </div>
                   </div>
                 </div>
-                <button type="button" aria-label="Send message" className="flex h-5 w-5 items-center justify-center rounded-full bg-black text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 256 256">
-                    <path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"></path>
-                  </svg>
-                </button>
               </div>
+              <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none"></div>
             </div>
           </div>
         </div>
