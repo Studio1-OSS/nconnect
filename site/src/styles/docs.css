@@ -1,13 +1,14 @@
 .docs-page {
-  --color-ink: #171917;
-  --color-muted: #596153;
-  --color-faint: #626c5b;
-  --color-line: #e0e5da;
-  --color-code: #f2f5ef;
-  --color-violet: #176a4d;
-  --color-violet-soft: #edf9f3;
-  --color-lime: #38b889;
-  --color-lime-ink: #15543f;
+  --color-ink: #18181b;
+  --color-muted: #71717a;
+  --color-faint: #a1a1aa;
+  --color-line: #e4e4e7;
+  --color-code: #f4f4f5;
+  --color-violet: #18181b;
+  --color-violet-soft: #f4f4f5;
+  --color-lime: #18181b;
+  --color-lime-ink: #fafafa;
+  font-family: var(--font-sans), sans-serif;
 }
 .docs-header {
   border-bottom: 1px solid var(--relay-line);
@@ -23,24 +24,25 @@
   gap: 60px;
 }
 .docs-sidebar {
-  border-right: 1px solid var(--relay-line);
-  padding-right: 26px;
+  border-right: 1px solid var(--color-line);
+  padding-right: 0;
 }
 .docs-sidebar-inner {
   position: sticky;
   top: 24px;
   padding-block: 30px;
+  padding-right: 26px;
   max-height: calc(100dvh - 24px);
   overflow-y: auto;
 }
 .docs-back {
   display: block;
   font-size: 11px;
-  color: #78826e;
+  color: #71717a;
   margin-bottom: 28px;
 }
 .docs-back strong {
-  color: #31382b;
+  color: #18181b;
   font-weight: 500;
 }
 .docs-search {
@@ -48,13 +50,13 @@
   gap: 8px;
   align-items: center;
   padding: 9px 10px;
-  border: 1px solid #dce3d4;
+  border: 1px solid #d4d4d8;
   border-radius: 5px;
   margin-bottom: 28px;
-  color: #748269;
+  color: #71717a;
 }
 .docs-search:focus-within {
-  outline: 2px solid #769b45;
+  outline: 2px solid #a1a1aa;
   outline-offset: 2px;
 }
 .docs-search input {
@@ -64,7 +66,7 @@
   border: 0;
   outline: none;
   font-size: 12px;
-  color: #26301e;
+  color: #18181b;
 }
 .docs-sidebar .eyebrow {
   font-size: 10px;
@@ -77,18 +79,19 @@
 }
 .docs-sidebar nav a {
   padding: 9px 12px;
-  border-left: 2px solid transparent;
-  color: #636e59;
+  color: #52525b;
   font-size: 13px;
+  transition: all 0.15s ease;
+  border-radius: 6px;
 }
 .docs-sidebar nav a:hover {
-  background: #f6f8f2;
-  color: #1f2d12;
+  background: #f4f4f5;
+  color: #18181b;
 }
 .docs-sidebar nav a[aria-current] {
-  border-color: #8bb83a;
-  background: #f0f5e8;
-  color: #2e4513;
+  background: #f4f4f5;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+  color: #18181b;
   font-weight: 600;
 }
 .docs-sidebar-links {
@@ -98,7 +101,7 @@
   display: grid;
   gap: 14px;
   font-size: 12px;
-  color: #6e7863;
+  color: #71717a;
 }
 .docs-sidebar-links a {
   display: flex;
@@ -107,7 +110,7 @@
 }
 .docs-no-results {
   font-size: 12px;
-  color: #66715d;
+  color: #71717a;
   padding: 8px 0;
 }
 .docs-content {
@@ -127,7 +130,7 @@
 .docs-intro > p:not(.eyebrow) {
   font-size: 16px;
   line-height: 1.7;
-  color: #69735e;
+  color: #52525b;
   max-width: 600px;
   margin-top: 22px;
 }
@@ -150,7 +153,7 @@
   align-items: center;
 }
 .docs-quick-links a:hover {
-  color: #527721;
+  color: #18181b;
 }
 .docs-section {
   margin-top: 52px;
@@ -163,11 +166,11 @@
   font-size: 25px;
 }
 .section-anchor {
-  color: #9aaa8c;
+  color: #d4d4d8;
   padding: 4px;
 }
 .section-anchor:hover {
-  color: #526c31;
+  color: #18181b;
 }
 .docs-section p {
   font-size: 14px;
@@ -195,10 +198,10 @@
 .docs-table th {
   font-size: 10px;
   padding: 12px;
-  color: #647457;
+  color: #52525b;
 }
 .docs-table tr:hover td {
-  background: #fafbf8;
+  background: #f4f4f5;
 }
 .docs-table code {
   font-size: 12px;
@@ -206,9 +209,9 @@
 .docs-copy-block {
   margin-top: 14px;
   position: relative;
-  background: #1c201b;
+  background: #18181b;
   border-radius: 6px;
-  color: #e3e9dc;
+  color: #fafafa;
 }
 .docs-command {
   display: flex;
@@ -217,7 +220,7 @@
   padding: 14px 16px;
 }
 .docs-command > span {
-  color: #38b889;
+  color: #18181b;
   font-family: var(--font-mono);
   font-size: 13px;
 }
@@ -239,7 +242,7 @@
   min-height: 22px;
   padding: 0 16px 6px;
   font-size: 10px;
-  color: #cbdcae;
+  color: #a1a1aa;
 }
 .docs-provider-inline {
   margin-bottom: 18px;
@@ -257,7 +260,7 @@
   margin-bottom: 14px;
 }
 .docs-faq summary::marker {
-  color: #748e52;
+  color: #18181b;
 }
 .docs-faq p a {
   text-decoration: underline;
@@ -269,7 +272,7 @@
   display: flex;
   justify-content: space-between;
   gap: 18px;
-  color: #748269;
+  color: #71717a;
   font-size: 11px;
 }
 .docs-footer a {
@@ -296,7 +299,7 @@
     z-index: 3;
     background: #fff;
     padding: 14px 0;
-    border-bottom: 1px solid #e0e5da;
+    border-bottom: 1px solid #e4e4e7;
     margin-bottom: 26px;
     font-size: 12px;
   }
@@ -304,9 +307,9 @@
     flex: 1;
     min-width: 0;
     padding: 8px;
-    border: 1px solid #dce3d4;
+    border: 1px solid #d4d4d8;
     border-radius: 4px;
-    background: #f6f8f2;
+    background: #f4f4f5;
   }
   .docs-content {
     padding-top: 0;

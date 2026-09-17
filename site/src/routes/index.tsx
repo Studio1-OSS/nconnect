@@ -7,8 +7,12 @@ import {
   ChartNoAxesCombined,
   Check,
   Copy,
+  Cpu,
+  FileText,
   GitBranch,
+  Key,
   Search,
+  Settings,
   ShieldCheck,
   Terminal,
 } from "lucide-react";
@@ -111,6 +115,7 @@ const steps = [
         your PATH and installs Bun if you don&apos;t have it.
       </>
     ),
+    graphic: <Step1Graphic />,
   },
   {
     title: "Add your keys",
@@ -127,6 +132,7 @@ const steps = [
         key for live web search.
       </>
     ),
+    graphic: <Step2Graphic />,
   },
   {
     title: "Launch an agent",
@@ -136,6 +142,7 @@ const steps = [
         settings for that run only. Nothing is written to your real agent config.
       </>
     ),
+    graphic: <Step3Graphic />,
   },
 ];
 
@@ -159,14 +166,14 @@ const features = [
 ];
 
 const modelHighlights = [
-  { name: "GLM 5.3 Flash", note: "default · 1M context" },
-  { name: "GLM 5.3", note: "coding and tool use" },
-  { name: "DeepSeek V4 Pro 0813", note: "979K context" },
-  { name: "Kimi K3", note: "frontier coding" },
-  { name: "Kimi K2.6", note: "vision" },
-  { name: "DeepSeek V4 Flash", note: "fast 1M context" },
-  { name: "DeepSeek V4 Pro", note: "long-context reasoning" },
-  { name: "Qwen 3.5", note: "flagship" },
+  { name: "GLM 5.3 Flash", note: "default · 1M context", logo: "/zai-logo.svg" },
+  { name: "GLM 5.3", note: "coding and tool use", logo: "/zai-logo.svg" },
+  { name: "DeepSeek V4 Pro 0813", note: "979K context", mark: <DeepSeekMark /> },
+  { name: "Kimi K3", note: "frontier coding", logo: "/logos/kimi.png" },
+  { name: "Kimi K2.6", note: "vision", logo: "/logos/kimi.png" },
+  { name: "DeepSeek V4 Flash", note: "fast 1M context", mark: <DeepSeekMark /> },
+  { name: "DeepSeek V4 Pro", note: "long-context reasoning", mark: <DeepSeekMark /> },
+  { name: "Qwen 3.5", note: "flagship", logo: "/logos/qwen.png" },
 ];
 
 export const Route = createFileRoute("/")({
@@ -236,99 +243,105 @@ function Home() {
 
   return (
     <div className="relay-home">
+      <div className="page-grid-lines" aria-hidden="true" />
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
-      <header className="relay-nav wrap">
-        <a className="relay-brand" href="/" aria-label="Nebius TF Relay home">
-          <img src="/relay-logo.png" alt="" />{" "}
-          <span>
-            Nebius <b>TF Relay</b>
-          </span>
-        </a>
-        <nav aria-label="Main navigation">
-          <a href="#agents">Agents</a>
-          <a href={docsUrl}>Docs</a>
-          <a className="github-link" href={githubUrl} target="_blank" rel="noopener noreferrer">
-            <GitBranch size={16} /> GitHub
+      <div className="relay-nav-container">
+        <header className="relay-nav wrap">
+          <a className="relay-brand" href="/" aria-label="Nebius TF Relay home">
+            <img src="/hero/logo.png" alt="Nebius TF Relay" />
           </a>
-          <a className="button button-dark" href="#install">
-            Get started <ArrowRight size={16} />
-          </a>
-        </nav>
-      </header>
+          <nav aria-label="Main navigation">
+            <a href="#agents">Agents</a>
+            <a href={docsUrl}>Docs</a>
+            <a className="github-link" href={githubUrl} target="_blank" rel="noopener noreferrer">
+              <GitBranch size={16} /> GitHub
+            </a>
+            <a className="button button-dark" href="#install">
+              Get started <ArrowRight size={16} />
+            </a>
+          </nav>
+        </header>
+      </div>
       <main id="main-content">
         <section className="relay-hero" aria-labelledby="hero-heading">
-          <img className="hero-art" src="/relay-mark.png" alt="" aria-hidden="true" />
-          <div className="wrap hero-content">
-            <a
-              className="release-note"
-              href={glmFlashUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span className="live-dot" /> GLM 5.3 Flash is now the default{" "}
-              <ArrowUpRight size={14} />
-            </a>
-            <p className="eyebrow">YOUR AGENTS. OPEN MODELS.</p>
-            <h1 id="hero-heading">
-              Nebius <span className="relay-name">TF Relay</span>
-            </h1>
-            <p className="hero-tagline">
-              Use open models
-              <br />
-              with your existing harness.
-            </p>
-            <p className="hero-description">
-              Run the coding agents you love on Nebius Token Factory. One local relay. Eight agents.
-              Your setup stays yours.
-            </p>
-            <div className="install-terminal hero-install" id="install">
-              <div className="terminal-bar">
+          <div className="wrap relay-hero-split">
+            <div className="hero-split-left">
+              <div className="hero-eyebrow-container">
+                <div className="hero-eyebrow-logos">
+                  <div className="eyebrow-logo"><ClaudeMark /></div>
+                  <div className="eyebrow-logo"><CodexMark /></div>
+                  <div className="eyebrow-logo"><PiMark /></div>
+                </div>
+                <p className="eyebrow">YOUR AGENTS. OPEN MODELS.</p>
+              </div>
+              <h1 id="hero-heading">
+                Use open models<br />
+                with your existing harness.
+              </h1>
+              <div className="hero-actions-container" style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "24px" }}>
+                <a className="button button-dark" href="#install">
+                  Get started <ArrowUpRight size={16} />
+                </a>
+                <a className="button button-light" href={docsUrl}>
+                  <FileText size={16} /> Read the docs
+                </a>
+              </div>
+            </div>
+            <div className="hero-split-right">
+              <p className="hero-description">
+                Run the coding agents you love on Nebius Token Factory. One local relay. Eight agents. Your setup stays yours.
+              </p>
+              <div className="hero-meta">
                 <span>
-                  <Terminal size={15} /> Terminal
+                  <Check size={14} color="#38b889" /> Open source
                 </span>
-                <span>{releaseLabel}</span>
-              </div>
-              <div className="install-command">
-                <span aria-hidden="true">$</span>
-                <code ref={commandRef}>{installCommand}</code>
-                <button
-                  type="button"
-                  className="copy-button"
-                  onClick={handleCopy}
-                  title="Copy install command"
-                  aria-label="Copy install command"
-                >
-                  {copyState === "copied" ? <Check size={18} /> : <Copy size={18} />}
-                </button>
-              </div>
-              <div className="terminal-foot">
-                <span>macOS / Linux</span>
-                <span role="status">
-                  {copyState === "copied"
-                    ? "Copied to clipboard"
-                    : copyState === "select"
-                      ? "Clipboard unavailable; command selected"
-                      : "Bun is installed automatically if needed"}
+                <span>
+                  <Terminal size={14} /> macOS & Linux
+                </span>
+                <span>
+                  <Settings size={14} /> Config-free
                 </span>
               </div>
             </div>
-            <div className="hero-actions">
-              <a className="text-link" href={docsUrl}>
-                Read the docs <ArrowUpRight size={16} />
-              </a>
-            </div>
-            <div className="hero-meta">
-              <span>
-                <Check size={14} /> Open source
-              </span>
-              <span>
-                <Check size={14} /> macOS & Linux
-              </span>
-              <span>
-                <Check size={14} /> Config-free
-              </span>
+          </div>
+          <div className="relay-hero-banner">
+            <div style={{ position: 'relative' }}>
+              <img src="/hero/hero_orange_abstract.png" alt="" />
+              <div className="install-terminal hero-install" id="install">
+                <div className="terminal-inner">
+                  <div className="terminal-bar">
+                    <span>
+                      <Terminal size={15} /> Terminal
+                    </span>
+                    <span>{releaseLabel}</span>
+                  </div>
+                  <div className="install-command">
+                    <span aria-hidden="true">$</span>
+                    <code ref={commandRef}>{installCommand}</code>
+                    <button
+                      type="button"
+                      className="copy-button"
+                      onClick={handleCopy}
+                      title="Copy install command"
+                      aria-label="Copy install command"
+                    >
+                      {copyState === "copied" ? <Check size={18} /> : <Copy size={18} />}
+                    </button>
+                  </div>
+                  <div className="terminal-foot">
+                    <span>macOS / Linux</span>
+                    <span role="status">
+                      {copyState === "copied"
+                        ? "Copied to clipboard"
+                        : copyState === "select"
+                          ? "Clipboard unavailable; command selected"
+                          : "Bun is installed automatically if needed"}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -343,13 +356,19 @@ function Home() {
             <br />
             MORE POSSIBILITIES.
           </span>
-          <div>
-            {agents.map((agent) => (
-              <a href="#agents" key={agent.command}>
-                {agent.mark}
-                <span>{agent.name}</span>
-              </a>
-            ))}
+          <div className="agent-strip-divider" />
+          <div className="agent-marquee">
+            <div className="agent-marquee-track">
+              {[...Array(4)].map((_, i) => (
+                <div className="agent-marquee-group" key={i} aria-hidden={i > 0}>
+                  {agents.map((agent) => (
+                    <div className="agent-marquee-logo" key={`${i}-${agent.name}`}>
+                      {agent.mark}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </section>
         <section className="install-section wrap">
@@ -379,6 +398,7 @@ function Home() {
                 ) : i === 2 ? (
                   <code>ncodex</code>
                 ) : null}
+                {step.graphic}
               </li>
             ))}
           </ol>
@@ -473,6 +493,15 @@ function Home() {
                 key={model.name}
               >
                 <span className="model-index">0{i + 1}</span>
+                {model.logo ? (
+                  <img src={model.logo} alt="" width={24} height={24} className="model-logo" style={{ objectFit: "contain" }} />
+                ) : model.mark ? (
+                  <div className="model-logo" style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {model.mark}
+                  </div>
+                ) : (
+                  <Cpu size={20} color="#a1a1aa" className="model-logo" />
+                )}
                 <h3>{model.name}</h3>
                 <span>{model.note}</span>
                 <ArrowUpRight size={18} />
@@ -508,25 +537,26 @@ function Home() {
           </div>
         </section>
         <section className="closing-section wrap">
-          <img src="/relay-logo.png" alt="" width="42" height="42" />
-          <p className="eyebrow">LESS SETUP. MORE BUILDING.</p>
-          <h2>
-            Your next coding session,
-            <br />
-            powered by Open Models.
-          </h2>
-          <a href="#install" className="button button-dark">
-            Get started <ArrowRight size={17} />
-          </a>
-          <p>Free to install. MIT licensed. Yours to explore.</p>
+          <div className="closing-left">
+            <img src="/relay-logo.png" className="closing-logo" alt="" width="42" height="42" />
+            <p className="eyebrow">LESS SETUP. MORE BUILDING.</p>
+            <h2>
+              Your next coding session,
+              <br />
+              powered by Open Models.
+            </h2>
+          </div>
+          <div className="closing-right">
+            <a href="#install" className="button button-dark">
+              Get started <ArrowRight size={17} />
+            </a>
+            <p>Free to install. MIT licensed. Yours to explore.</p>
+          </div>
         </section>
       </main>
       <footer className="relay-footer wrap">
-        <a href="/" className="relay-brand">
-          <img src="/relay-logo.png" alt="" />
-          <span>
-            Nebius <b>TF Relay</b>
-          </span>
+        <a href="/" className="relay-brand" aria-label="Nebius TF Relay home">
+          <img src="/hero/logo.png" alt="Nebius TF Relay" />
         </a>
         <span>An open-source project by Studio1.</span>
         <nav aria-label="Footer navigation">
@@ -543,7 +573,7 @@ function Home() {
 
 /* ---------- small pieces ---------- */
 
-function OpenCodeMark() {
+export function OpenCodeMark() {
   return (
     <svg className="h-6 w-[19px]" viewBox="0 0 240 300" fill="none" aria-hidden="true">
       <path d="M180 240H60V120H180V240Z" fill="#CFCECD" />
@@ -552,7 +582,7 @@ function OpenCodeMark() {
   );
 }
 
-function ClaudeMark() {
+export function ClaudeMark() {
   return (
     <svg className="size-[22px]" viewBox="0 0 1200 1200" aria-hidden="true">
       <path
@@ -563,7 +593,7 @@ function ClaudeMark() {
   );
 }
 
-function CodexMark() {
+export function CodexMark() {
   return (
     <svg
       className="size-[24px]"
@@ -595,7 +625,7 @@ function CodexMark() {
   );
 }
 
-function PiMark() {
+export function PiMark() {
   return (
     <svg className="size-[22px]" viewBox="0 0 800 800" aria-hidden="true">
       <path
@@ -607,7 +637,7 @@ function PiMark() {
     </svg>
   );
 }
-function HermesMark() {
+export function HermesMark() {
   // Nous Research ship the Hermes mark as artwork, not a path.
   return (
     <img
@@ -618,7 +648,7 @@ function HermesMark() {
     />
   );
 }
-function DeepSeekMark() {
+export function DeepSeekMark() {
   // Official DeepSeek whale. Keeps its brand blue rather than currentColor.
   return (
     <svg className="h-[18px] w-[25px]" viewBox="0 0 23.16 17.04" fill="none" aria-hidden="true">
@@ -629,7 +659,7 @@ function DeepSeekMark() {
     </svg>
   );
 }
-function GrokMark() {
+export function GrokMark() {
   // Official xAI mark, matching the one upstream uses.
   return (
     <svg className="size-[22px]" viewBox="0 0 1024 1024" aria-hidden="true">
@@ -644,7 +674,7 @@ function GrokMark() {
     </svg>
   );
 }
-function PrimeMark() {
+export function PrimeMark() {
   // Official PrimeIntellect mark.
   return (
     <svg className="size-[22px]" viewBox="0 0 178 178" fill="none" aria-hidden="true">
@@ -695,4 +725,126 @@ function formatReleaseAge(publishedAt: string | undefined) {
   if (diffMs < day) return `${Math.floor(diffMs / hour)}h ago`;
   if (diffMs < week) return `${Math.floor(diffMs / day)}d ago`;
   return `${Math.floor(diffMs / week)}w ago`;
+}
+
+function Step1Graphic() {
+  return (
+    <div className="step-graphic">
+      <div className="step-icon-wrapper w-full flex items-center justify-center pointer-events-none animate-step1">
+        <div className="relative w-[88%] max-w-[360px]">
+          <div className="rounded-lg border shadow-lg bg-gray-900 border-gray-700 text-left overflow-hidden">
+            <div className="px-3 py-2 flex items-center gap-2 border-b border-gray-800 bg-gray-900">
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500 opacity-80"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 opacity-80"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500 opacity-80"></div>
+              </div>
+              <div className="text-gray-400 text-[10px] font-mono ml-2">bash</div>
+            </div>
+            <div className="p-4 font-mono text-[11px] leading-relaxed text-gray-300">
+              <div className="flex items-center gap-2 ui-seq-1">
+                <span className="text-green-400">~</span>
+                <span className="text-gray-500">$</span>
+                <span className="text-white">curl -sL nebiusrelay.com | bash</span>
+              </div>
+              <div className="mt-2 text-gray-400 opacity-90 ui-seq-2">
+                Installing nebiusrelay...<br />
+                Adding nclaude, ncodex to PATH...<br />
+                <span className="text-green-400 font-medium">✓ Success</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Step2Graphic() {
+  return (
+    <div className="step-graphic">
+      <div className="step-icon-wrapper w-full flex items-center justify-center pointer-events-none animate-step2">
+        <div className="relative w-[88%] max-w-[360px]">
+          <div className="rounded-lg border shadow-lg bg-gray-900 border-gray-700 text-left overflow-hidden">
+            <div className="px-3 py-2 flex items-center gap-2 border-b border-gray-800 bg-gray-900">
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-gray-600"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-gray-600"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-gray-600"></div>
+              </div>
+              <div className="text-gray-400 text-[10px] font-mono ml-2">nebiusrelay</div>
+            </div>
+            <div className="p-4 font-mono text-[11px] leading-relaxed text-gray-300">
+              <div className="flex items-start gap-2 ui-seq-1">
+                <span className="text-blue-400 mt-0.5">?</span>
+                <span className="text-white">Enter Nebius Token Factory API Key:</span>
+              </div>
+              <div className="mt-0.5 ml-4 flex items-center gap-1 text-gray-500 tracking-widest ui-seq-2">
+                ************************
+              </div>
+              <div className="mt-3 flex items-start gap-2 opacity-80 ui-seq-3">
+                <span className="text-blue-400 mt-0.5">?</span>
+                <span className="text-white">Enter Tavily API Key (optional):</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Step3Graphic() {
+  return (
+    <div className="step-graphic">
+      <div className="step-icon-wrapper w-full flex items-center justify-center pointer-events-none animate-step3">
+                  </button>
+                  <div className="relative">
+                    <button type="button" className="flex items-center gap-0.5 rounded-md bg-transparent py-1 text-xs text-gray-600">
+                      <span>Gemini 3.1 Pro</span>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" className="h-3 w-3 opacity-60">
+                        <path d="M7.00342 9.62646C6.86377 9.62646 6.74023 9.57275 6.63818 9.4707L2.48096 5.2168C2.38965 5.12012 2.33594 5.00195 2.33594 4.86768C2.33594 4.58838 2.54541 4.37354 2.82471 4.37354C2.96436 4.37354 3.08789 4.42725 3.17383 4.51318L7.00342 8.42334L10.8276 4.51318C10.9189 4.42725 11.0425 4.37354 11.1768 4.37354C11.4561 4.37354 11.6655 4.58838 11.6655 4.86768C11.6655 5.00195 11.6118 5.12012 11.5205 5.21143L7.36328 9.4707C7.27197 9.57275 7.1377 9.62646 7.00342 9.62646Z"></path> 
+                      </svg>
+                    </button>
+                    <div className="absolute left-0 top-[calc(100%+8px)] transition-all duration-200 ease-out origin-top-left opacity-100 scale-100 translate-y-0 text-sm pointer-events-auto">
+                      <div className="bg-white overflow-hidden rounded-md border border-gray-100 z-10" role="menu" aria-label="Model menu" style={{ boxShadow: '0 18px 36px -18px rgba(0,0,0,0.28)', minWidth: '180px' }}>
+                        <div className="p-1">
+                          <button type="button" className="text-gray-600 px-2 py-1 flex w-full items-center rounded-sm text-left hover:bg-gray-50" role="menuitem">
+                            <span className="flex flex-1 items-baseline gap-2"><span className="text-gray-900">Auto</span><span className="text-gray-400 text-xs">Suggested</span></span>
+                          </button>
+                          <button type="button" className="text-gray-600 px-2 py-1 flex w-full items-center rounded-sm text-left hover:bg-gray-50" role="menuitem">
+                            <span className="flex flex-1 items-baseline gap-2"><span className="text-gray-900">Grok 4.6</span></span>
+                          </button>
+                          <button type="button" className="text-gray-600 px-2 py-1 flex w-full items-center rounded-sm text-left hover:bg-gray-50" role="menuitem">
+                            <span className="flex flex-1 items-baseline gap-2"><span className="text-gray-900">GPT-5.6 Sol</span></span>
+                          </button>
+                          <button type="button" className="text-gray-600 px-2 py-1 flex w-full items-center rounded-sm text-left hover:bg-gray-50" role="menuitem">
+                            <span className="flex flex-1 items-baseline gap-2"><span className="text-gray-900">Fable 5.1</span><span className="text-gray-400 text-xs">Max</span></span>
+                          </button>
+                          <button type="button" className="text-gray-600 px-2 py-1 flex w-full items-center rounded-sm text-left hover:bg-gray-50" role="menuitem">
+                            <span className="flex flex-1 items-baseline gap-2"><span className="text-gray-900">Opus 5</span></span>
+                          </button>
+                          <button type="button" className="text-gray-900 px-2 py-1 flex w-full items-center rounded-sm text-left bg-gray-100" role="menuitem">
+                            <span className="flex flex-1 items-baseline gap-2"><span className="text-gray-900">Gemini 3.1 Pro</span></span><span className="ml-2 font-bold text-gray-500">✓</span>
+                          </button>
+                          <button type="button" className="text-gray-600 px-2 py-1 flex w-full items-center rounded-sm text-left hover:bg-gray-50" role="menuitem">
+                            <span className="flex flex-1 items-baseline gap-2"><span className="text-gray-900">Composer 2.5</span></span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button type="button" aria-label="Send message" className="flex h-5 w-5 items-center justify-center rounded-full bg-black text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 256 256">
+                    <path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
