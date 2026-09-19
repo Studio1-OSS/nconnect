@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { StreamingText } from "../components/StreamingText";
+import { CofounderGraphic } from "../components/CofounderGraphic";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -21,7 +23,7 @@ import {
 import "../styles/landing.css";
 import { ProviderBrand } from "../components/ProviderBrand";
 import { ThinkingState, useSequence } from "../components/ThinkingState";
-import { SpinnerRing, Badge, CheckIcon } from "../components/TaskRows";
+import { TaskRows, SpinnerRing, Badge, CheckIcon, TaskRow } from "../components/TaskRows";
 import { pageHead, siteUrl, structuredData } from "../lib/seo";
 import { useEffect, useRef, useState } from "react";
 
@@ -520,17 +522,39 @@ function Home() {
         </section>
         <section className="features-section">
           <div className="wrap">
-            <p className="eyebrow">BUILT TO STAY OUT OF YOUR WAY</p>
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">04 / FEATURES</p>
+                <h2>
+                  Built to stay
+                  <br />
+                  out of your way.
+                </h2>
+              </div>
+              <p>
+                A seamless proxy that works
+                <br />
+                with your existing setup.
+              </p>
+            </div>
             <div className="feature-grid">
               {features.map((feature, i) => {
                 const Icon = [Cable, Search, ChartNoAxesCombined, ShieldCheck][i];
                 return (
-                  <article key={feature.title}>
-                    <div className="feature-icon-wrapper">
-                      <Icon size={28} strokeWidth={1.5} />
+                  <article key={feature.title} className={`feature-card feature-card-${i}`}>
+                    <div className="feature-card-text">
+                      <div className="feature-icon-wrapper">
+                        <Icon size={20} strokeWidth={2} />
+                      </div>
+                      <h3>{feature.title}</h3>
+                      <p>{feature.body}</p>
                     </div>
-                    <h3>{feature.title}</h3>
-                    <p>{feature.body}</p>
+                    <div className="feature-graphic-container">
+                      {i === 0 && <FeatureGraphic0 />}
+                      {i === 1 && <FeatureGraphic1 />}
+                      {i === 2 && <FeatureGraphic2 />}
+                      {i === 3 && <FeatureGraphic3 />}
+                    </div>
                   </article>
                 );
               })}
@@ -872,6 +896,70 @@ function Step3Graphic() {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function FeatureGraphic0() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+      <div className="w-[200%] max-w-[600px] transform origin-center opacity-90 flex justify-center">
+        <CofounderGraphic />
+      </div>
+    </div>
+  );
+}
+
+function FeatureGraphic1() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center p-6">
+      <div className="w-full transform scale-[0.85] origin-center flex justify-center pt-8">
+        <StreamingText fill loop />
+      </div>
+    </div>
+  );
+}
+
+function FeatureGraphic2() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center p-6">
+      <div className="w-[111%] transform scale-[0.90] origin-center flex justify-center pt-8 pl-4">
+        <ThinkingState variant="Cost" />
+      </div>
+    </div>
+  );
+}
+
+const UPDATE_ROWS: TaskRow[] = [
+  {
+    key: "update",
+    label: "Check for updates",
+    amount: "Latest",
+    status: "done",
+    details: [
+      { label: "Local version", meta: "v0.15.3" },
+      { label: "Remote version", meta: "v0.15.4" },
+    ],
+  },
+  {
+    key: "config",
+    label: "Inject provider config",
+    amount: "Ephemeral",
+    status: "sequence",
+    step: 2,
+    details: [
+      { label: "Generate temporary keys", meta: "Success" },
+      { label: "Route local endpoints", meta: "Active" },
+    ],
+  },
+];
+
+function FeatureGraphic3() {
+  return (
+    <div className="absolute inset-0 flex items-start justify-center p-6 pt-10">
+      <div className="w-full transform scale-[0.90] origin-top flex justify-center">
+        <TaskRows rows={UPDATE_ROWS} variant="List" className="w-full max-w-[320px]" />
       </div>
     </div>
   );

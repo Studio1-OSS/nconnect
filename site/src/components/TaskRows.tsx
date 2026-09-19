@@ -2,12 +2,29 @@
 
 import { useEffect, useState } from "react";
 
+/* ─────────────────────────────────────────────────────────
+ * TASK ROWS
+ *
+ *     0ms   rows enter staggered (80ms apart)
+ *   600ms   row 1 ring sweeps 0 → 66%
+ *  1500ms   row 1 expands — detail steps drop down
+ *  3900ms   row 1 collapses; row 2 flips to Failed + retry
+ *  5300ms   row 2 resolves to Completed
+ * The status run completes once; task details stay clickable.
+ * ───────────────────────────────────────────────────────── */
+
 const TICKS = [600, 900, 2400, 1400, 2400, 600];
 
 function useTick(intervals: number[]) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    if (tick >= intervals.length - 1) return;
+    if (tick >= intervals.length) return;
+    
+    if (tick === intervals.length - 1) {
+      const t = setTimeout(() => setTick(0), 4000);
+      return () => clearTimeout(t);
+    }
+    
     const t = setTimeout(() => setTick((x) => x + 1), intervals[tick]);
     return () => clearTimeout(t);
   }, [tick, intervals]);
@@ -24,16 +41,16 @@ export function SpinnerRing({ active, children }: { active?: boolean; children?:
         width={size} height={size} className="absolute inset-0"
         style={active ? { animation: "spin 1.1s linear infinite" } : undefined}
       >
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--relay-line)" strokeWidth={stroke} />
         {active && (
           <circle
             cx={size / 2} cy={size / 2} r={r} fill="none"
-            stroke="#52525b" strokeWidth={stroke} strokeLinecap="round"
+            stroke="var(--relay-ink)" strokeWidth={stroke} strokeLinecap="round"
             strokeDasharray={`${c * 0.28} ${c * 0.72}`}
           />
         )}
       </svg>
-      <span className="relative text-[10.5px] font-semibold tabular-nums text-white">{children}</span>
+      <span className="relative text-[10.5px] font-semibold tabular-nums text-[var(--relay-ink)]">{children}</span>
     </span>
   );
 }
@@ -41,8 +58,9 @@ export function SpinnerRing({ active, children }: { active?: boolean; children?:
 export function Badge({ tone, children }: { tone: "red" | "green"; children: React.ReactNode }) {
   return (
     <span
+      key={tone}
       className={`flex w-[22px] h-[22px] shrink-0 items-center justify-center rounded-full text-white
-        ${tone === "red" ? "bg-red-500" : "bg-green-500"}`}
+        ${tone === "red" ? "bg-[#ef4444]" : "bg-[#22c55e]"}`}
       style={{ animation: "pop-in 300ms cubic-bezier(0.23,1,0.32,1) both" }}
     >
       {children}
@@ -60,8 +78,10 @@ const RetryIcon = (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" /></svg>
 );
 
+/* One detail line shown when a task row is expanded. */
 export type TaskDetail = { label: string; meta: string };
 
+/* A single task row. */
 export type TaskRow = {
   key: string;
   label: string;
@@ -138,7 +158,7 @@ export function TaskRows({
     if (row.status === "done") return <Badge tone="green">{CheckIcon}</Badge>;
     if (row.status === "running") return <SpinnerRing active>{row.step}</SpinnerRing>;
     return row2 === "pending" ? (
-      <SpinnerRing>{row.step}</SpinnerRing>
+      <SpinnerRing active>{row.step}</SpinnerRing>
     ) : row2 === "failed" ? (
       <Badge tone="red">{XIcon}</Badge>
     ) : (
@@ -149,17 +169,17 @@ export function TaskRows({
   const pillFor = (row: TaskRow) => {
     if (row.status === "done")
       return (
-        <span className="inline-flex h-[22px] items-center rounded-full bg-green-500/20 px-2 text-[11.5px] font-medium text-green-400">
+        <span className="inline-flex h-5.5 items-center rounded-full bg-[#dcfce7] px-2 text-[11.5px] font-medium text-[#166534]">
           {copy.completed}
         </span>
       );
     if (row.status === "running") return null;
     return row2 === "failed" ? (
-      <span className="inline-flex h-[22px] items-center gap-1.5 rounded-full bg-red-500/20 px-2 text-[11.5px] font-medium text-red-400" style={{ animation: "fade-in 200ms ease-out both" }}>
+      <span className="inline-flex h-5.5 items-center gap-1.5 rounded-full bg-[#fee2e2] px-2 text-[11.5px] font-medium text-[#991b1b]" style={{ animation: "fade-in 200ms ease-out both" }}>
         {copy.failed} <span style={{ animation: "spin 1.2s linear infinite" }} className="flex">{RetryIcon}</span>
       </span>
     ) : row2 === "done" ? (
-      <span className="inline-flex h-[22px] items-center gap-1.5 rounded-full bg-green-500/20 px-2 text-[11.5px] font-medium text-green-400" style={{ animation: "fade-in 200ms ease-out both" }}>
+      <span className="inline-flex h-5.5 items-center gap-1.5 rounded-full bg-[#dcfce7] px-2 text-[11.5px] font-medium text-[#166534]" style={{ animation: "fade-in 200ms ease-out both" }}>
         {copy.completed}
       </span>
     ) : null;
@@ -168,17 +188,17 @@ export function TaskRows({
   const list = variant === "List";
   return (
     <div
-      className={`flex w-full max-w-[440px] flex-col ${
-        list ? "gap-0 self-start overflow-hidden rounded-xl bg-[#0a0a0a] shadow-xl" : "min-h-[196px] gap-2"
+      className={`flex w-full flex-col ${
+        list ? "gap-0 self-start overflow-hidden rounded-2xl bg-transparent" : "min-h-[196px] gap-2"
       }${className ? ` ${className}` : ""}`}
     >
       {rows.map((row, i) => {
-        const open = manualOpen[row.key] ?? (row.key === "index" && tick === 2);
+        const open = manualOpen[row.key] ?? (row.key === "config" && (tick === 2 || tick === 3));
         return (
           <div
             key={row.key}
-            className={`self-stretch overflow-hidden transition-[border-radius,background-color] duration-300 hover:bg-white/5 ${
-              list ? "border-b border-white/10 last:border-0" : "bg-[#0a0a0a] border border-white/10 shadow-xl"
+            className={`self-stretch overflow-hidden transition-[border-radius,background-color] duration-300 hover:bg-black/5 ${
+              list ? "border-b border-[var(--relay-line)] last:border-0" : "bg-[#fcfcfb] shadow-sm"
             }`}
             style={{
               borderRadius: list ? 0 : open ? 14 : 22,
@@ -197,10 +217,10 @@ export function TaskRows({
               <span className="flex w-6 h-6 shrink-0 items-center justify-center">
                 {badgeFor(row)}
               </span>
-              <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-white">
+              <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-[var(--relay-ink)]">
                 {row.label}
               </span>
-              <span className="text-[12.5px] text-gray-300 tabular-nums">{row.amount}</span>
+              <span className="text-[12.5px] text-[var(--relay-muted)] tabular-nums">{row.amount}</span>
               {pillFor(row)}
               <span
                 aria-hidden="true"
@@ -226,7 +246,7 @@ export function TaskRows({
               >
                 <div className="overflow-hidden">
                   <div className="mb-2.5 grid grid-cols-[24px_1fr] gap-2.5 px-2.5">
-                    <span aria-hidden className="mx-auto h-full w-px bg-white/10" />
+                    <span aria-hidden className="mx-auto h-full w-px bg-[var(--relay-line)]" />
                     <div className="flex flex-col gap-1.5">
                       {row.details.map((d, j) => (
                         <div
@@ -238,7 +258,7 @@ export function TaskRows({
                               : undefined
                           }
                         >
-                          <span className="text-[12px] text-gray-300">{d.label}</span>
+                          <span className="text-[12px] text-[var(--relay-muted)]">{d.label}</span>
                           <span className="font-mono text-[11.5px] text-gray-500 tabular-nums">
                             {d.meta}
                           </span>

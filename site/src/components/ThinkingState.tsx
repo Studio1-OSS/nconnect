@@ -66,6 +66,15 @@ const VARIANTS: Record<
       { primary: "Edit", secondary: "api/relay.ts", mono: true, add: 12, del: 2 },
     ],
   },
+  Cost: {
+    active: "Estimating cost",
+    done: "Estimated session cost",
+    rows: [
+      { primary: "Prompt tokens", secondary: "24,000", mono: true },
+      { primary: "Completion tokens", secondary: "3,500", mono: true },
+      { primary: "Total cost", secondary: "$0.14", mono: true },
+    ],
+  },
 };
 
 function Dot({ tone }: { tone: string }) {
@@ -136,14 +145,14 @@ export function ThinkingState({
         type="button"
         aria-expanded={expanded}
         onClick={() => setManualExpanded((current) => !(current ?? autoExpanded))}
-        className="-mx-1.5 flex w-fit items-center gap-2 rounded-md px-1.5 py-1 transition-colors duration-100 hover:bg-white/10"
+        className="-mx-1.5 flex w-fit items-center gap-2 rounded-md px-1.5 py-1 transition-colors duration-100 hover:bg-black/5"
       >
         {icon ? (
-          <span className="flex shrink-0 transition-colors duration-200" style={{ color: working ? "#a1a1aa" : "#52525b" }}>
+          <span className="flex shrink-0 transition-colors duration-200" style={{ color: working ? "var(--relay-ink)" : "var(--relay-muted)" }}>
             {icon}
           </span>
         ) : (
-          <svg width="16" height="16" viewBox="0 0 24 24" fill={working ? "#a1a1aa" : "#52525b"}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill={working ? "var(--relay-ink)" : "var(--relay-muted)"}>
             <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z" />
           </svg>
         )}
@@ -152,7 +161,7 @@ export function ThinkingState({
             <span
               className="bg-clip-text text-[13px] font-medium whitespace-nowrap text-transparent"
               style={{
-                backgroundImage: "linear-gradient(90deg, #52525b 35%, #fff 50%, #52525b 65%)",
+                backgroundImage: "linear-gradient(90deg, var(--relay-muted) 35%, var(--relay-ink) 50%, var(--relay-muted) 65%)",
                 backgroundSize: "200% 100%",
                 animation: "shimmer-text 1.4s linear infinite",
               }}
@@ -161,15 +170,15 @@ export function ThinkingState({
             </span>
           ) : (
             <span
-              className="text-[13px] font-medium whitespace-nowrap text-gray-300"
-              style={{ animation: "fade-in 350ms ease-out both" }}
+              className="text-[13px] font-medium whitespace-nowrap"
+              style={{ color: "var(--relay-muted)", animation: "fade-in 350ms ease-out both" }}
             >
               {v.done}
             </span>
           )}
         </span>
         <svg
-          width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#52525b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+          width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--relay-muted)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
           className="transition-transform duration-300"
           style={{ transform: expanded ? "rotate(180deg)" : "rotate(0)" }}
         >
@@ -189,17 +198,17 @@ export function ThinkingState({
           <div className="relative mt-1 ml-[5px] pl-4">
             <span
               aria-hidden
-              className="absolute left-[3px] w-px bg-white/10"
-              style={{ top: -8, height: lineHeight ? lineHeight - 2 : 0, transition: "height 500ms cubic-bezier(0.23,1,0.32,1)" }}
+              className="absolute left-[3px] w-px"
+              style={{ background: "var(--relay-line)", top: -8, height: lineHeight ? lineHeight - 2 : 0, transition: "height 500ms cubic-bezier(0.23,1,0.32,1)" }}
             />
             <div ref={traceRef} className="flex flex-col gap-1 py-1">
             {v.query && (
               <div className="flex h-6 items-center gap-2 px-1.5" style={{ animation: expanded ? "fade-up 300ms cubic-bezier(0.23,1,0.32,1) both" : undefined }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#52525b" strokeWidth="2" strokeLinecap="round" className="shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--relay-muted)" strokeWidth="2" strokeLinecap="round" className="shrink-0">
                   <circle cx="11" cy="11" r="7" />
                   <path d="M21 21l-4.3-4.3" />
                 </svg>
-                <span className="text-[12.5px] text-gray-300">{v.query}</span>
+                <span className="text-[12.5px]" style={{ color: "var(--relay-muted)" }}>{v.query}</span>
               </div>
             )}
             {v.rows.slice(0, visible).map((row, i) => {
@@ -208,18 +217,18 @@ export function ThinkingState({
                 {variant === "Search" && <Dot tone={TONES[i % 3]} />}
                 {variant === "Steps" && (
                   i < visible - 1 || !working ? (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#52525b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--relay-muted)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                       <path d="M20 6L9 17l-5-5" />
                     </svg>
                   ) : (
-                    <span className="w-3 h-3 shrink-0 rounded-full border-[1.5px] border-white/20 border-t-gray-300" style={{ animation: "spin 700ms linear infinite" }} />
+                    <span className="w-3 h-3 shrink-0 rounded-full border-[1.5px]" style={{ borderColor: "var(--relay-line)", borderTopColor: "var(--relay-muted)", animation: "spin 700ms linear infinite" }} />
                   )
                 )}
-                <span className={`min-w-0 truncate text-[12.5px] ${variant === "Reasoning" ? "whitespace-normal leading-relaxed text-gray-300" : "font-medium text-white"} ${variant === "Search" ? "animated-underline" : ""}`}>
+                <span className={`min-w-0 truncate text-[12.5px] ${variant === "Reasoning" ? "whitespace-normal leading-relaxed" : "font-medium"} ${variant === "Search" ? "animated-underline" : ""}`} style={{ color: variant === "Reasoning" ? "var(--relay-muted)" : "var(--relay-ink)" }}>
                   {row.primary}
                 </span>
                 {row.secondary && (
-                  <span className={`shrink-0 text-[11.5px] text-gray-500 ${row.mono ? "font-mono" : ""}`}>
+                  <span className={`shrink-0 text-[11.5px] ${row.mono ? "font-mono" : ""}`} style={{ color: "var(--relay-muted)" }}>
                     {row.secondary}
                   </span>
                 )}
@@ -241,7 +250,7 @@ export function ThinkingState({
                     href={row.href}
                     target="_blank"
                     rel="noreferrer"
-                    className={`${rowClass} transition-colors duration-150 hover:bg-white/5`}
+                    className={`${rowClass} transition-colors duration-150 hover:bg-black/5`}
                     style={animation}
                   >
                     {content}
@@ -257,7 +266,7 @@ export function ThinkingState({
                     type="button"
                     aria-pressed={selected}
                     onClick={() => setSelectedTool(selected ? null : row.primary)}
-                    className={`${rowClass} transition-colors duration-150 ${selected ? "bg-white/10" : "hover:bg-white/5"}`}
+                    className={`${rowClass} transition-colors duration-150 ${selected ? "bg-black/10" : "hover:bg-black/5"}`}
                     style={animation}
                   >
                     {content}
