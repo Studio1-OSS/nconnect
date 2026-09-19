@@ -27,6 +27,22 @@ import { TaskRows, SpinnerRing, Badge, CheckIcon, TaskRow } from "../components/
 import { pageHead, siteUrl, structuredData } from "../lib/seo";
 import { useEffect, useRef, useState } from "react";
 
+function useInView(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setInView(true); observer.disconnect(); } },
+      { threshold }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [threshold]);
+  return { ref, inView };
+}
+
 const installCommand = "curl -fsSL https://nconnect.sh | bash";
 const githubUrl = "https://github.com/pradhan-not-found/nconnect-";
 const docsUrl = "/docs";
@@ -213,6 +229,7 @@ function Home() {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "select">("idle");
   const [release, setRelease] = useState<{ version?: string; age?: string }>({});
   const commandRef = useRef<HTMLElement>(null);
+  const { ref: featuresRef, inView: featuresInView } = useInView(0.1);
 
   useEffect(() => {
     fetch("/latest.json", { cache: "no-store" })
@@ -537,11 +554,15 @@ function Home() {
                 with your existing setup.
               </p>
             </div>
-            <div className="feature-grid">
+            <div className="feature-grid" ref={featuresRef}>
               {features.map((feature, i) => {
                 const Icon = [Cable, Search, ChartNoAxesCombined, ShieldCheck][i];
                 return (
-                  <article key={feature.title} className={`feature-card feature-card-${i}`}>
+                  <article
+                    key={feature.title}
+                    className={`feature-card feature-card-${i}`}
+                    style={featuresInView ? { animation: `fade-up 600ms cubic-bezier(0.23,1,0.32,1) ${i * 120}ms both` } : { opacity: 0, transform: "translateY(16px)" }}
+                  >
                     <div className="feature-card-text">
                       <div className="feature-icon-wrapper">
                         <Icon size={20} strokeWidth={2} />
@@ -890,7 +911,7 @@ function Step3Graphic() {
               </div>
               
               <div className="mt-2" style={{ marginLeft: "-4px" }}>
-                <ThinkingState variant="Coding" />
+                <ThinkingState variant="Coding" theme="dark" />
               </div>
               <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
             </div>
@@ -903,8 +924,8 @@ function Step3Graphic() {
 
 function FeatureGraphic0() {
   return (
-    <div className="absolute inset-0 flex items-end justify-center overflow-hidden">
-      <div className="w-[220%] max-w-[650px] transform translate-y-12 origin-bottom opacity-90 flex justify-center">
+    <div className="absolute inset-0 flex items-center justify-center overflow-hidden pt-4 pb-4">
+      <div className="w-[240%] max-w-[700px] transform origin-center opacity-90 flex justify-center">
         <CofounderGraphic />
       </div>
     </div>
@@ -913,30 +934,50 @@ function FeatureGraphic0() {
 
 function FeatureGraphic1() {
   return (
-    <div className="absolute inset-0 flex items-end justify-center p-6 pb-0">
-      <div className="w-[110%] transform origin-bottom flex justify-center translate-y-4">
+    <div className="absolute inset-0 flex items-start justify-center p-6 pb-0 pt-6">
+      <div className="w-[95%] flex justify-center">
         <StreamingText fill loop />
       </div>
     </div>
   );
 }
 
+import ToolChips from "../components/ToolChips";
+
+const COST_ROWS = [
+  {
+    icon: "read", label: "Analyze usage", chip: "Session telemetry", mono: true, detailMono: true,
+    detail: [
+      { text: "Prompt tokens: 24,000" },
+      { text: "Completion tokens: 3,500" },
+    ]
+  },
+  {
+    icon: "run", label: "Calculate cost", chip: "Pricing engine", mono: true, detailMono: true,
+    detail: [
+      { text: "Input cost: $0.07" },
+      { text: "Output cost: $0.07" },
+      { text: "Total cost: $0.14", tone: "add" as const }
+    ]
+  }
+];
+
 function FeatureGraphic2() {
   return (
-    <div className="absolute inset-0 flex items-end justify-center p-6 pb-0">
-      <div className="w-[120%] transform origin-bottom flex justify-center translate-y-2">
-        <ThinkingState variant="Cost" />
+    <div className="absolute inset-0 flex items-center justify-center p-6">
+      <div className="w-full flex justify-center pb-2">
+        <ToolChips steps={COST_ROWS} diffs={[]} className="w-[105%] max-w-[400px]" labels={{ header: "2 tools, estimated cost", more: "" }} />
       </div>
     </div>
   );
 }
 
-const UPDATE_ROWS: TaskRow[] = [
+const UPDATE_ROWS = [
   {
     key: "update",
     label: "Check for updates",
     amount: "Latest",
-    status: "done",
+    status: "done" as const,
     details: [
       { label: "Local version", meta: "v0.15.3" },
       { label: "Remote version", meta: "v0.15.4" },
@@ -944,9 +985,9 @@ const UPDATE_ROWS: TaskRow[] = [
   },
   {
     key: "config",
-    label: "Inject provider config",
+    label: "Inject config",
     amount: "Ephemeral",
-    status: "sequence",
+    status: "sequence" as const,
     step: 2,
     details: [
       { label: "Generate temporary keys", meta: "Success" },
@@ -957,9 +998,9 @@ const UPDATE_ROWS: TaskRow[] = [
 
 function FeatureGraphic3() {
   return (
-    <div className="absolute inset-0 flex items-start justify-center p-6 pt-10">
-      <div className="w-full transform scale-[0.90] origin-top flex justify-center">
-        <TaskRows rows={UPDATE_ROWS} variant="List" className="w-full max-w-[320px]" />
+    <div className="absolute inset-0 flex items-center justify-center p-6">
+      <div className="w-full flex justify-center pb-2">
+        <TaskRows rows={UPDATE_ROWS} className="w-[110%] max-w-[400px]" />
       </div>
     </div>
   );

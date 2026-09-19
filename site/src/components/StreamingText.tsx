@@ -171,24 +171,26 @@ export function StreamingText({
             </svg>
           </button>
         ))}
-        <button
-          type="button"
-          aria-expanded={sourcesOpen}
-          onClick={() => setSourcesOpen((current) => !current)}
-          className="ml-1.5 flex items-center gap-1.5 rounded-[6px] px-1 py-0.5 text-left transition-colors duration-150 hover:bg-hover"
-        >
-          <span className="flex -space-x-1">
-            {sources.map((source) => (
-              <img
-                key={source.domain}
-                src={sourceImage(source)}
-                alt=""
-                className="source-avatar size-3.5 rounded-full bg-surface shadow-[0_0_0_1.5px_var(--canvas)]"
-              />
-            ))}
-          </span>
-          <span className="text-[12px] text-ink-2">{l.sources}</span>
-        </button>
+        {sources && sources.length > 0 && (
+          <button
+            type="button"
+            aria-expanded={sourcesOpen}
+            onClick={() => setSourcesOpen((current) => !current)}
+            className="ml-1.5 flex items-center gap-1.5 rounded-[6px] px-1 py-0.5 text-left transition-colors duration-150 hover:bg-hover"
+          >
+            <span className="flex -space-x-1">
+              {sources.map((source) => (
+                <img
+                  key={source.domain}
+                  src={sourceImage(source)}
+                  alt=""
+                  className="source-avatar size-3.5 rounded-full bg-surface shadow-[0_0_0_1.5px_var(--canvas)]"
+                />
+              ))}
+            </span>
+            <span className="text-[12px] text-ink-2">{l.sources}</span>
+          </button>
+        )}
       </div>
 
       <div
@@ -219,34 +221,37 @@ export function StreamingText({
       </div>
 
       {/* follow-ups */}
-      <div
-        className="mt-2.5 transition-opacity duration-400"
-        style={{ opacity: done ? 1 : 0, pointerEvents: done ? "auto" : "none" }}
-      >
-        <p className="text-[12px] font-medium text-ink-2">{l.followUps}</p>
-        <div className="mt-0.5 flex flex-col">
-          {followUps.map((text, i) => (
-            <button
-              key={text}
-              onClick={() => onFollowUp?.(text, i)}
-              className="-mx-1.5 flex items-center gap-2 rounded-[7px] border-b border-line
-                px-1.5 py-1.5 text-left text-[12.5px] text-ink transition-colors
-                duration-100 hover:bg-hover-2"
-              style={
-                done
-                  ? { animation: `fade-up 350ms cubic-bezier(0.23,1,0.32,1) ${i * 90}ms both` }
-                  : { opacity: 0 }
-              }
-            >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                <path d="M9 10l-5 5 5 5" />
-                <path d="M20 4v7a4 4 0 0 1-4 4H4" />
-              </svg>
-              {text}
-            </button>
-          ))}
+      {/* follow-ups */}
+      {followUps && followUps.length > 0 && (
+        <div
+          className="mt-2.5 transition-opacity duration-400"
+          style={{ opacity: done ? 1 : 0, pointerEvents: done ? "auto" : "none" }}
+        >
+          <p className="text-[12px] font-medium text-ink-2">{l.followUps}</p>
+          <div className="mt-0.5 flex flex-col">
+            {followUps.map((text, i) => (
+              <button
+                key={text}
+                onClick={() => onFollowUp?.(text, i)}
+                className="-mx-1.5 flex items-center gap-2 rounded-[7px] border-b border-line
+                  px-1.5 py-1.5 text-left text-[12.5px] text-ink transition-colors
+                  duration-100 hover:bg-hover-2"
+                style={
+                  done
+                    ? { animation: `fade-up 350ms cubic-bezier(0.23,1,0.32,1) ${i * 90}ms both` }
+                    : { opacity: 0 }
+                }
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                  <path d="M9 10l-5 5 5 5" />
+                  <path d="M20 4v7a4 4 0 0 1-4 4H4" />
+                </svg>
+                {text}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

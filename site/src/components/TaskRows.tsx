@@ -32,7 +32,7 @@ function useTick(intervals: number[]) {
 }
 
 export function SpinnerRing({ active, children }: { active?: boolean; children?: React.ReactNode }) {
-  const size = 24, stroke = 2;
+  const size = 28, stroke = 2.5;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   return (
@@ -50,7 +50,7 @@ export function SpinnerRing({ active, children }: { active?: boolean; children?:
           />
         )}
       </svg>
-      <span className="relative text-[10.5px] font-semibold tabular-nums text-[var(--relay-ink)]">{children}</span>
+      <span className="relative text-[12px] font-semibold tabular-nums text-[var(--relay-ink)]">{children}</span>
     </span>
   );
 }
@@ -59,7 +59,7 @@ export function Badge({ tone, children }: { tone: "red" | "green"; children: Rea
   return (
     <span
       key={tone}
-      className={`flex w-[22px] h-[22px] shrink-0 items-center justify-center rounded-full text-white
+      className={`flex w-[26px] h-[26px] shrink-0 items-center justify-center rounded-full text-white
         ${tone === "red" ? "bg-[#ef4444]" : "bg-[#22c55e]"}`}
       style={{ animation: "pop-in 300ms cubic-bezier(0.23,1,0.32,1) both" }}
     >
@@ -189,7 +189,7 @@ export function TaskRows({
   return (
     <div
       className={`flex w-full flex-col ${
-        list ? "gap-0 self-start overflow-hidden rounded-2xl bg-transparent" : "min-h-[196px] gap-2"
+        list ? "gap-0 self-start overflow-hidden rounded-2xl bg-transparent" : "min-h-[210px] gap-2.5"
       }${className ? ` ${className}` : ""}`}
     >
       {rows.map((row, i) => {
@@ -212,22 +212,22 @@ export function TaskRows({
                 setManualOpen((current) => ({ ...current, [row.key]: !open }));
                 onToggleRow?.(row.key, !open);
               }}
-              className="flex h-11 w-full items-center gap-2.5 px-2.5 text-left"
+              className="flex h-12 w-full items-center gap-3 px-3 text-left"
             >
-              <span className="flex w-6 h-6 shrink-0 items-center justify-center">
+              <span className="flex w-[26px] h-[26px] shrink-0 items-center justify-center">
                 {badgeFor(row)}
               </span>
-              <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-[var(--relay-ink)]">
+              <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-[var(--relay-ink)]">
                 {row.label}
               </span>
-              <span className="text-[12.5px] text-[var(--relay-muted)] tabular-nums">{row.amount}</span>
+              <span className="text-[13px] text-[var(--relay-muted)] tabular-nums">{row.amount}</span>
               {pillFor(row)}
               <span
                 aria-hidden="true"
-                className="-ml-2 flex w-7 h-7 shrink-0 items-center justify-center rounded-full text-gray-500"
+                className="-ml-1 flex w-8 h-8 shrink-0 items-center justify-center rounded-full text-gray-500"
               >
                 <svg
-                  width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
                   className="transition-transform duration-300"
                   style={{ transform: open ? "rotate(180deg)" : "rotate(0)" }}
                 >
@@ -245,9 +245,9 @@ export function TaskRows({
                 }}
               >
                 <div className="overflow-hidden">
-                  <div className="mb-2.5 grid grid-cols-[24px_1fr] gap-2.5 px-2.5">
+                  <div className="mb-4 grid grid-cols-[28px_1fr] gap-3 px-3">
                     <span aria-hidden className="mx-auto h-full w-px bg-[var(--relay-line)]" />
-                    <div className="flex flex-col gap-1.5">
+                    <div className="flex flex-col gap-2.5">
                       {row.details.map((d, j) => (
                         <div
                           key={d.label}
@@ -258,8 +258,8 @@ export function TaskRows({
                               : undefined
                           }
                         >
-                          <span className="text-[12px] text-[var(--relay-muted)]">{d.label}</span>
-                          <span className="font-mono text-[11.5px] text-gray-500 tabular-nums">
+                          <span className="text-[14px] text-[var(--relay-muted)]">{d.label}</span>
+                          <span className="font-mono text-[13px] text-gray-500 tabular-nums">
                             {d.meta}
                           </span>
                         </div>
