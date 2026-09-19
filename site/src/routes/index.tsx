@@ -903,8 +903,8 @@ function Step3Graphic() {
 
 function FeatureGraphic0() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-      <div className="w-[200%] max-w-[600px] transform origin-center opacity-90 flex justify-center">
+    <div className="absolute inset-0 flex items-end justify-center overflow-hidden">
+      <div className="w-[220%] max-w-[650px] transform translate-y-12 origin-bottom opacity-90 flex justify-center">
         <CofounderGraphic />
       </div>
     </div>
@@ -913,8 +913,8 @@ function FeatureGraphic0() {
 
 function FeatureGraphic1() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center p-6">
-      <div className="w-full transform scale-[0.85] origin-center flex justify-center pt-8">
+    <div className="absolute inset-0 flex items-end justify-center p-6 pb-0">
+      <div className="w-[110%] transform origin-bottom flex justify-center translate-y-4">
         <StreamingText fill loop />
       </div>
     </div>
@@ -923,8 +923,8 @@ function FeatureGraphic1() {
 
 function FeatureGraphic2() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center p-6">
-      <div className="w-[111%] transform scale-[0.90] origin-center flex justify-center pt-8 pl-4">
+    <div className="absolute inset-0 flex items-end justify-center p-6 pb-0">
+      <div className="w-[120%] transform origin-bottom flex justify-center translate-y-2">
         <ThinkingState variant="Cost" />
       </div>
     </div>
