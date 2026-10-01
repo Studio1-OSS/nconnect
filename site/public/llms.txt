@@ -2,23 +2,23 @@
 
 > Use Nebius Token Factory models in the coding-agent CLIs you already run - OpenCode, Claude Code, Codex CLI, Pi Code, Prime Agent, and Unreal Agent. nconnect injects Nebius settings for a single run so your normal tool configs stay untouched.
 
-nconnect is an MIT-licensed CLI router. Install once, then launch your agent with short commands (`ncodex`, `nclaude`, `nopencode`, `npi`, `nprime`, `nunreal`). For Claude Code, Codex CLI, and Unreal Agent it routes the agent's API traffic to Nebius Token Factory through a local translation proxy; for OpenCode, Pi Code, and Prime Agent it injects per-run provider config (they already speak Nebius's OpenAI-compatible format, so no proxy is needed). The installed binary keeps itself up to date automatically from nebius-tf-relay.vercel.app.
+nconnect is an MIT-licensed CLI router. Install once, then launch your agent with short commands (`ncodex`, `nclaude`, `nopencode`, `npi`, `nprime`, `nunreal`). For Claude Code, Codex CLI, and Unreal Agent it routes the agent's API traffic to Nebius Token Factory through a local translation proxy; for OpenCode, Pi Code, and Prime Agent it injects per-run provider config (they already speak Nebius's OpenAI-compatible format, so no proxy is needed). The installed binary keeps itself up to date automatically from nconnect.sh.
 
 This is the LLM-readable documentation file for the project. If you are an AI agent asked to install, configure, or use nconnect (headless or interactive), read this file first. It covers installation, configuration, every command, the available models, headless/agentic usage patterns, how to keep the tool up to date, and the routing architecture.
 
 - Project: https://github.com/Studio1-OSS/nconnect
-- Website: https://nebius-tf-relay.vercel.app
-- Installer: https://nebius-tf-relay.vercel.app/install.sh
-- Version manifest: https://nebius-tf-relay.vercel.app/latest.json
+- Website: https://nconnect.sh
+- Installer: https://nconnect.sh/install.sh
+- Version manifest: https://nconnect.sh/latest.json
 - README: https://github.com/Studio1-OSS/nconnect/blob/main/README.md
-- This file: https://nebius-tf-relay.vercel.app/llms.txt
+- This file: https://nconnect.sh/llms.txt
 
 ## Install
 
 One command installs the `nconnect`, `nclaude`, `nopencode`, `ncodex`, `npi`, `nprime`, and `nunreal` commands to `~/.nconnect/bin/` and installs Bun for you if it isn't already present:
 
 ```
-curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | sh
+curl -fsSL https://nconnect.sh/install.sh | sh
 ```
 
 After install, restart your shell (or run the `export PATH=...` line it prints) so the commands are on PATH. The install:
@@ -214,15 +214,15 @@ Per-task cost varies a lot with how verbose the agent is. Mechanical, well-scope
 
 ## Keeping nconnect up to date
 
-The installed binary self-updates automatically in the background. The check is throttled and bounded, never throws, and runs before argument parsing - so even `nconnect help` keeps an install current. The update is pulled from https://nebius-tf-relay.vercel.app/latest.json, which contains `version`, `url`, and `publishedAt`.
+The installed binary self-updates automatically in the background. The check is throttled and bounded, never throws, and runs before argument parsing - so even `nconnect help` keeps an install current. The update is pulled from https://nconnect.sh/latest.json, which contains `version`, `url`, and `publishedAt`.
 
 To force a refresh, re-run the install one-liner:
 
 ```
-curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | sh
+curl -fsSL https://nconnect.sh/install.sh | sh
 ```
 
-You can check the installed version with `nconnect --version` and compare it against the published manifest at https://nebius-tf-relay.vercel.app/latest.json.
+You can check the installed version with `nconnect --version` and compare it against the published manifest at https://nconnect.sh/latest.json.
 
 ## Architecture (how routing works)
 
@@ -253,9 +253,9 @@ nconnect daemon stop
 
 - [GitHub](https://github.com): source repository and issues
 - [README](https://github.com): human-readable project overview
-- [Website](https://nebius-tf-relay.vercel.app): landing page
-- [Install script](https://nebius-tf-relay.vercel.app/install.sh): one-command installer (`curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | sh`)
-- [Version manifest](https://nebius-tf-relay.vercel.app/latest.json): current published version and release timestamp
-- [This LLM docs file](https://nebius-tf-relay.vercel.app/llms.txt): the file you are reading now
+- [Website](https://nconnect.sh): landing page
+- [Install script](https://nconnect.sh/install.sh): one-command installer (`curl -fsSL https://nconnect.sh/install.sh | sh`)
+- [Version manifest](https://nconnect.sh/latest.json): current published version and release timestamp
+- [This LLM docs file](https://nconnect.sh/llms.txt): the file you are reading now
 - [Nebius Token Factory API keys](https://tokenfactory.nebius.com/?modals=create-api-key): get a key to route traffic
 - [llms.txt specification](https://llmstxt.org): the convention this file follows

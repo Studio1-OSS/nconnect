@@ -17,7 +17,7 @@ import { ProviderBrand } from "../components/ProviderBrand";
 import { pageHead, siteUrl, structuredData } from "../lib/seo";
 import { useEffect, useRef, useState } from "react";
 
-const installCommand = "curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | bash";
+const installCommand = "curl -fsSL https://nconnect.sh/install.sh | bash";
 const githubUrl = "https://github.com/Studio1-OSS/nconnect";
 const docsUrl = "/docs";
 const nebiusApiKeysUrl = "https://tokenfactory.nebius.com/?modals=create-api-key";

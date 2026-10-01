@@ -175,7 +175,7 @@ export async function installAutoStart(): Promise<string> {
   if (!(await bundleInstalled())) {
     throw new Error(
       "Auto-start needs the installed bundle (this looks like a dev/source run).\n" +
-        "Install first: curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | sh",
+        "Install first: curl -fsSL https://nconnect.sh/install.sh | sh",
     );
   }
   await mkdir(path.join(nconnectHome(), "logs"), { recursive: true });

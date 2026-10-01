@@ -7,12 +7,12 @@ import { pageHead, siteUrl, structuredData } from "../lib/seo";
 import "../styles/landing.css";
 import "../styles/docs.css";
 
-const installCommand = "curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | bash";
+const installCommand = "curl -fsSL https://nconnect.sh/install.sh | bash";
 const githubUrl = "https://github.com/Studio1-OSS/nconnect";
 const changelogUrl = "https://github.com/Studio1-OSS/nconnect/blob/main/CHANGELOG.md";
 const nebiusApiKeysUrl = "https://tokenfactory.nebius.com/?modals=create-api-key";
 const tavilyUrl = "https://app.tavily.com";
-const llmsUrl = "https://nebius-tf-relay.vercel.app/llms.txt";
+const llmsUrl = "https://nconnect.sh/llms.txt";
 
 export const Route = createFileRoute("/docs")({
   component: Docs,

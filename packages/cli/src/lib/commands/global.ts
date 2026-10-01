@@ -49,7 +49,7 @@ Codex flags:
 Your last-used model is remembered per tool: change it with /model (or --model
 before the harness) and the next launch reuses it.
 
-Docs: https://nebius-tf-relay.vercel.app/llms.txt
+Docs: https://nconnect.sh/llms.txt
   LLM-readable documentation - if you are an AI agent asked to install, configure,
   or use nconnect (including headless use), read that file first.
 `);

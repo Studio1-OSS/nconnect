@@ -12,7 +12,7 @@ One install. Claude Code, Codex, OpenCode and more, served by Kimi, GLM, Qwen, D
 [![Version](https://img.shields.io/badge/version-0.16.1-3fb97f.svg)](CHANGELOG.md)
 [![Powered by Nebius Token Factory](https://img.shields.io/badge/powered%20by-Nebius%20Token%20Factory-111111.svg)](https://tokenfactory.nebius.com/)
 
-[Install](#install) · [Usage](#usage) · [Models](#models) · [Docs](https://nebius-tf-relay.vercel.app/docs) · [Video tutorial](https://www.youtube.com/watch?v=u8c_exTe2To) · [Changelog](CHANGELOG.md)
+[Install](#install) · [Usage](#usage) · [Models](#models) · [Docs](https://nconnect.sh/docs) · [Video tutorial](https://www.youtube.com/watch?v=u8c_exTe2To) · [Changelog](CHANGELOG.md)
 
 </div>
 
@@ -21,7 +21,7 @@ One install. Claude Code, Codex, OpenCode and more, served by Kimi, GLM, Qwen, D
 ## Quick start
 
 ```bash
-curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | sh
+curl -fsSL https://nconnect.sh/install.sh | sh
 nconnect claude      # Claude Code on Nebius models (alias: nclaude)
 ```
 
@@ -60,7 +60,7 @@ Nebius Token Factory serves open models over an OpenAI-compatible API. It does *
 The one-liner installs the `nconnect` command and the short aliases above to `~/.nconnect/bin/`, and installs [Bun](https://bun.sh) if it isn't already present:
 
 ```bash
-curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | sh
+curl -fsSL https://nconnect.sh/install.sh | sh
 ```
 
 Then configure (the first run also walks you through this):
@@ -183,7 +183,7 @@ The installed binary keeps itself up to date, throttled to once an hour, and swa
 
 ## For AI agents
 
-An LLM-readable guide is published at <https://nebius-tf-relay.vercel.app/llms.txt>. If you are an agent asked to install, configure, or drive NConnect (including headless), read that first. It covers install, configuration, every command, the models, and headless usage patterns.
+An LLM-readable guide is published at <https://nconnect.sh/llms.txt>. If you are an agent asked to install, configure, or drive NConnect (including headless), read that first. It covers install, configuration, every command, the models, and headless usage patterns.
 
 ## Contributing
 
@@ -230,7 +230,7 @@ pnpm build:site        # builds the CLI bundle + latest.json + the site
 
 ## Resources
 
-- [Documentation](https://nebius-tf-relay.vercel.app/docs)
+- [Documentation](https://nconnect.sh/docs)
 - [Video tutorial: K3 with Any Harness](https://www.youtube.com/watch?v=u8c_exTe2To)
 - [Changelog](CHANGELOG.md)
 - [Nebius Builder Program](https://dub.sh/AIStudio) and [awesome-ai-apps](https://github.com/Arindam200/awesome-ai-apps) (100+ projects built on open models)

@@ -47,7 +47,7 @@ const fs = require('node:fs');
 const version = '${VERSION}';
 const manifest = {
   version,
-  url: 'https://nebius-tf-relay.vercel.app/nconnect.js',
+  url: 'https://nconnect.sh/nconnect.js',
   publishedAt: new Date().toISOString(),
 };
 const json = JSON.stringify(manifest, null, 2) + '\n';

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "tanstack-start",
+  "buildCommand": "bash ../scripts/vercel-build.sh",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/install.sh",
+      "headers": [{ "key": "content-type", "value": "text/x-shellscript; charset=utf-8" }]
+    },
+    {
+      "source": "/llms.txt",
+      "headers": [{ "key": "content-type", "value": "text/plain; charset=utf-8" }]
+    },
+    {
+      "source": "/latest.json",
+      "headers": [
+        { "key": "content-type", "value": "application/json; charset=utf-8" },
+        { "key": "cache-control", "value": "public, max-age=60, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/nconnect.js",
+      "headers": [
+        { "key": "content-type", "value": "application/javascript; charset=utf-8" },
+        { "key": "cache-control", "value": "public, max-age=60, must-revalidate" }
+      ]
+    }
+  ]
+}

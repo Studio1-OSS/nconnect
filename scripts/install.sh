@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # nconnect installer.
 #
-#   curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | sh
+#   curl -fsSL https://nconnect.sh/install.sh | sh
 #
 # Installs the nconnect CLI as a Bun-target JS bundle at
 # ~/.nconnect/bin/nconnect.js, with a `nconnect` wrapper script on
@@ -18,7 +18,7 @@ if (set -o pipefail) 2>/dev/null; then
   set -o pipefail
 fi
 
-ORIGIN="${NCONNECT_ORIGIN:-https://nebius-tf-relay.vercel.app}"
+ORIGIN="${NCONNECT_ORIGIN:-https://nconnect.sh}"
 INSTALL_DIR="${NCONNECT_HOME:-$HOME/.nconnect}"
 BIN_DIR="$INSTALL_DIR/bin"
 

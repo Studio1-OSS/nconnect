@@ -16,7 +16,7 @@ import os from "node:os";
 import { VERSION } from "./version.js";
 
 /** Single origin for the landing page, manifest, and downloadable bundle. */
-const UPDATE_ORIGIN = "https://nebius-tf-relay.vercel.app";
+const UPDATE_ORIGIN = "https://nconnect.sh";
 /** Override for testing/local mirrors; normally unset. */
 function resolveManifestUrl(): string {
   return process.env.NCONNECT_MANIFEST_URL ?? `${UPDATE_ORIGIN}/latest.json`;
@@ -229,7 +229,7 @@ export async function runUpdateCommand(): Promise<string> {
   if (!isInstalledBundle()) {
     return (
       "Not an installed bundle - this is a dev/source run, so there is nothing to update.\n" +
-      "Install with: curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | sh"
+      "Install with: curl -fsSL https://nconnect.sh/install.sh | sh"
     );
   }
   const manifest = await withTimeout(fetchManifest(), OVERALL_TIMEOUT_MS);

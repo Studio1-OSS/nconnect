@@ -1,4 +1,4 @@
-export const siteUrl = "https://nebius-tf-relay.vercel.app";
+export const siteUrl = "https://nconnect.sh";
 
 export function pageHead(title: string, description: string, path: string) {
   const url = `${siteUrl}${path}`;

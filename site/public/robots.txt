@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://nebius-tf-relay.vercel.app/sitemap.xml
+Sitemap: https://nconnect.sh/sitemap.xml
