@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const STEP_MS = 700;
+const STEP_MS = 750;
 
 const Icons: Record<string, React.ReactNode> = {
   think: <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z" />,
@@ -14,7 +14,6 @@ const Icons: Record<string, React.ReactNode> = {
 export type ToolDetailLine = { text: string; tone?: "add" };
 export type ToolStep = { icon: string; label: string; chip: string; mono: boolean; detailMono: boolean; detail: ToolDetailLine[] };
 export type ToolDiff = { file: string; add: number; del: number };
-export type ToolDiffLine = { text: string; tone: "add" | "del" | "ctx" };
 export type ToolChipsLabels = { header: string; more: string };
 
 const DEFAULT_LABELS: ToolChipsLabels = { header: "4 tool calls, 2 messages", more: "+2 more" };
@@ -32,25 +31,25 @@ const DIFFS: ToolDiff[] = [
   { file: "menu.ts", add: 8, del: 2 },
 ];
 
-const DIFF_LINES: Record<string, ToolDiffLine[]> = {
-  "flavors.css": [{ text: ".scoop-card {", tone: "ctx" }, { text: "  gap: 14px;", tone: "del" }, { text: "  gap: 12px;", tone: "add" }, { text: "  container-type: inline-size;", tone: "add" }, { text: "}", tone: "ctx" }],
-  "ChurnSchedule.tsx": [{ text: "const slots = coldSlots(week);", tone: "ctx" }, { text: "const windows = slots;", tone: "del" }, { text: "const windows = slots.filter(", tone: "add" }, { text: "  (s) => s.temp <= -12,", tone: "add" }, { text: ");", tone: "add" }],
-  "menu.ts": [{ text: "export const hero = \"mint-chip\";", tone: "del" }, { text: "export const hero = \"pistachio\";", tone: "add" }],
-};
+function Cursor() {
+  const [on, setOn] = useState(true);
+  useEffect(() => {
+    const t = setInterval(() => setOn(v => !v), 500);
+    return () => clearInterval(t);
+  }, []);
+  return <span style={{ display: "inline-block", width: 1.5, height: "0.85em", background: "currentColor", verticalAlign: "middle", marginLeft: 2, opacity: on ? 1 : 0, transition: "opacity 80ms" }} />;
+}
 
 export default function ToolChips({
   steps = ROWS,
   diffs = DIFFS,
-  diffLines = DIFF_LINES,
   labels,
   className,
-  onOpenChange,
-  onToggleRow,
 }: {
   variant?: string;
   steps?: ToolStep[];
   diffs?: ToolDiff[];
-  diffLines?: Record<string, ToolDiffLine[]>;
+  diffLines?: Record<string, unknown[]>;
   labels?: Partial<ToolChipsLabels>;
   className?: string;
   onOpenChange?: (open: boolean) => void;
@@ -58,133 +57,109 @@ export default function ToolChips({
 } = {}) {
   const copy = { ...DEFAULT_LABELS, ...labels };
   const [step, setStep] = useState(0);
-  const [open, setOpen] = useState(true);
-  const [openRows, setOpenRows] = useState<Set<string>>(new Set());
   const total = steps.length + 1;
+  const done = step >= total;
 
   useEffect(() => {
     if (step >= total) return;
-    const t = setTimeout(() => setStep((s) => s + 1), STEP_MS);
+    const t = setTimeout(() => setStep(s => s + 1), STEP_MS);
     return () => clearTimeout(t);
   }, [step, total]);
 
-  const toggleRow = (label: string) =>
-    setOpenRows((current) => {
-      const next = new Set(current);
-      next.has(label) ? next.delete(label) : next.add(label);
-      onToggleRow?.(label, next.has(label));
-      return next;
-    });
+  const mono: React.CSSProperties = { fontFamily: "SF Mono, JetBrains Mono, ui-monospace, Menlo, monospace" };
 
   return (
-    <div
-      className={className}
-      style={{ width: "100%", minHeight: 180, paddingBottom: 4, fontFamily: "var(--font-sans, system-ui)" }}
-    >
+    <div className={className} style={{ width: "100%", paddingBottom: 8 }}>
       {/* header */}
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen(v => { onOpenChange?.(!v); return !v; })}
-        style={{
-          display: "flex", alignItems: "center", gap: 6, padding: "4px 6px",
-          marginLeft: -6, borderRadius: 6, border: "none", background: "transparent",
-          cursor: "pointer", fontSize: 12.5, color: "var(--relay-muted)", transition: "background 100ms",
-        }}
-        onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,0,0,0.04)")}
-        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-      >
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-          style={{ transition: "transform 200ms", transform: open ? "rotate(0deg)" : "rotate(-90deg)", flexShrink: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--relay-muted)", flexShrink: 0 }}>
           <path d="M6 9l6 6 6-6" />
         </svg>
-        <span style={{ fontVariantNumeric: "tabular-nums" }}>{copy.header}</span>
-      </button>
+        <span style={{ fontSize: 12, color: "var(--relay-muted)", fontVariantNumeric: "tabular-nums", letterSpacing: 0 }}>
+          {copy.header}
+        </span>
+      </div>
 
-      {/* rows */}
-      <div style={{ display: "grid", gridTemplateRows: open ? "1fr" : "0fr", opacity: open ? 1 : 0, transition: "grid-template-rows 300ms cubic-bezier(0.23,1,0.32,1), opacity 300ms" }}>
-        <div style={{ overflow: "hidden", paddingLeft: 2, paddingRight: 2 }}>
-          <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 2 }}>
-            {steps.slice(0, step).map((row) => {
-              const rowOpen = openRows.has(row.label);
-              return (
-                <div key={row.label} style={{ animation: "fade-up 300ms cubic-bezier(0.23,1,0.32,1) both" }}>
-                  <button
-                    type="button"
-                    aria-expanded={rowOpen}
-                    onClick={() => toggleRow(row.label)}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 8,
-                      width: "100%", minWidth: 0, height: 30,
-                      padding: "0 4px", margin: "0 -4px", width: "calc(100% + 8px)",
-                      background: "transparent", border: "none", borderRadius: 6,
-                      cursor: "pointer", textAlign: "left", transition: "background 100ms",
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,0,0,0.04)")}
-                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                  >
-                    {/* icon */}
-                    <span style={{ position: "relative", display: "flex", width: 16, height: 16, flexShrink: 0, alignItems: "center", justifyContent: "center", color: "var(--relay-muted)" }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill={row.icon === "think" ? "currentColor" : "none"} stroke="currentColor">
-                        {Icons[row.icon]}
-                      </svg>
-                    </span>
-                    {/* label */}
-                    <span style={{ flexShrink: 0, fontSize: 12.5, fontWeight: 500, color: "var(--relay-ink)" }}>{row.label}</span>
-                    {/* chip */}
-                    <span style={{
-                      display: "inline-flex", alignItems: "center", flex: 1, minWidth: 0,
-                      height: 22, padding: "0 6px", borderRadius: 5,
-                      background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.07)",
-                      fontSize: row.mono ? 11 : 11.5, color: "var(--relay-muted)",
-                      fontFamily: row.mono ? "SF Mono, JetBrains Mono, Menlo, monospace" : "inherit",
-                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                    }}>
-                      {row.chip}
-                    </span>
-                    {/* chevron */}
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-                      style={{ flexShrink: 0, color: "var(--relay-muted)", opacity: 0.5, transform: rowOpen ? "rotate(0deg)" : "rotate(-90deg)", transition: "transform 200ms" }}>
-                      <path d="M6 9l6 6 6-6" />
-                    </svg>
-                  </button>
+      {/* tool rows — plain list, no card chrome */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 0, paddingLeft: 4 }}>
+        {steps.slice(0, step).map((row, i) => {
+          const isLast = i === step - 1 && !done;
+          return (
+            <div
+              key={row.label}
+              style={{
+                display: "flex", alignItems: "baseline", gap: 8,
+                padding: "4px 0",
+                animation: "fade-up 280ms cubic-bezier(0.23,1,0.32,1) both",
+              }}
+            >
+              {/* icon */}
+              <span style={{ display: "flex", alignItems: "center", width: 14, height: 14, flexShrink: 0, color: "var(--relay-muted)", marginTop: 1 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill={row.icon === "think" ? "currentColor" : "none"} stroke="currentColor">
+                  {Icons[row.icon]}
+                </svg>
+              </span>
 
-                  {/* expanded detail */}
-                  <div style={{ display: "grid", gridTemplateRows: rowOpen ? "1fr" : "0fr", opacity: rowOpen ? 1 : 0, transition: "grid-template-rows 300ms cubic-bezier(0.23,1,0.32,1), opacity 300ms" }}>
-                    <div style={{ overflow: "hidden" }}>
-                      <div style={{ marginTop: 2, marginBottom: 4, marginLeft: 8, paddingLeft: 14, paddingTop: 2, paddingBottom: 2, borderLeft: "1px solid var(--relay-line)", display: "flex", flexDirection: "column", gap: 2 }}>
-                        {row.detail.map((line) => (
-                          <span key={line.text} style={{ fontSize: 11.5, lineHeight: 1.6, color: line.tone === "add" ? "#16a34a" : "var(--relay-muted)", fontFamily: row.detailMono ? "SF Mono, JetBrains Mono, Menlo, monospace" : "inherit", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {line.text}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+              {/* label */}
+              <span style={{ fontSize: 12.5, fontWeight: 500, color: "var(--relay-ink)", flexShrink: 0, whiteSpace: "nowrap" }}>
+                {row.label}
+              </span>
 
-          {/* file-diff chips */}
-          {step >= total && diffs.length > 0 && (
-            <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6, borderTop: "1px solid var(--relay-line)", paddingTop: 10 }}>
-              {diffs.map((d, i) => (
-                <span key={d.file} style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 26, padding: "0 8px", borderRadius: 6, background: "#fff", border: "1px solid var(--relay-line)", fontFamily: "SF Mono, JetBrains Mono, Menlo, monospace", fontSize: 11, color: "var(--relay-ink)", boxShadow: "0 1px 2px rgba(0,0,0,0.04)", animation: `fade-up 250ms cubic-bezier(0.23,1,0.32,1) ${i * 60}ms both` }}>
-                  <span style={{ maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.file}</span>
-                  <span style={{ color: "#16a34a", fontVariantNumeric: "tabular-nums" }}>+{d.add}</span>
-                  {d.del > 0 && <span style={{ color: "#dc2626", fontVariantNumeric: "tabular-nums" }}>−{d.del}</span>}
-                </span>
-              ))}
-              {copy.more && (
-                <span style={{ display: "inline-flex", alignItems: "center", height: 26, padding: "0 6px", fontSize: 11, fontFamily: "SF Mono, JetBrains Mono, Menlo, monospace", color: "var(--relay-muted)", animation: `fade-up 250ms cubic-bezier(0.23,1,0.32,1) ${diffs.length * 60}ms both` }}>
-                  {copy.more}
-                </span>
-              )}
+              {/* chip — no border, no bg, just muted mono text */}
+              <span style={{
+                fontSize: row.mono ? 11 : 11.5,
+                color: "var(--relay-muted)",
+                ...(row.mono ? mono : {}),
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                flex: 1,
+                minWidth: 0,
+              }}>
+                {row.chip}{isLast && <Cursor />}
+              </span>
             </div>
+          );
+        })}
+
+        {/* active spinner row while more steps are coming */}
+        {!done && step < total && step === steps.length && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0" }}>
+            <span style={{ width: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <span style={{ width: 10, height: 10, border: "1.5px solid var(--relay-line)", borderTopColor: "var(--relay-muted)", borderRadius: "50%", display: "inline-block", animation: "spin 700ms linear infinite" }} />
+            </span>
+            <span style={{ fontSize: 12.5, color: "var(--relay-muted)" }}>Computing…</span>
+          </div>
+        )}
+      </div>
+
+      {/* diff chips */}
+      {done && diffs.length > 0 && (
+        <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 6, borderTop: "1px solid rgba(0,0,0,0.06)", paddingTop: 10 }}>
+          {diffs.map((d, i) => (
+            <span
+              key={d.file}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                height: 24, padding: "0 8px", borderRadius: 5,
+                background: "#fff", border: "1px solid var(--relay-line)",
+                ...mono, fontSize: 10.5, color: "var(--relay-ink)",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+                animation: `fade-up 300ms cubic-bezier(0.23,1,0.32,1) ${i * 60}ms both`,
+              }}
+            >
+              <span style={{ maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.file}</span>
+              <span style={{ color: "#16a34a" }}>+{d.add}</span>
+              {d.del > 0 && <span style={{ color: "#dc2626" }}>−{d.del}</span>}
+            </span>
+          ))}
+          {copy.more && (
+            <span style={{ display: "inline-flex", alignItems: "center", height: 24, fontSize: 10.5, color: "var(--relay-muted)", ...mono, animation: `fade-up 300ms cubic-bezier(0.23,1,0.32,1) ${diffs.length * 60}ms both` }}>
+              {copy.more}
+            </span>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

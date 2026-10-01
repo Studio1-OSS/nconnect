@@ -557,6 +557,27 @@ function Home() {
             <div className="feature-grid" ref={featuresRef}>
               {features.map((feature, i) => {
                 const Icon = [Cable, Search, ChartNoAxesCombined, ShieldCheck][i];
+                if (i === 3) {
+                  // Wide card: text left, animation right — side by side
+                  return (
+                    <article
+                      key={feature.title}
+                      className="feature-card feature-card-3 feature-card-horizontal"
+                      style={featuresInView ? { animation: `fade-up 600ms cubic-bezier(0.23,1,0.32,1) ${i * 120}ms both` } : { opacity: 0, transform: "translateY(16px)" }}
+                    >
+                      <div className="feature-card-text feature-card-text-left">
+                        <div className="feature-icon-wrapper">
+                          <Icon size={20} strokeWidth={2} />
+                        </div>
+                        <h3>{feature.title}</h3>
+                        <p>{feature.body}</p>
+                      </div>
+                      <div className="feature-graphic-container">
+                        <FeatureGraphic3 />
+                      </div>
+                    </article>
+                  );
+                }
                 return (
                   <article
                     key={feature.title}
@@ -574,7 +595,6 @@ function Home() {
                       {i === 0 && <FeatureGraphic0 />}
                       {i === 1 && <FeatureGraphic1 />}
                       {i === 2 && <FeatureGraphic2 />}
-                      {i === 3 && <FeatureGraphic3 />}
                     </div>
                   </article>
                 );
@@ -924,8 +944,8 @@ function Step3Graphic() {
 
 function FeatureGraphic0() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center overflow-hidden pt-4 pb-4">
-      <div className="w-[240%] max-w-[700px] transform origin-center opacity-90 flex justify-center">
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="w-[115%] max-w-[420px] opacity-90 flex justify-center">
         <CofounderGraphic />
       </div>
     </div>
@@ -946,28 +966,32 @@ import ToolChips from "../components/ToolChips";
 
 const COST_ROWS = [
   {
+    icon: "think", label: "Planning", chip: "Estimating session cost", mono: false, detailMono: false,
+    detail: [{ text: "Model: GLM-5.3-Flash" }, { text: "Context window: 32k" }]
+  },
+  {
     icon: "read", label: "Analyze usage", chip: "Session telemetry", mono: true, detailMono: true,
-    detail: [
-      { text: "Prompt tokens: 24,000" },
-      { text: "Completion tokens: 3,500" },
-    ]
+    detail: [{ text: "Prompt tokens: 24,000" }, { text: "Completion tokens: 3,500" }]
   },
   {
     icon: "run", label: "Calculate cost", chip: "Pricing engine", mono: true, detailMono: true,
-    detail: [
-      { text: "Input cost: $0.07" },
-      { text: "Output cost: $0.07" },
-      { text: "Total cost: $0.14", tone: "add" as const }
-    ]
+    detail: [{ text: "Input: $0.07" }, { text: "Output: $0.07" }, { text: "Total: $0.14", tone: "add" as const }]
+  },
+  {
+    icon: "write", label: "Log result", chip: "session.log", mono: true, detailMono: true,
+    detail: [{ text: "Saved to ~/.nconnect/logs", tone: "add" as const }]
   }
+];
+
+const COST_DIFFS = [
+  { file: "session.log", add: 4, del: 0 },
+  { file: "usage.json", add: 12, del: 3 },
 ];
 
 function FeatureGraphic2() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center p-6">
-      <div className="w-full flex justify-center pb-2">
-        <ToolChips steps={COST_ROWS} diffs={[]} className="w-[105%] max-w-[400px]" labels={{ header: "2 tools, estimated cost", more: "" }} />
-      </div>
+    <div className="absolute inset-0 flex items-start justify-start p-5 pt-6">
+      <ToolChips steps={COST_ROWS} diffs={COST_DIFFS} className="w-full" labels={{ header: "4 tools · session cost", more: "+1 more" }} />
     </div>
   );
 }
@@ -998,10 +1022,8 @@ const UPDATE_ROWS = [
 
 function FeatureGraphic3() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center p-6">
-      <div className="w-full flex justify-center pb-2">
-        <TaskRows rows={UPDATE_ROWS} className="w-[110%] max-w-[400px]" />
-      </div>
+    <div className="absolute inset-0 flex items-center justify-center" style={{ padding: "20px 24px" }}>
+      <TaskRows rows={UPDATE_ROWS} className="w-full" />
     </div>
   );
 }

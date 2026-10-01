@@ -189,7 +189,7 @@ export function TaskRows({
   return (
     <div
       className={`flex w-full flex-col ${
-        list ? "gap-0 self-start overflow-hidden rounded-2xl bg-transparent" : "min-h-[210px] gap-2.5"
+        list ? "gap-0 self-start overflow-hidden rounded-2xl bg-transparent" : "min-h-[180px] gap-2"
       }${className ? ` ${className}` : ""}`}
     >
       {rows.map((row, i) => {
@@ -212,7 +212,7 @@ export function TaskRows({
                 setManualOpen((current) => ({ ...current, [row.key]: !open }));
                 onToggleRow?.(row.key, !open);
               }}
-              className="flex h-12 w-full items-center gap-3 px-3 text-left"
+              className="flex h-10 w-full items-center gap-3 px-3 text-left"
             >
               <span className="flex w-[26px] h-[26px] shrink-0 items-center justify-center">
                 {badgeFor(row)}

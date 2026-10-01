@@ -119,6 +119,7 @@ export function ThinkingState({
   icon,
 }: {
   variant?: string;
+  theme?: "light" | "dark";
   onSettled?: () => void;
   rows?: Row[];
   active?: string;
