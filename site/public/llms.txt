@@ -8,6 +8,17 @@ This is the LLM-readable documentation file for the project. If you are an AI ag
 
 - Project: https://github.com/Studio1-OSS/nconnect
 - Website: https://nconnect.sh
+- Docs: https://nconnect.sh/docs
+- Tutorials (one per harness): https://nconnect.sh/docs/tutorials
+  - https://nconnect.sh/docs/tutorials/kimi-k3-claude-code
+  - https://nconnect.sh/docs/tutorials/glm-5-3-codex
+  - https://nconnect.sh/docs/tutorials/qwen-3-5-opencode
+  - https://nconnect.sh/docs/tutorials/minimax-m3-pi
+  - https://nconnect.sh/docs/tutorials/deepseek-v4-flash-prime-agent
+  - https://nconnect.sh/docs/tutorials/kimi-k3-hermes-agent
+  - https://nconnect.sh/docs/tutorials/deepseek-v4-pro-deepseek-harness
+  - https://nconnect.sh/docs/tutorials/kimi-k3-grok-build
+  - https://nconnect.sh/docs/tutorials/kimi-k2-7-code-unreal-agent
 - Installer: https://nconnect.sh/install.sh
 - Version manifest: https://nconnect.sh/latest.json
 - README: https://github.com/Studio1-OSS/nconnect/blob/main/README.md

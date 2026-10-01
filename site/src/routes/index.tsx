@@ -528,7 +528,7 @@ function Home() {
                   models in ordinary ChatGPT web chats.
                 </p>
               </div>
-              <a className="text-link" href="/docs#desktop">
+              <a className="text-link" href="/docs/desktop">
                 Desktop setup <ArrowUpRight size={16} />
               </a>
             </div>

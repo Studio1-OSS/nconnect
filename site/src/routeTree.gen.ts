@@ -9,11 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DocsIndexRouteImport } from './routes/docs/index'
+import { Route as DocsSlugRouteImport } from './routes/docs/$slug'
 import { Route as ApiTelemetryRouteImport } from './routes/api/telemetry'
+import { Route as DocsTutorialsIndexRouteImport } from './routes/docs/tutorials/index'
+import { Route as DocsTutorialsSlugRouteImport } from './routes/docs/tutorials/$slug'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocsRoute = DocsRouteImport.update({
   id: '/docs',
   path: '/docs',
@@ -29,48 +39,117 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsIndexRoute = DocsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsSlugRoute = DocsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => DocsRoute,
+} as any)
 const ApiTelemetryRoute = ApiTelemetryRouteImport.update({
   id: '/api/telemetry',
   path: '/api/telemetry',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsTutorialsIndexRoute = DocsTutorialsIndexRouteImport.update({
+  id: '/tutorials/',
+  path: '/tutorials/',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsTutorialsSlugRoute = DocsTutorialsSlugRouteImport.update({
+  id: '/tutorials/$slug',
+  path: '/tutorials/$slug',
+  getParentRoute: () => DocsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/telemetry': typeof ApiTelemetryRoute
+  '/docs/$slug': typeof DocsSlugRoute
+  '/docs/': typeof DocsIndexRoute
+  '/docs/tutorials/$slug': typeof DocsTutorialsSlugRoute
+  '/docs/tutorials/': typeof DocsTutorialsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
-  '/docs': typeof DocsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/telemetry': typeof ApiTelemetryRoute
+  '/docs/$slug': typeof DocsSlugRoute
+  '/docs': typeof DocsIndexRoute
+  '/docs/tutorials/$slug': typeof DocsTutorialsSlugRoute
+  '/docs/tutorials': typeof DocsTutorialsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/telemetry': typeof ApiTelemetryRoute
+  '/docs/$slug': typeof DocsSlugRoute
+  '/docs/': typeof DocsIndexRoute
+  '/docs/tutorials/$slug': typeof DocsTutorialsSlugRoute
+  '/docs/tutorials/': typeof DocsTutorialsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/docs' | '/api/telemetry'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/docs'
+    | '/sitemap.xml'
+    | '/api/telemetry'
+    | '/docs/$slug'
+    | '/docs/'
+    | '/docs/tutorials/$slug'
+    | '/docs/tutorials/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/docs' | '/api/telemetry'
-  id: '__root__' | '/' | '/dashboard' | '/docs' | '/api/telemetry'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/sitemap.xml'
+    | '/api/telemetry'
+    | '/docs/$slug'
+    | '/docs'
+    | '/docs/tutorials/$slug'
+    | '/docs/tutorials'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/docs'
+    | '/sitemap.xml'
+    | '/api/telemetry'
+    | '/docs/$slug'
+    | '/docs/'
+    | '/docs/tutorials/$slug'
+    | '/docs/tutorials/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
-  DocsRoute: typeof DocsRoute
+  DocsRoute: typeof DocsRouteWithChildren
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiTelemetryRoute: typeof ApiTelemetryRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/docs': {
       id: '/docs'
       path: '/docs'
@@ -92,6 +171,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/': {
+      id: '/docs/'
+      path: '/'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof DocsIndexRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/$slug': {
+      id: '/docs/$slug'
+      path: '/$slug'
+      fullPath: '/docs/$slug'
+      preLoaderRoute: typeof DocsSlugRouteImport
+      parentRoute: typeof DocsRoute
+    }
     '/api/telemetry': {
       id: '/api/telemetry'
       path: '/api/telemetry'
@@ -99,13 +192,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTelemetryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/tutorials/': {
+      id: '/docs/tutorials/'
+      path: '/tutorials'
+      fullPath: '/docs/tutorials/'
+      preLoaderRoute: typeof DocsTutorialsIndexRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/tutorials/$slug': {
+      id: '/docs/tutorials/$slug'
+      path: '/tutorials/$slug'
+      fullPath: '/docs/tutorials/$slug'
+      preLoaderRoute: typeof DocsTutorialsSlugRouteImport
+      parentRoute: typeof DocsRoute
+    }
   }
 }
+
+interface DocsRouteChildren {
+  DocsSlugRoute: typeof DocsSlugRoute
+  DocsIndexRoute: typeof DocsIndexRoute
+  DocsTutorialsSlugRoute: typeof DocsTutorialsSlugRoute
+  DocsTutorialsIndexRoute: typeof DocsTutorialsIndexRoute
+}
+
+const DocsRouteChildren: DocsRouteChildren = {
+  DocsSlugRoute: DocsSlugRoute,
+  DocsIndexRoute: DocsIndexRoute,
+  DocsTutorialsSlugRoute: DocsTutorialsSlugRoute,
+  DocsTutorialsIndexRoute: DocsTutorialsIndexRoute,
+}
+
+const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
-  DocsRoute: DocsRoute,
+  DocsRoute: DocsRouteWithChildren,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiTelemetryRoute: ApiTelemetryRoute,
 }
 export const routeTree = rootRouteImport

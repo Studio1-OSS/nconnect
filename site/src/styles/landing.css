@@ -14,9 +14,9 @@
 
 .relay-home {
   position: relative;
-  --relay-ink: #171917;
-  --relay-muted: #626760;
-  --relay-line: #dfe3da;
+  --relay-ink: var(--color-ink);
+  --relay-muted: var(--color-muted);
+  --relay-line: var(--color-line);
   color: var(--relay-ink);
   background: #fff;
   letter-spacing: 0;
@@ -32,7 +32,7 @@
   top: -100px;
   z-index: 50;
   padding: 12px 18px;
-  background: #38b889;
+  background: var(--color-mint);
   color: #17210c;
   border-radius: 4px;
 }
@@ -153,7 +153,7 @@
 }
 .relay-home a:focus-visible,
 .relay-home button:focus-visible {
-  outline: 3px solid #4e84d8;
+  outline: 3px solid var(--color-focus);
   outline-offset: 5px;
 }
 .relay-home a,
@@ -190,16 +190,16 @@
 }
 .relay-brand b {
   font-weight: 450;
-  color: #47720b;
+  color: var(--color-brand);
 }
 .relay-footer .relay-brand b {
   color: inherit;
 }
 .relay-name {
-  color: #47720b;
+  color: var(--color-brand);
 }
 .relay-hero .relay-name {
-  color: #c6f135;
+  color: var(--color-lime);
 }
 .relay-nav nav,
 .relay-footer nav {
@@ -210,7 +210,7 @@
   font-weight: 500;
 }
 .relay-nav nav a:hover {
-  color: #587c08;
+  color: var(--color-brand-hover);
 }
 .relay-footer nav a {
   transition: opacity 0.2s;
@@ -249,11 +249,11 @@
   opacity: 0.92;
 }
 .relay-home .button-lime {
-  background: #38b889;
+  background: var(--color-mint);
   color: #181c10;
 }
 .relay-home .button-lime:hover {
-  background: #67d6ae;
+  background: var(--color-mint-hover);
 }
 .relay-hero-banner {
   width: min(1280px, calc(100% - 48px));
@@ -305,7 +305,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #38b889;
+  background: var(--color-mint);
   flex-shrink: 0;
 }
 .hero-eyebrow-container {
@@ -916,8 +916,8 @@
   scroll-margin-top: 20px;
 }
 .agents-section .wrap {
-  background: #fffcf5;
-  border-block: 1px solid #f3ece3;
+  background: var(--color-canvas);
+  border-block: 1px solid var(--color-canvas-line);
   padding-block: 64px;
 }
 .agents-grid {
@@ -951,7 +951,7 @@
   align-items: center;
 }
 .agent-status {
-  color: #87622e;
+  color: var(--color-amber-ink);
   font-family: var(--font-sans);
   font-size: 11px;
   font-weight: 500;
@@ -1064,9 +1064,9 @@
   color: var(--relay-ink);
 }
 .features-section .wrap {
-  background: #fffcf5;
-  border-top: 1px solid #f3ece3;
-  border-bottom: 1px solid #f3ece3;
+  background: var(--color-canvas);
+  border-top: 1px solid var(--color-canvas-line);
+  border-bottom: 1px solid var(--color-canvas-line);
   padding-block: 64px;
 }
 .features-section .eyebrow {
