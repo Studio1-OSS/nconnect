@@ -1,4 +1,4 @@
-# Nebius TF Relay
+# nconnect
 
 Run your local coding agents on [Nebius Token Factory](https://tokenfactory.nebius.com/) open models. One install, and **Claude Code**, **Codex**, **OpenCode**, **Pi**, **Prime Agent**, **Hermes**, **DeepSeek Harness**, and **Grok Build** all talk to open-weight models (Kimi K3, Kimi K2.6, Qwen 3.5, DeepSeek V4, MiniMax M3) instead of their default backends.
 
@@ -24,7 +24,7 @@ nebiusrelay claude     # Claude Code on Nebius models (alias: nclaude)
 
 ## What it does
 
-Nebius Token Factory serves open models over an OpenAI-compatible API. It does **not** speak the Anthropic Messages API (Claude Code) or the OpenAI Responses API (Codex). Nebius TF Relay runs a small local daemon that translates those wire formats to Nebius `/chat/completions` on the fly, so your agent believes it is talking to its native backend while every token is served by Nebius.
+Nebius Token Factory serves open models over an OpenAI-compatible API. It does **not** speak the Anthropic Messages API (Claude Code) or the OpenAI Responses API (Codex). nconnect runs a small local daemon that translates those wire formats to Nebius `/chat/completions` on the fly, so your agent believes it is talking to its native backend while every token is served by Nebius.
 
 - **Proxied harnesses** (Claude Code, Codex): a local daemon translates each request/response, tracks cost, retries transient failures, trims context to fit, and emulates native web search.
 - **Spawned harnesses** (OpenCode, Pi, Prime Agent, Hermes, DeepSeek Harness, Grok Build): launched with a generated provider config pointed at Nebius, no proxy needed (they already speak Nebius's OpenAI-compatible format).
@@ -151,7 +151,7 @@ harnesses hold the key and call Nebius directly, which is why they report
 
 ```bash
 NEBIUSRELAY_METER=1 npi --print "..."
-# Nebius TF Relay ▸ Launching Pi Code with Nebius Token Factory.
+# nconnect ▸ Launching Pi Code with Nebius Token Factory.
 # [nebiusrelay cost] session total: $0.0056 (1,518 in, 69 out)
 ```
 
