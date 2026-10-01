@@ -6,7 +6,7 @@
  * of newer fallback rows may be manually appended between captures so newly
  * announced models are still selectable when offline.
  *
- * Regenerate with: pnpm -F @nebiusrelay/cli exec nebiusrelay ... (see
+ * Regenerate with: pnpm -F @nconnect/cli exec nconnect ... (see
  * scripts/list-nebius-models.mjs) or re-run the capture in the models package.
  * Only the fields buildCatalog() reads are kept.
  */

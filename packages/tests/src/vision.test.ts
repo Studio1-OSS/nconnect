@@ -29,7 +29,7 @@ describe("Claude vision description", () => {
   });
 
   test("can race fallback vision model after an opt-in delay", async () => {
-    vi.stubEnv("NEBIUSRELAY_VISION_FAILOVER_RACE_DELAY_MS", "5");
+    vi.stubEnv("NCONNECT_VISION_FAILOVER_RACE_DELAY_MS", "5");
     const requests: string[] = [];
     vi.stubGlobal(
       "fetch",

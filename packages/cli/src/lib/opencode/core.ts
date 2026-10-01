@@ -1,4 +1,4 @@
-import { NEBIUS_BASE_URL } from "@nebiusrelay/models";
+import { NEBIUS_BASE_URL } from "@nconnect/models";
 import { NEBIUS_API_KEY_ENV_REF } from "../nebius-core.js";
 import {
   OPENCODE_PROVIDER_ID,
@@ -18,7 +18,7 @@ type OpencodeConfig = {
   /**
    * Provider ids OpenCode won't auto-load. We disable "opencode" - the Zen
    * gateway provider (its models are registered under the `opencode/*`
-   * namespace, not `zen/*`, per opencode issue #6979). nebiusrelay routes
+   * namespace, not `zen/*`, per opencode issue #6979). nconnect routes
    * everything to Nebius, so Zen's auto-loaded models are pure clutter in
    * the picker; this keeps /models to only the Nebius flagships we curate.
    * (disabled_providers takes priority over enabled_providers, per the docs.)

@@ -30,7 +30,7 @@ async function daemonStop(): Promise<void> {
     pid = undefined;
   }
   if (pid === undefined) {
-    console.log(`nebiusrelay daemon: not running (no pid file at ${pidPath}).`);
+    console.log(`nconnect daemon: not running (no pid file at ${pidPath}).`);
     return;
   }
   try {
@@ -43,7 +43,7 @@ async function daemonStop(): Promise<void> {
       } catch {
         // ignore
       }
-      console.log(`nebiusrelay daemon: not running (stale pid file removed).`);
+      console.log(`nconnect daemon: not running (stale pid file removed).`);
       return;
     }
     throw err;
@@ -56,7 +56,7 @@ async function daemonStop(): Promise<void> {
   } catch {
     // already cleaned by the daemon
   }
-  console.log(`nebiusrelay daemon: stopped (pid ${pid}) on ${daemonUrl(port)}.`);
+  console.log(`nconnect daemon: stopped (pid ${pid}) on ${daemonUrl(port)}.`);
 }
 
 async function loadStoredTavilyKey(): Promise<void> {
@@ -125,7 +125,7 @@ async function runInteractiveLauncher(): Promise<void> {
   }
   if (choice === "chatgpt") {
     // ChatGPT Desktop (the former Codex desktop app, merged in 2026). Routes
-    // to the same codex-app flow as `nebiusrelay chatgpt` / `codex-app`.
+    // to the same codex-app flow as `nconnect chatgpt` / `codex-app`.
     const { runCodexAppCommand } = await import("../lib/codex-app.js");
     const result = await runCodexAppCommand({ home: os.homedir() });
     if (result.message) {
@@ -146,10 +146,10 @@ function isInteractive(): boolean {
 
 async function main() {
   // Self-update first (throttled, bounded, never throws). Placed before arg
-  // parsing so even `nebiusrelay help` keeps an install current, but it's a
+  // parsing so even `nconnect help` keeps an install current, but it's a
   // no-op unless this is the installed bundle and the throttle window passed.
   // Keep this before loading project .env files so a repo cannot redirect the
-  // updater with NEBIUSRELAY_MANIFEST_URL / NEBIUSRELAY_HOME.
+  // updater with NCONNECT_MANIFEST_URL / NCONNECT_HOME.
   await maybeSelfUpdate();
 
   // Load a .env (cwd → repo root) after self-update, and only for approved
@@ -157,7 +157,7 @@ async function main() {
   loadEnvFile();
 
   // If TAVILY_API_KEY still isn't set (not in the env or .env), fall back to the
-  // key stored by `nebiusrelay configure`, so the proxy's web search works
+  // key stored by `nconnect configure`, so the proxy's web search works
   // without the user re-sourcing .env every session.
   await loadStoredTavilyKey();
 
@@ -186,7 +186,7 @@ async function main() {
   }
 
   if (command === "--version" || command === "-v" || command === "version") {
-    process.stdout.write(`nebiusrelay v${VERSION}\n`);
+    process.stdout.write(`nconnect v${VERSION}\n`);
     return;
   }
 
@@ -304,9 +304,7 @@ async function main() {
 
   if (command === "codex-app") {
     if (!parsed.flags.restore && !(await ensureConfiguredForInteractiveLaunch())) {
-      throw new Error(
-        "No Nebius API key found. Run `nebiusrelay configure` or set NEBIUS_API_KEY.",
-      );
+      throw new Error("No Nebius API key found. Run `nconnect configure` or set NEBIUS_API_KEY.");
     }
     const { runCodexAppCommand } = await import("../lib/codex-app.js");
     const result = await runCodexAppCommand({ home: os.homedir(), ...parsed.flags });
@@ -330,9 +328,7 @@ async function main() {
     invocation.command !== undefined
   ) {
     if (!(await ensureConfiguredForInteractiveLaunch())) {
-      throw new Error(
-        "No Nebius API key found. Run `nebiusrelay configure` or set NEBIUS_API_KEY.",
-      );
+      throw new Error("No Nebius API key found. Run `nconnect configure` or set NEBIUS_API_KEY.");
     }
   }
 

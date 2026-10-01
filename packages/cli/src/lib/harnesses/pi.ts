@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
-import { NEBIUS_BASE_URL } from "@nebiusrelay/models";
+import { NEBIUS_BASE_URL } from "@nconnect/models";
 import { getCodexSupportedModels, resolveCodexModel } from "../codex/defaults.js";
 import { HARNESS } from "../harness.js";
 import { defineHarness, type HarnessContext, type HarnessResult } from "../harness-types.js";
@@ -18,7 +18,7 @@ function piSupportedModels(): string {
 
 const VALUE_FLAGS = new Set(["--api-key", "--provider", "--model", "--models"]);
 
-function piArgsWithoutNebiusrelayOverrides(args: string[]): string[] {
+function piArgsWithoutNConnectOverrides(args: string[]): string[] {
   const sanitized: string[] = [];
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
@@ -97,7 +97,7 @@ export default defineHarness({
       throw new Error("No Nebius API key found. Pass --api-key or set NEBIUS_API_KEY.");
     }
 
-    const agentDir = mkdtempSync(join(tmpdir(), "nebiusrelay-pi-"));
+    const agentDir = mkdtempSync(join(tmpdir(), "nconnect-pi-"));
     const sessionDir =
       process.env.PI_CODING_AGENT_SESSION_DIR ??
       join(ctx.home || homedir(), ".pi", "agent", "sessions");
@@ -124,18 +124,18 @@ export default defineHarness({
       "--no-skills",
       "--no-prompt-templates",
       "--no-themes",
-      ...piArgsWithoutNebiusrelayOverrides(ctx.passthrough ?? []),
+      ...piArgsWithoutNConnectOverrides(ctx.passthrough ?? []),
     ];
 
-    if (process.env.NEBIUSRELAY_DEBUG === "1") {
-      process.stderr.write(`[nebiusrelay pi] provider: ${PI_PROVIDER_ID}\n`);
-      process.stderr.write(`[nebiusrelay pi] model: ${selectedModel.id}\n`);
-      process.stderr.write(`[nebiusrelay pi] models: ${supportedModels}\n`);
-      process.stderr.write(`[nebiusrelay pi] temp config dir: ${agentDir}\n`);
-      process.stderr.write(`[nebiusrelay pi] session dir: ${sessionDir}\n`);
+    if (process.env.NCONNECT_DEBUG === "1") {
+      process.stderr.write(`[nconnect pi] provider: ${PI_PROVIDER_ID}\n`);
+      process.stderr.write(`[nconnect pi] model: ${selectedModel.id}\n`);
+      process.stderr.write(`[nconnect pi] models: ${supportedModels}\n`);
+      process.stderr.write(`[nconnect pi] temp config dir: ${agentDir}\n`);
+      process.stderr.write(`[nconnect pi] session dir: ${sessionDir}\n`);
     }
 
-    process.stderr.write(`Nebius TF Relay ▸ Launching Pi Code with Nebius Token Factory.\n`);
+    process.stderr.write(`NConnect ▸ Launching Pi Code with Nebius Token Factory.\n`);
     const child = spawn("pi", args, {
       env: {
         ...process.env,
@@ -149,7 +149,7 @@ export default defineHarness({
     const result = await new Promise<{ status: number | null; signal: NodeJS.Signals | null }>(
       (resolve) => {
         child.on("error", (err) => {
-          process.stderr.write(`Nebius TF Relay ▸ Failed to launch pi: ${err.message}.\n`);
+          process.stderr.write(`NConnect ▸ Failed to launch pi: ${err.message}.\n`);
           resolve({ status: 1, signal: null });
         });
         child.on("exit", (status, signal) => resolve({ status, signal }));

@@ -1,9 +1,9 @@
 import { mkdir, readFile, writeFile, rename } from "node:fs/promises";
 import path from "node:path";
-import { NEBIUS_BASE_URL as SHARED_NEBIUS_BASE_URL } from "@nebiusrelay/models";
+import { NEBIUS_BASE_URL as SHARED_NEBIUS_BASE_URL } from "@nconnect/models";
 import type { HarnessContext } from "./harness-types.js";
 
-// Re-exported from the shared @nebiusrelay/models manifest so the base URL
+// Re-exported from the shared @nconnect/models manifest so the base URL
 // stays in one place; kept here to preserve this module's existing import surface.
 export const NEBIUS_BASE_URL = SHARED_NEBIUS_BASE_URL;
 export const NEBIUS_API_KEY_ENV_REF = "{env:NEBIUS_API_KEY}";

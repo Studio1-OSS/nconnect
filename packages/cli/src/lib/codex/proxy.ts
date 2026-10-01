@@ -1,5 +1,5 @@
 import { type IncomingMessage, type ServerResponse } from "node:http";
-import { type ModelDefinition } from "@nebiusrelay/models";
+import { type ModelDefinition } from "@nconnect/models";
 import { codexModelCatalog } from "./catalog.js";
 import type { CostTracker } from "../cost.js";
 import { createProxyPerfTracer, type ProxyPerfSink } from "../proxy-perf.js";
@@ -282,5 +282,5 @@ function debugLog(
   label: string,
   payload: unknown | (() => unknown),
 ): void {
-  writeProxyDebugLog("nebiusrelay codex proxy", options, label, payload);
+  writeProxyDebugLog("nconnect codex proxy", options, label, payload);
 }

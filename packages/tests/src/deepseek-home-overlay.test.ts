@@ -14,7 +14,7 @@ describe("stripping the persisted model override", () => {
       "ui-onboarding:",
       "  welcomeNoticeVersion: 2026-08-13.1",
       "agent-default-model:",
-      "  provider: nebiusrelay",
+      "  provider: nconnect",
       "  model: deepseek-ai/DeepSeek-V4-Pro",
       "",
     ].join("\n");
@@ -29,7 +29,7 @@ describe("stripping the persisted model override", () => {
   test("keeps keys that come after the block", () => {
     const settings = [
       "agent-default-model:",
-      "  provider: nebiusrelay",
+      "  provider: nconnect",
       "  model: deepseek-ai/DeepSeek-V4-Pro",
       "other-setting:",
       "  value: 42",

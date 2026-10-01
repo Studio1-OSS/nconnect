@@ -21,7 +21,7 @@ const GLM_5_2 = {
 
 export type TestDaemon = {
   url: string;
-  /** The daemon's isolated NEBIUSRELAY_HOME. */
+  /** The daemon's isolated NCONNECT_HOME. */
   home: string;
   stderr: () => string;
   stop: () => Promise<void>;
@@ -35,9 +35,9 @@ export async function startTestDaemon(context: TestContext): Promise<TestDaemon>
     cwd: context.repoRoot,
     env: {
       ...process.env,
-      NEBIUSRELAY_DEBUG: "1",
-      NEBIUSRELAY_HOME: home,
-      NEBIUSRELAY_PORT: String(port),
+      NCONNECT_DEBUG: "1",
+      NCONNECT_HOME: home,
+      NCONNECT_PORT: String(port),
     },
     stdio: ["ignore", "pipe", "pipe"],
   });

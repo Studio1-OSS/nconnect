@@ -1,7 +1,7 @@
 import { chmodSync, existsSync, watch } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-const binPath = resolve("dist/bin/nebiusrelay.js");
+const binPath = resolve("dist/bin/nconnect.js");
 const binDir = dirname(binPath);
 
 function chmodBin() {

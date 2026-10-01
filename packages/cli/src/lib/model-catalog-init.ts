@@ -1,11 +1,6 @@
 import path from "node:path";
-import {
-  applyCatalog,
-  buildCatalog,
-  NEBIUS_BASE_URL,
-  type NebiusApiModel,
-} from "@nebiusrelay/models";
-import { nebiusrelayHome } from "./global-config.js";
+import { applyCatalog, buildCatalog, NEBIUS_BASE_URL, type NebiusApiModel } from "@nconnect/models";
+import { nconnectHome } from "./global-config.js";
 import { readJsonIfExists, resolveNebiusApiKey, writeJsonAtomic } from "./nebius-core.js";
 
 /**
@@ -13,7 +8,7 @@ import { readJsonIfExists, resolveNebiusApiKey, writeJsonAtomic } from "./nebius
  *
  * The catalog (which models exist and, crucially, each model's modality) comes
  * from `GET /v1/models?verbose=true` so it always matches what Nebius serves -
- * no hand-maintained list. Results are cached to `~/.nebiusrelay/
+ * no hand-maintained list. Results are cached to `~/.nconnect/
  * model-catalog.json` and reused for CACHE_TTL_MS so repeat launches don't
  * re-fetch, and a stale cache (or the bundled snapshot) is used when the
  * network is unavailable. This is best-effort: any failure leaves the existing
@@ -30,7 +25,7 @@ type CatalogCache = {
 };
 
 function cachePath(home?: string): string {
-  return path.join(nebiusrelayHome(home), "model-catalog.json");
+  return path.join(nconnectHome(home), "model-catalog.json");
 }
 
 let inFlight: Promise<void> | undefined;

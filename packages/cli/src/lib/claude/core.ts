@@ -28,7 +28,7 @@ const CONFLICTING_ENV_KEYS = [
   "ANTHROPIC_CUSTOM_MODEL_OPTION_SUPPORTED_CAPABILITIES",
 ] as const;
 
-// Preserve Claude Code's native 32k cumulative-output guard. Nebius TF Relay
+// Preserve Claude Code's native 32k cumulative-output guard. NConnect
 // independently caps ordinary upstream turns at 28k, while compaction keeps
 // the full budget requested by Claude Code.
 const DEFAULT_CLAUDE_CODE_MAX_OUTPUT_TOKENS = 32_000;
@@ -73,7 +73,7 @@ export function buildClaudeEnv({
   // Carries the `[1m]` client hint for 1M-context models (see claudeCodeModelId).
   env.ANTHROPIC_MODEL = claudeCodeModelId(resolveClaudeModel(modelId));
   // Claude Code disables tool search automatically when ANTHROPIC_BASE_URL is
-  // customized unless the feature is explicitly enabled. nebiusrelay forwards
+  // customized unless the feature is explicitly enabled. nconnect forwards
   // the required tool_reference blocks, so opt in by default. Preserve
   // true/false/auto:N overrides from the user.
   if (!env.ENABLE_TOOL_SEARCH?.trim()) {
@@ -107,10 +107,10 @@ export function buildClaudeEnv({
   // ANTHROPIC_BASE_URL / our proxy, so we can neither capture nor honor it. The
   // binary even tags third-party providers as a reason feedback is unavailable.
   // Disable it so users aren't offered a feedback channel that silently reports
-  // to Anthropic instead of to nebiusrelay. The dedicated kill switch (not
+  // to Anthropic instead of to nconnect. The dedicated kill switch (not
   // DISABLE_FEEDBACK_COMMAND's sibling DISABLE_TELEMETRY) leaves bug reports /
   // diagnostics untouched. Default off; respect an explicit "0"/"" opt-in.
-  // See TODO.md "Custom `/nebiusrelay-feedback` command" for the replacement.
+  // See TODO.md "Custom `/nconnect-feedback` command" for the replacement.
   if (env.DISABLE_FEEDBACK_COMMAND === undefined) {
     env.DISABLE_FEEDBACK_COMMAND = "1";
   }
@@ -145,7 +145,7 @@ function setTierModelEnv(
   env[prefix] = claudeCodeModelId(model);
   env[`${prefix}_NAME`] = model.definition.name;
   env[`${prefix}_DESCRIPTION`] =
-    `Nebius Token Factory (${model.definition.name}) via nebiusrelay - not Anthropic`;
+    `Nebius Token Factory (${model.definition.name}) via nconnect - not Anthropic`;
 }
 
 /**
@@ -184,7 +184,7 @@ export async function runClaudeNebius(options: ClaudeLaunchOptions): Promise<Cla
     keepaliveLabel: "Claude session",
     preserveSessionAfterExit: claudeRunsInBackground(args),
     banner: (modelName) =>
-      `Nebius TF Relay ▸ Routing Claude Code → Nebius Token Factory (${modelName}). Not Anthropic.\n`,
+      `NConnect ▸ Routing Claude Code → Nebius Token Factory (${modelName}). Not Anthropic.\n`,
     buildEnv: ({ proxyUrl, authToken, modelId, modelName }) =>
       buildClaudeEnv({ ...options, modelId, modelName, proxyUrl, authToken }),
     buildArgs: ({ args: launchArgs, authToken }) => buildClaudeLaunchArgs(launchArgs, authToken),
@@ -210,13 +210,13 @@ export function buildClaudeLaunchArgs(args: string[], authToken?: string): strin
   ];
 }
 
-// Because nebiusrelay advertises effort capabilities for GLM-5.2, Claude Code
+// Because nconnect advertises effort capabilities for GLM-5.2, Claude Code
 // shows its `/effort` selector and defaults it to "medium" - so even "hi" makes
 // GLM-5.2 reason before replying, which is what users see as slow ("Baked for
 // 17s"). Claude Code's `--effort` has no "none"/"minimal" value (only
 // low|medium|high|xhigh|max), so we default the session to the lowest ("low"),
 // keeping the selector functional for users who want to dial reasoning up.
-// Respect an explicit --effort, and honor NEBIUSRELAY_REASONING_EFFORT when it
+// Respect an explicit --effort, and honor NCONNECT_REASONING_EFFORT when it
 // names a value --effort accepts.
 function claudeEffortArgs(args: string[]): string[] {
   for (const arg of args) {
@@ -230,7 +230,7 @@ function claudeEffortArgs(args: string[]): string[] {
       return [];
     }
   }
-  const env = process.env.NEBIUSRELAY_REASONING_EFFORT?.toLowerCase();
+  const env = process.env.NCONNECT_REASONING_EFFORT?.toLowerCase();
   const level =
     env === "medium" || env === "high" || env === "xhigh" || env === "max" || env === "low"
       ? env
@@ -280,7 +280,7 @@ function claudeCacheFriendlyArgs(args: string[]): string[] {
   return ["--exclude-dynamic-system-prompt-sections"];
 }
 
-// Extra settings.json keys nebiusrelay applies by default. These are
+// Extra settings.json keys nconnect applies by default. These are
 // settings-only (no env-var equivalent), so they're injected via claude's
 // `--settings <json>` flag, which *merges* into the user's existing settings
 // rather than replacing them. We bail out entirely if the user already passed
@@ -294,17 +294,17 @@ function claudeExtraSettingsArgs(args: string[], authToken?: string): string[] {
 
   // skipWebFetchPreflight: the WebFetch tool pings api.anthropic.com directly
   // (bypassing ANTHROPIC_BASE_URL / our proxy) for its domain safety check. In
-  // a nebiusrelay session api.anthropic.com isn't our model endpoint, so the
+  // a nconnect session api.anthropic.com isn't our model endpoint, so the
   // preflight fails and WebFetch breaks entirely. Skipping it restores
   // WebFetch without reaching Anthropic.
   //
-  // attribution: nebiusrelay runs Nebius models inside the Claude Code harness,
+  // attribution: nconnect runs Nebius models inside the Claude Code harness,
   // so Claude's default generated-by text and Co-Authored-By trailer would
   // identify the wrong model. Keep both commits and PRs unattributed.
   //
   // apiKeyHelper: force Claude Code into API-key mode (the helper's output is
   // used as the api key, sent to our local proxy which accepts x-api-key). This
-  // is what makes nebiusrelay work for users whose ORG DISABLED Claude Code for
+  // is what makes nconnect work for users whose ORG DISABLED Claude Code for
   // the claude.ai subscription: in OAuth/subscription mode Claude Code runs an
   // org-eligibility check at startup and hard-blocks with "Your organization
   // has disabled Claude subscription access" - even though we only want to talk

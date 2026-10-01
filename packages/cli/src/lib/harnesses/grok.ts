@@ -34,7 +34,7 @@ export default defineHarness({
     const baseUrl = endpoint.baseUrl;
     // Isolated, empty auth file: Grok must use the Nebius key we supply rather
     // than the user's own xAI login, and their real auth file stays untouched.
-    const temporaryAuthDirectory = mkdtempSync(join(tmpdir(), "nebiusrelay-grok-auth-"));
+    const temporaryAuthDirectory = mkdtempSync(join(tmpdir(), "nconnect-grok-auth-"));
     const authPath = join(temporaryAuthDirectory, "no-auth.json");
     let catalogServer: Awaited<ReturnType<typeof startGrokModelCatalogServer>> | undefined;
     try {
@@ -56,21 +56,21 @@ export default defineHarness({
         selectedModel: selectedModel.definition,
       });
 
-      if (process.env.NEBIUSRELAY_DEBUG === "1") {
-        process.stderr.write(`[nebiusrelay grok] model: ${selectedModel.id}\n`);
-        process.stderr.write(`[nebiusrelay grok] inference: ${baseUrl}\n`);
-        process.stderr.write(`[nebiusrelay grok] model catalog: ${catalogServer.modelsListUrl}\n`);
-        process.stderr.write(`[nebiusrelay grok] auth isolation: ${authPath}\n`);
+      if (process.env.NCONNECT_DEBUG === "1") {
+        process.stderr.write(`[nconnect grok] model: ${selectedModel.id}\n`);
+        process.stderr.write(`[nconnect grok] inference: ${baseUrl}\n`);
+        process.stderr.write(`[nconnect grok] model catalog: ${catalogServer.modelsListUrl}\n`);
+        process.stderr.write(`[nconnect grok] auth isolation: ${authPath}\n`);
       }
 
       process.stderr.write(
-        `Nebius TF Relay ▸ Launching Grok Build with Nebius Token Factory (${selectedModel.definition.name}). Not xAI.\n`,
+        `NConnect ▸ Launching Grok Build with Nebius Token Factory (${selectedModel.definition.name}). Not xAI.\n`,
       );
       const child = spawn("grok", args, { env, stdio: "inherit" });
       const result = await new Promise<{ status: number | null; signal: NodeJS.Signals | null }>(
         (resolve) => {
           child.on("error", (err) => {
-            process.stderr.write(`Nebius TF Relay ▸ Failed to launch grok: ${err.message}.\n`);
+            process.stderr.write(`NConnect ▸ Failed to launch grok: ${err.message}.\n`);
             resolve({ status: 1, signal: null });
           });
           child.on("exit", (status, signal) => resolve({ status, signal }));

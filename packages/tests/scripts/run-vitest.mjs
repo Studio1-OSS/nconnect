@@ -5,7 +5,7 @@ const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const forwardedArgs = process.argv.slice(2);
 const vitestArgs = forwardedArgs[0] === "--" ? forwardedArgs.slice(1) : forwardedArgs;
 
-const build = spawnSync(pnpm, ["-F", "@nebiusrelay/cli", "build"], {
+const build = spawnSync(pnpm, ["-F", "@nconnect/cli", "build"], {
   stdio: "inherit",
 });
 

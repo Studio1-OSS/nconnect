@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { NEBIUS_BASE_URL, VISION_PROMPT, getVisionModels } from "@nebiusrelay/models";
+import { NEBIUS_BASE_URL, VISION_PROMPT, getVisionModels } from "@nconnect/models";
 
 /**
  * Image interception for the Claude proxy. GLM-5.2 is text-only, so when Claude
@@ -9,7 +9,7 @@ import { NEBIUS_BASE_URL, VISION_PROMPT, getVisionModels } from "@nebiusrelay/mo
  * so GLM-5.2 reasons over the description rather than hallucinating about an
  * image it never saw.
  *
- * The vision model list and prompt come from @nebiusrelay/models (the shared
+ * The vision model list and prompt come from @nconnect/models (the shared
  * manifest) so they stay in sync with the OpenCode `@vision` subagent. The
  * models are fixed here - not user-configurable - with automatic failover if
  * the primary errors. Reasoning is disabled because image description is a
@@ -272,7 +272,7 @@ async function describeImageWithDelayedFailoverRace(
 }
 
 function visionFailoverRaceDelayMs(): number | undefined {
-  const raw = process.env.NEBIUSRELAY_VISION_FAILOVER_RACE_DELAY_MS;
+  const raw = process.env.NCONNECT_VISION_FAILOVER_RACE_DELAY_MS;
   const parsed = raw ? Number.parseInt(raw, 10) : NaN;
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
 }
@@ -312,5 +312,5 @@ function debug(options: VisionRequestOptions, label: string, value: unknown): vo
   if (!options.debug) {
     return;
   }
-  process.stderr.write(`[nebiusrelay vision] ${label}: ${JSON.stringify(value)}\n`);
+  process.stderr.write(`[nconnect vision] ${label}: ${JSON.stringify(value)}\n`);
 }

@@ -18,7 +18,7 @@ import { pageHead, siteUrl, structuredData } from "../lib/seo";
 import { useEffect, useRef, useState } from "react";
 
 const installCommand = "curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | bash";
-const githubUrl = "https://github.com/Studio1-OSS/nebius-tf-relay";
+const githubUrl = "https://github.com/Studio1-OSS/nconnect";
 const docsUrl = "/docs";
 const nebiusApiKeysUrl = "https://tokenfactory.nebius.com/?modals=create-api-key";
 const glmFlashUrl =
@@ -114,7 +114,7 @@ const steps = [
     title: "Install once",
     body: (
       <>
-        Run the one-liner. It drops <code>nebiusrelay</code> plus <code>nclaude</code>,{" "}
+        Run the one-liner. It drops <code>nconnect</code> plus <code>nclaude</code>,{" "}
         <code>ncodex</code>, <code>nopencode</code>, <code>npi</code>, and <code>nprime</code> onto
         your PATH and installs Bun if you don&apos;t have it.
       </>
@@ -124,7 +124,7 @@ const steps = [
     title: "Add your keys",
     body: (
       <>
-        On first run, <code>nebiusrelay configure</code> asks for your{" "}
+        On first run, <code>nconnect configure</code> asks for your{" "}
         <a className="link" href={nebiusApiKeysUrl} target="_blank" rel="noopener noreferrer">
           Nebius Token Factory
         </a>{" "}
@@ -180,7 +180,7 @@ const modelHighlights = [
 export const Route = createFileRoute("/")({
   head: () => ({
     ...pageHead(
-      "Nebius TF Relay | Open Models for Claude Code, Codex & More",
+      "NConnect | Open Models for Claude Code, Codex & More",
       "Run eight coding agents on Nebius Token Factory with a local, open-source relay. Install on macOS or Linux, configure API keys, and add Tavily web search.",
       "/",
     ),
@@ -188,7 +188,7 @@ export const Route = createFileRoute("/")({
       structuredData({
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
-        name: "Nebius TF Relay",
+        name: "NConnect",
         url: `${siteUrl}/`,
         description:
           "A local open-source relay connecting eight coding agents to models on Nebius Token Factory.",
@@ -248,10 +248,10 @@ function Home() {
         Skip to content
       </a>
       <header className="relay-nav wrap">
-        <a className="relay-brand" href="/" aria-label="Nebius TF Relay home">
+        <a className="relay-brand" href="/" aria-label="NConnect home">
           <img src="/relay-logo.png" alt="" />{" "}
           <span>
-            Nebius <b>TF Relay</b>
+            <b>NConnect</b>
           </span>
         </a>
         <nav aria-label="Main navigation">
@@ -280,7 +280,7 @@ function Home() {
             </a>
             <p className="eyebrow">YOUR AGENTS. OPEN MODELS.</p>
             <h1 id="hero-heading">
-              Nebius <span className="relay-name">TF Relay</span>
+              <span className="relay-name">NConnect</span>
             </h1>
             <p className="hero-tagline">
               Use open models
@@ -382,11 +382,7 @@ function Home() {
                 <span className="step-number">0{i + 1}</span>
                 <h3>{step.title}</h3>
                 <p>{step.body}</p>
-                {i === 1 ? (
-                  <code>nebiusrelay configure</code>
-                ) : i === 2 ? (
-                  <code>ncodex</code>
-                ) : null}
+                {i === 1 ? <code>nconnect configure</code> : i === 2 ? <code>ncodex</code> : null}
               </li>
             ))}
           </ol>
@@ -533,7 +529,7 @@ function Home() {
         <a href="/" className="relay-brand">
           <img src="/relay-logo.png" alt="" />
           <span>
-            Nebius <b>TF Relay</b>
+            <b>NConnect</b>
           </span>
         </a>
         <span>An open-source project by Studio1.</span>

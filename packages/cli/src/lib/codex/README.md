@@ -1,9 +1,9 @@
 # Codex Adapter
 
-`ncodex` launches the native Codex CLI through a local Nebius TF Relay proxy. The adapter keeps two kinds of configuration separate:
+`ncodex` launches the native Codex CLI through a local NConnect proxy. The adapter keeps two kinds of configuration separate:
 
-- Nebius TF Relay endpoint, provider, model, and catalog settings are passed as per-launch `-c` overrides. They must not be persisted to `~/.codex/config.toml`, so normal `codex` launches keep using the user's own provider setup.
-- Generic Codex user preferences belong to Codex. Settings such as `approval_policy`, `sandbox_mode`, permission profiles, rules, and project trust should be read by Codex from `~/.codex/config.toml`, not rewritten by Nebius TF Relay.
+- NConnect endpoint, provider, model, and catalog settings are passed as per-launch `-c` overrides. They must not be persisted to `~/.codex/config.toml`, so normal `codex` launches keep using the user's own provider setup.
+- Generic Codex user preferences belong to Codex. Settings such as `approval_policy`, `sandbox_mode`, permission profiles, rules, and project trust should be read by Codex from `~/.codex/config.toml`, not rewritten by NConnect.
 
 The only generic config write allowed by `ncodex` is the first-run safety seed: if `~/.codex/config.toml` is missing or empty, create it with Codex's "Auto + approve for me" posture:
 

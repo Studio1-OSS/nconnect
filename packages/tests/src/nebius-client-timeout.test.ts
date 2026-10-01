@@ -24,10 +24,10 @@ describe("Nebius response-header timeout", () => {
 
   test("defaults to 45 seconds before rejecting a response-header stall", async () => {
     vi.useFakeTimers();
-    vi.stubEnv("NEBIUSRELAY_REQUEST_DIAGNOSTICS", "0");
-    vi.stubEnv("NEBIUSRELAY_RESPONSE_HEADER_TIMEOUT_MS", "");
-    vi.stubEnv("NEBIUSRELAY_FALLBACK_MODEL", "off");
-    vi.stubEnv("NEBIUSRELAY_RESPONSE_HEADER_RETRIES", "0");
+    vi.stubEnv("NCONNECT_REQUEST_DIAGNOSTICS", "0");
+    vi.stubEnv("NCONNECT_RESPONSE_HEADER_TIMEOUT_MS", "");
+    vi.stubEnv("NCONNECT_FALLBACK_MODEL", "off");
+    vi.stubEnv("NCONNECT_RESPONSE_HEADER_RETRIES", "0");
     vi.stubGlobal(
       "fetch",
       vi.fn(
@@ -61,11 +61,11 @@ describe("Nebius response-header timeout", () => {
   });
 
   test("rejects a fetch that never returns headers with a typed, persisted diagnostic", async () => {
-    temporaryHome = await mkdtemp(path.join(os.tmpdir(), "nebiusrelay-timeout-test-"));
-    vi.stubEnv("NEBIUSRELAY_HOME", temporaryHome);
-    vi.stubEnv("NEBIUSRELAY_RESPONSE_HEADER_TIMEOUT_MS", "100");
-    vi.stubEnv("NEBIUSRELAY_STREAM_RETRIES", "0");
-    vi.stubEnv("NEBIUSRELAY_FALLBACK_MODEL", "off");
+    temporaryHome = await mkdtemp(path.join(os.tmpdir(), "nconnect-timeout-test-"));
+    vi.stubEnv("NCONNECT_HOME", temporaryHome);
+    vi.stubEnv("NCONNECT_RESPONSE_HEADER_TIMEOUT_MS", "100");
+    vi.stubEnv("NCONNECT_STREAM_RETRIES", "0");
+    vi.stubEnv("NCONNECT_FALLBACK_MODEL", "off");
     vi.stubGlobal(
       "fetch",
       vi.fn(
@@ -99,10 +99,10 @@ describe("Nebius response-header timeout", () => {
   });
 
   test("preserves a caller abort without retrying it as a transport timeout", async () => {
-    temporaryHome = await mkdtemp(path.join(os.tmpdir(), "nebiusrelay-abort-test-"));
-    vi.stubEnv("NEBIUSRELAY_HOME", temporaryHome);
-    vi.stubEnv("NEBIUSRELAY_RESPONSE_HEADER_TIMEOUT_MS", "1000");
-    vi.stubEnv("NEBIUSRELAY_STREAM_RETRIES", "1");
+    temporaryHome = await mkdtemp(path.join(os.tmpdir(), "nconnect-abort-test-"));
+    vi.stubEnv("NCONNECT_HOME", temporaryHome);
+    vi.stubEnv("NCONNECT_RESPONSE_HEADER_TIMEOUT_MS", "1000");
+    vi.stubEnv("NCONNECT_STREAM_RETRIES", "1");
     const fetchMock = vi.fn(
       (_url: string, init?: RequestInit) =>
         new Promise<Response>((_resolve, reject) => {
@@ -133,7 +133,7 @@ describe("Nebius response-header timeout", () => {
   });
 
   test("keeps caller cancellation connected after response headers arrive", async () => {
-    vi.stubEnv("NEBIUSRELAY_REQUEST_DIAGNOSTICS", "0");
+    vi.stubEnv("NCONNECT_REQUEST_DIAGNOSTICS", "0");
     let upstreamSignal: AbortSignal | undefined;
     vi.stubGlobal(
       "fetch",
@@ -158,11 +158,11 @@ describe("Nebius response-header timeout", () => {
   });
 
   test("limits non-stream response-header timeouts to one safe retry", async () => {
-    temporaryHome = await mkdtemp(path.join(os.tmpdir(), "nebiusrelay-buffered-timeout-test-"));
-    vi.stubEnv("NEBIUSRELAY_HOME", temporaryHome);
-    vi.stubEnv("NEBIUSRELAY_RESPONSE_HEADER_TIMEOUT_MS", "100");
-    vi.stubEnv("NEBIUSRELAY_RESPONSE_HEADER_RETRIES", "1");
-    vi.stubEnv("NEBIUSRELAY_FALLBACK_MODEL", "off");
+    temporaryHome = await mkdtemp(path.join(os.tmpdir(), "nconnect-buffered-timeout-test-"));
+    vi.stubEnv("NCONNECT_HOME", temporaryHome);
+    vi.stubEnv("NCONNECT_RESPONSE_HEADER_TIMEOUT_MS", "100");
+    vi.stubEnv("NCONNECT_RESPONSE_HEADER_RETRIES", "1");
+    vi.stubEnv("NCONNECT_FALLBACK_MODEL", "off");
     const fetchMock = vi.fn(
       (_url: string, init?: RequestInit) =>
         new Promise<Response>((_resolve, reject) => {

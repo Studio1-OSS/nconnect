@@ -1,6 +1,6 @@
 /**
  * Self-update. The installed CLI lives as a single Bun-target JS bundle at
- * `<home>/.nebiusrelay/bin/nebiusrelay.js`, launched by a tiny `nebiusrelay`
+ * `<home>/.nconnect/bin/nconnect.js`, launched by a tiny `nconnect`
  * shell wrapper that calls `bun run` on it. To update, we fetch a small
  * `latest.json` manifest from the project site, compare versions, and if newer
  * download the new bundle and atomically rename it over the installed file.
@@ -19,7 +19,7 @@ import { VERSION } from "./version.js";
 const UPDATE_ORIGIN = "https://nebius-tf-relay.vercel.app";
 /** Override for testing/local mirrors; normally unset. */
 function resolveManifestUrl(): string {
-  return process.env.NEBIUSRELAY_MANIFEST_URL ?? `${UPDATE_ORIGIN}/latest.json`;
+  return process.env.NCONNECT_MANIFEST_URL ?? `${UPDATE_ORIGIN}/latest.json`;
 }
 
 const THROTTLE_MS = 60 * 60 * 1000; // re-check at most once per hour
@@ -29,18 +29,18 @@ const FETCH_TIMEOUT_MS = 5_000;
 type Manifest = { version: string; url?: string };
 
 /**
- * Where the install lives. `NEBIUSRELAY_HOME` (when set) is the `.nebiusrelay`
+ * Where the install lives. `NCONNECT_HOME` (when set) is the `.nconnect`
  * directory itself - matching `scripts/install.sh`, which installs the bundle
- * at `$NEBIUSRELAY_HOME/bin/nebiusrelay.js`. When unset, default to
- * `~/.nebiusrelay`.
+ * at `$NCONNECT_HOME/bin/nconnect.js`. When unset, default to
+ * `~/.nconnect`.
  */
 function resolveInstallDir(): string {
-  return process.env.NEBIUSRELAY_HOME || path.join(os.homedir(), ".nebiusrelay");
+  return process.env.NCONNECT_HOME || path.join(os.homedir(), ".nconnect");
 }
 
-/** Installed bundle path. `nebiusrelay` wrapper runs `bun run` on this. */
+/** Installed bundle path. `nconnect` wrapper runs `bun run` on this. */
 function installedBundlePath(): string {
-  return path.join(resolveInstallDir(), "bin", "nebiusrelay.js");
+  return path.join(resolveInstallDir(), "bin", "nconnect.js");
 }
 
 /**
@@ -133,7 +133,7 @@ async function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 async function fetchManifest(): Promise<Manifest> {
   const res = await withTimeout(
     fetch(resolveManifestUrl(), {
-      headers: { "User-Agent": `nebiusrelay/${VERSION}` },
+      headers: { "User-Agent": `nconnect/${VERSION}` },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     }),
     FETCH_TIMEOUT_MS,
@@ -151,7 +151,7 @@ async function fetchManifest(): Promise<Manifest> {
 async function downloadTo(url: string, dest: string): Promise<void> {
   const res = await withTimeout(
     fetch(url, {
-      headers: { "User-Agent": `nebiusrelay/${VERSION}` },
+      headers: { "User-Agent": `nconnect/${VERSION}` },
       signal: AbortSignal.timeout(OVERALL_TIMEOUT_MS),
     }),
     OVERALL_TIMEOUT_MS,
@@ -239,7 +239,7 @@ export async function runUpdateCommand(): Promise<string> {
     return `Already up to date (v${VERSION}).${wrapperNote}`;
   }
   const dest = installedBundlePath();
-  const url = manifest.url ?? `${UPDATE_ORIGIN}/nebiusrelay.js`;
+  const url = manifest.url ?? `${UPDATE_ORIGIN}/nconnect.js`;
   await downloadTo(url, dest);
   await touchThrottle();
   return `Updated v${VERSION} -> v${manifest.version}. The next run uses it.${wrapperNote}`;
@@ -249,8 +249,8 @@ export async function maybeSelfUpdate(): Promise<void> {
   // Only the installed bundle self-updates, and only against the deployed
   // release site the bundle was installed from - so this is a safe default-on:
   // dev/source runs no-op, and every failure below is swallowed. Set
-  // NEBIUSRELAY_DISABLE_AUTOUPDATE=1 to opt out.
-  if (process.env.NEBIUSRELAY_DISABLE_AUTOUPDATE === "1") {
+  // NCONNECT_DISABLE_AUTOUPDATE=1 to opt out.
+  if (process.env.NCONNECT_DISABLE_AUTOUPDATE === "1") {
     return;
   }
   if (!isInstalledBundle()) {
@@ -267,15 +267,13 @@ export async function maybeSelfUpdate(): Promise<void> {
       return;
     }
     const dest = installedBundlePath();
-    const url = manifest.url ?? `${UPDATE_ORIGIN}/nebiusrelay.js`;
+    const url = manifest.url ?? `${UPDATE_ORIGIN}/nconnect.js`;
     await downloadTo(url, dest);
     // A new release may add wrapper commands; create any that are missing so
     // existing installs pick up new harnesses without reinstalling.
     const created = await backfillWrapperCommands();
     const suffix = created.length > 0 ? ` (+ ${created.join(", ")})` : "";
-    process.stderr.write(
-      `nebiusrelay: updated to v${manifest.version}${suffix} (next run uses it)\n`,
-    );
+    process.stderr.write(`nconnect: updated to v${manifest.version}${suffix} (next run uses it)\n`);
   } catch {
     // Swallowed: update failure never breaks the user's command.
   }

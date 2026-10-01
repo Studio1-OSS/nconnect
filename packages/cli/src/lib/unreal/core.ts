@@ -135,7 +135,7 @@ export async function runUnrealNebius(options: UnrealLaunchOptions): Promise<Pro
     binary: UNREAL_BIN,
     keepaliveLabel: "Unreal Agent session",
     banner: (modelName) =>
-      `Nebius TF Relay ▸ Routing Unreal Agent → Nebius Token Factory (${modelName}).\n`,
+      `NConnect ▸ Routing Unreal Agent → Nebius Token Factory (${modelName}).\n`,
     buildEnv: (context) => buildUnrealEnv(process.env, context),
     buildArgs: ({ args }) => args,
     // Raw JSONL when piped (scripts rely on it); readable text in a terminal.

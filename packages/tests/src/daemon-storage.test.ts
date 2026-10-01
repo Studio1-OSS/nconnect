@@ -14,7 +14,7 @@ afterEach(() => {
 
 describe("daemon session persistence", () => {
   test("restores the session-scoped Nebius base URL", async () => {
-    const home = mkdtempSync(join(tmpdir(), "nebiusrelay-daemon-store-"));
+    const home = mkdtempSync(join(tmpdir(), "nconnect-daemon-store-"));
     cleanup.push(home);
     const output = execFileSync(
       process.execPath,
@@ -58,7 +58,7 @@ describe("daemon session persistence", () => {
 });
 
 /**
- * `nebiusrelay usage` used to require `ended_at IS NOT NULL`, so a session that
+ * `nconnect usage` used to require `ended_at IS NOT NULL`, so a session that
  * was still running contributed nothing. ChatGPT Desktop registers without a
  * pid and never ends while the app is open, so its spend was permanently
  * invisible - and proxied sessions only persisted cost at exit, so a daemon
@@ -102,7 +102,7 @@ describe("usage counts sessions that are still running", () => {
   }
 
   test("an active session's live cost appears in the window", () => {
-    const home = mkdtempSync(join(tmpdir(), "nebiusrelay-usage-active-"));
+    const home = mkdtempSync(join(tmpdir(), "nconnect-usage-active-"));
     cleanup.push(home);
     const output = runStoreScript(
       home,
@@ -129,7 +129,7 @@ describe("usage counts sessions that are still running", () => {
   });
 
   test("an active session older than the window is still excluded", () => {
-    const home = mkdtempSync(join(tmpdir(), "nebiusrelay-usage-stale-"));
+    const home = mkdtempSync(join(tmpdir(), "nconnect-usage-stale-"));
     cleanup.push(home);
     const output = runStoreScript(
       home,
@@ -144,7 +144,7 @@ describe("usage counts sessions that are still running", () => {
   });
 
   test("ended sessions still count, and are not marked active", () => {
-    const home = mkdtempSync(join(tmpdir(), "nebiusrelay-usage-ended-"));
+    const home = mkdtempSync(join(tmpdir(), "nconnect-usage-ended-"));
     cleanup.push(home);
     const output = runStoreScript(
       home,

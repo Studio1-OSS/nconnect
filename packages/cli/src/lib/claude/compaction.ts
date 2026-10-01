@@ -7,7 +7,7 @@ const COMPACTION_SIGNATURES = [
   "Your entire response must be plain text: an <analysis> block followed by a <summary> block.",
   // Claude Code uses full-history, recent-portion, and continuing-session
   // variants. Their suffix differs, but this stable prefix identifies all of
-  // them without tying Nebius TF Relay to one exact release's wording.
+  // them without tying NConnect to one exact release's wording.
   "Your task is to create a detailed summary",
 ] as const;
 
@@ -38,7 +38,7 @@ export function tuneClaudeCompactionRequest(
   const effectiveRequestedMaxTokens = requestedMaxTokens ?? claudeCodeMaxOutputTokens;
   // Preserve Claude Code's own compaction request budget. The client-level
   // limit remains authoritative when the user explicitly configures a lower
-  // value, but Nebius TF Relay does not impose a separate compaction-only cap.
+  // value, but NConnect does not impose a separate compaction-only cap.
   const maxTokens = Math.min(effectiveRequestedMaxTokens, claudeCodeMaxOutputTokens);
 
   if (maxTokens !== undefined) {
@@ -98,7 +98,7 @@ function boundedCompactionInstruction(
   maxTokens: number,
   userConfiguredClaudeMaxOutputTokens: boolean,
 ): string {
-  return `Nebius TF Relay bounded compaction request:
+  return `NConnect bounded compaction request:
 
 Respond with plain text only: a short <analysis> block followed by a <summary> block.
 

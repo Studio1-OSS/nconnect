@@ -2,7 +2,7 @@ import {
   acceptsReasoningEffort,
   minimumReasoningEffort,
   type ModelDefinition,
-} from "@nebiusrelay/models";
+} from "@nconnect/models";
 import {
   nativeToolMaxUses as sharedNativeToolMaxUses,
   runWebSearchDetailed as runSharedWebSearchDetailed,
@@ -35,8 +35,8 @@ type DebugOptions = {
 
 type NebiusReasoningEffort = "none" | "low" | "medium" | "high" | "max";
 
-const NEBIUSRELAY_IDENTITY_PROMPT =
-  "You are a Nebius Token Factory model routed through nebiusrelay, not Anthropic Claude.";
+const NCONNECT_IDENTITY_PROMPT =
+  "You are a Nebius Token Factory model routed through nconnect, not Anthropic Claude.";
 
 /**
  * Reasoning effort applied when the request does NOT explicitly ask for extended
@@ -44,11 +44,11 @@ const NEBIUSRELAY_IDENTITY_PROMPT =
  * reasons on *every* turn (240+ reasoning tokens even for "hi"), which dominates
  * latency - Claude Code then renders that unsolicited reasoning as "Thought for
  * Ns". Defaulting to "none" keeps interactive turns snappy. Override globally
- * with NEBIUSRELAY_REASONING_EFFORT=low|medium|high|max for more reasoning depth
+ * with NCONNECT_REASONING_EFFORT=low|medium|high|max for more reasoning depth
  * by default (at the cost of speed).
  */
 function defaultReasoningEffort(): NebiusReasoningEffort {
-  return normalizeNebiusReasoningEffort(process.env.NEBIUSRELAY_REASONING_EFFORT) ?? "none";
+  return normalizeNebiusReasoningEffort(process.env.NCONNECT_REASONING_EFFORT) ?? "none";
 }
 
 export function nebiusReasoningEffort(
@@ -67,7 +67,7 @@ export function nebiusReasoningEffort(
   // escalate off Claude Code's `thinking.budget_tokens` - Claude Code sends a
   // thinking budget liberally, and mapping that to high/max reasoning is what
   // made trivial turns take ~40s. Deep reasoning is opt-in via an explicit
-  // effort field or NEBIUSRELAY_REASONING_EFFORT.
+  // effort field or NCONNECT_REASONING_EFFORT.
   const explicitEffort = normalizeNebiusReasoningEffort(
     body.reasoning_effort ?? body.effort ?? body.thinking?.effort,
   );
@@ -246,8 +246,8 @@ export function toOpenAIMessages(
       : reasoningHistoryPolicy(reasoningMode);
   const systemParts = [
     targetModel
-      ? `${NEBIUSRELAY_IDENTITY_PROMPT} Backend: ${targetModel.name} (${targetModel.id}).`
-      : NEBIUSRELAY_IDENTITY_PROMPT,
+      ? `${NCONNECT_IDENTITY_PROMPT} Backend: ${targetModel.name} (${targetModel.id}).`
+      : NCONNECT_IDENTITY_PROMPT,
   ];
   const system = stringifyAnthropicContent(body.system);
   if (system) {
@@ -332,5 +332,5 @@ function debugLog(
   label: string,
   value: unknown | (() => unknown),
 ): void {
-  writeProxyDebugLog("nebiusrelay proxy", options, label, value);
+  writeProxyDebugLog("nconnect proxy", options, label, value);
 }

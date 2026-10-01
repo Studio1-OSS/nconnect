@@ -4,7 +4,7 @@ import http, { type IncomingMessage, type Server, type ServerResponse } from "no
 import { performance } from "node:perf_hooks";
 import { Readable } from "node:stream";
 import { afterEach, expect, test, vi } from "vitest";
-import { GLM_5_2 } from "@nebiusrelay/models";
+import { GLM_5_2 } from "@nconnect/models";
 import { CostTracker } from "../../cli/src/lib/claude/cost.js";
 import { handleProxyRequest, type ClaudeProxyOptions } from "../../cli/src/lib/claude/proxy.js";
 import { describeImage } from "../../cli/src/lib/claude/vision.js";
@@ -431,7 +431,7 @@ test("captured headless proxy payload breakdown", async () => {
     },
     notes: [
       "Fixtures are captured from installed headless Codex/Claude Code clients using packages/tests/scripts/capture-proxy-fixtures.mjs.",
-      "The recorder saves the largest real inbound client payload and the benchmark replays it through the real nebiusrelay proxy handlers.",
+      "The recorder saves the largest real inbound client payload and the benchmark replays it through the real nconnect proxy handlers.",
     ],
   };
 
@@ -729,7 +729,7 @@ test("vision delayed failover timing", async () => {
     5,
     1,
     async () => {
-      vi.stubEnv("NEBIUSRELAY_VISION_FAILOVER_RACE_DELAY_MS", "5");
+      vi.stubEnv("NCONNECT_VISION_FAILOVER_RACE_DELAY_MS", "5");
       let requests = 0;
       vi.stubGlobal(
         "fetch",
@@ -1081,12 +1081,12 @@ function loadCapturedPayload(file: URL): Record<string, unknown> | undefined {
 }
 
 function sanityP95CeilingMs(): number {
-  const raw = process.env.NEBIUSRELAY_PROXY_BENCH_MAX_RAW_P95_MS;
+  const raw = process.env.NCONNECT_PROXY_BENCH_MAX_RAW_P95_MS;
   return raw ? Number.parseFloat(raw) : 100;
 }
 
 function optionalOverheadCeilingMs(): number | undefined {
-  const raw = process.env.NEBIUSRELAY_PROXY_BENCH_MAX_P95_OVERHEAD_MS;
+  const raw = process.env.NCONNECT_PROXY_BENCH_MAX_P95_OVERHEAD_MS;
   if (!raw) {
     return undefined;
   }

@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
-import { GLM_5_2 } from "@nebiusrelay/models";
+import { GLM_5_2 } from "@nconnect/models";
 import { runProxiedSession } from "../../cli/src/lib/proxied-session.js";
 import { cleanupTmpDir, createTestContext } from "./context.js";
 import { startTestDaemon, type TestDaemon } from "./daemon-session.js";
@@ -12,9 +12,9 @@ describe("proxied background session lifecycle", () => {
   beforeAll(async () => {
     context = await createTestContext();
     daemon = await startTestDaemon(context);
-    vi.stubEnv("NEBIUSRELAY_HOME", daemon.home);
-    vi.stubEnv("NEBIUSRELAY_PORT", new URL(daemon.url).port);
-    vi.stubEnv("NEBIUSRELAY_TELEMETRY_DISABLED", "1");
+    vi.stubEnv("NCONNECT_HOME", daemon.home);
+    vi.stubEnv("NCONNECT_PORT", new URL(daemon.url).port);
+    vi.stubEnv("NCONNECT_TELEMETRY_DISABLED", "1");
 
     // Keep one persistent registration active so ensureDaemon reuses this
     // intentionally isolated test daemon even though Vitest is the parent

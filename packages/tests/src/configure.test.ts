@@ -23,9 +23,9 @@ afterEach(async () => {
   );
 });
 
-describe("nebiusrelay configure", () => {
+describe("nconnect configure", () => {
   test("requires a Nebius key and allows an untouched Tavily prompt to be skipped", async () => {
-    const home = await mkdtemp(path.join(os.tmpdir(), "nebiusrelay-configure-"));
+    const home = await mkdtemp(path.join(os.tmpdir(), "nconnect-configure-"));
     temporaryHomes.push(home);
     vi.stubEnv("NEBIUS_API_KEY", "");
     vi.stubEnv("TAVILY_API_KEY", "");
@@ -42,7 +42,7 @@ describe("nebiusrelay configure", () => {
   });
 
   test("cancels before saving credentials", async () => {
-    const home = await mkdtemp(path.join(os.tmpdir(), "nebiusrelay-configure-"));
+    const home = await mkdtemp(path.join(os.tmpdir(), "nconnect-configure-"));
     temporaryHomes.push(home);
     vi.stubEnv("NEBIUS_API_KEY", "");
     vi.stubEnv("TAVILY_API_KEY", "");
@@ -54,7 +54,7 @@ describe("nebiusrelay configure", () => {
   });
 
   test("persists an Exa key across a cold start even when configure reads it from the environment", async () => {
-    const home = await mkdtemp(path.join(os.tmpdir(), "nebiusrelay-configure-"));
+    const home = await mkdtemp(path.join(os.tmpdir(), "nconnect-configure-"));
     temporaryHomes.push(home);
     vi.stubEnv("NEBIUS_API_KEY", "nebius-test-key");
     vi.stubEnv("TAVILY_API_KEY", "exa-test-key");

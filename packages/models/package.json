@@ -1,7 +1,7 @@
 {
-  "name": "@nebiusrelay/models",
+  "name": "@nconnect/models",
   "version": "0.3.0",
-  "description": "Shared Nebius model definitions, capabilities, and pricing for nebiusrelay harnesses",
+  "description": "Shared Nebius model definitions, capabilities, and pricing for nconnect harnesses",
   "license": "MIT",
   "files": [
     "dist"

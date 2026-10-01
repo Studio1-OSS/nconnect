@@ -11,7 +11,7 @@ const noneInstalled = () => false;
 describe("interactive launcher covers everything we ship", () => {
   // The bug this replaces: the menu was a second hand-written list of five
   // harnesses, so Hermes, DeepSeek and Grok shipped with wrappers and README
-  // entries but never appeared - `nebiusrelay` offered 5 of the 8 tools it had.
+  // entries but never appeared - `nconnect` offered 5 of the 8 tools it had.
   test("every registered harness appears", () => {
     const values = new Set(interactiveLauncherOptions(allInstalled).map((o) => o.value));
     for (const harness of ALL_HARNESSES) {

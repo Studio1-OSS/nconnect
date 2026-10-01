@@ -9,5 +9,5 @@ Relay branding identifies this open-source project. Provider marks identify mode
 ## Generation prompts
 
 - Logo: a bold geometric relay symbol made from two angular open brackets and a diagonal bridge, centered with generous margins, dark mark on an opaque jade-green background. No text or provider marks. Initial lime and coral concepts recolored to jade-green at the project owner's request.
-- Social image: near-black wide banner, Relay symbol, white "Nebius TF Relay" heading, "Use open models" / "with your existing harness." supporting copy, and "OPEN SOURCE · LOCAL RELAY" footer. All accents jade-green; preserve identity and typography.
+- Social image: near-black wide banner, Relay symbol, white "NConnect" heading, "Use open models" / "with your existing harness." supporting copy, and "OPEN SOURCE · LOCAL RELAY" footer. All accents jade-green; preserve identity and typography.
 - Favicon and touch icon: size exports of the approved generated jade-green logo, without changing its design.

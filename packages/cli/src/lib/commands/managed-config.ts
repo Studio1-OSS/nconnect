@@ -3,11 +3,11 @@ import { HARNESS, HARNESS_LABEL, type HarnessId } from "../harness.js";
 /**
  * `off` / `restore`: turn off the relay-managed Codex configuration.
  *
- * `nebiusrelay chatgpt` persistently rewrites `~/.codex/config.toml` so ChatGPT
+ * `nconnect chatgpt` persistently rewrites `~/.codex/config.toml` so ChatGPT
  * Desktop routes through the local daemon. The Codex CLI reads that same file,
  * so a plain `codex` keeps routing through us afterwards - with no obvious way
  * back. `--restore` did exist, but you had to know it, and the natural guesses
- * silently did the wrong thing: `nebiusrelay codex off` handed "off" to Codex
+ * silently did the wrong thing: `nconnect codex off` handed "off" to Codex
  * as a prompt, because everything after a harness name is passthrough.
  *
  * The managed config is shared by ChatGPT Desktop and the Codex CLI, so
@@ -39,7 +39,7 @@ export function resolveDisableRequest(
   command: string | undefined,
   verbCandidates: ReadonlyArray<string | undefined>,
 ): DisableRequest {
-  // Bare `nebiusrelay off` / `nebiusrelay restore`: the verb is the command.
+  // Bare `nconnect off` / `nconnect restore`: the verb is the command.
   if (isDisableVerb(command)) {
     return { kind: "restore" };
   }
@@ -48,7 +48,7 @@ export function resolveDisableRequest(
     return { kind: "none" };
   }
   if (command === undefined) {
-    // Bare `nebiusrelay restore` - the managed config is shared, so this is
+    // Bare `nconnect restore` - the managed config is shared, so this is
     // unambiguous even without naming a harness.
     return { kind: "restore" };
   }
@@ -63,6 +63,6 @@ export function resolveDisableRequest(
     message:
       `${label} writes no persistent configuration, so there is nothing to turn off.\n` +
       "Only the Codex config (shared by ChatGPT Desktop and the Codex CLI) is managed: " +
-      "run `nebiusrelay chatgpt off`.",
+      "run `nconnect chatgpt off`.",
   };
 }

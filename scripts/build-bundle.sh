@@ -6,7 +6,7 @@
 # when executed with `bun run`. The version from the root package.json is
 # baked in via --define so the binary's self-update check knows its version.
 #
-# Output: site/public/nebiusrelay.js for the Vercel static build, mirrored to
+# Output: site/public/nconnect.js for the Vercel static build, mirrored to
 # tracked site/* artifacts so manual/static release flows stay in sync too.
 
 set -euo pipefail
@@ -16,11 +16,11 @@ cd "$ROOT"
 
 # Version is the single source of truth from the root package.json.
 VERSION="$(node -p "require('./package.json').version")"
-echo "Building nebiusrelay v${VERSION} bundle…"
+echo "Building nconnect v${VERSION} bundle…"
 
-# The CLI depends on the workspace @nebiusrelay/models package, so build that
+# The CLI depends on the workspace @nconnect/models package, so build that
 # first so `bun build` can resolve and inline it into the bundle.
-pnpm --filter @nebiusrelay/models build
+pnpm --filter @nconnect/models build
 
 PUBLIC_DIR="$ROOT/site/public"
 TRACKED_DIR="$ROOT/site"
@@ -32,14 +32,14 @@ echo "✓ installer → site/public/install.sh and site/install.sh"
 # Bundle the CLI entry. --target=bun keeps Bun-only runtime assumptions; the
 # result is a single self-contained JS file with models inlined.
 bun build \
-  "$ROOT/packages/cli/src/bin/nebiusrelay.ts" \
+  "$ROOT/packages/cli/src/bin/nconnect.ts" \
   --target=bun \
   --production \
-  --define "process.env.NEBIUSRELAY_VERSION=\"${VERSION}\"" \
-  --outfile "$PUBLIC_DIR/nebiusrelay.js"
+  --define "process.env.NCONNECT_VERSION=\"${VERSION}\"" \
+  --outfile "$PUBLIC_DIR/nconnect.js"
 
-cp "$PUBLIC_DIR/nebiusrelay.js" "$TRACKED_DIR/nebiusrelay.js"
-echo "✓ bundle → site/public/nebiusrelay.js and site/nebiusrelay.js ($(wc -c < "$PUBLIC_DIR/nebiusrelay.js") bytes)"
+cp "$PUBLIC_DIR/nconnect.js" "$TRACKED_DIR/nconnect.js"
+echo "✓ bundle → site/public/nconnect.js and site/nconnect.js ($(wc -c < "$PUBLIC_DIR/nconnect.js") bytes)"
 
 # Refresh the manifest the auto-updater and install script read.
 node -e "
@@ -47,7 +47,7 @@ const fs = require('node:fs');
 const version = '${VERSION}';
 const manifest = {
   version,
-  url: 'https://nebius-tf-relay.vercel.app/nebiusrelay.js',
+  url: 'https://nebius-tf-relay.vercel.app/nconnect.js',
   publishedAt: new Date().toISOString(),
 };
 const json = JSON.stringify(manifest, null, 2) + '\n';

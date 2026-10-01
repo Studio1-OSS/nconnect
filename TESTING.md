@@ -30,7 +30,7 @@ Install dependencies and build the CLI:
 
 ```bash
 pnpm install
-pnpm -F @nebiusrelay/cli build
+pnpm -F @nconnect/cli build
 ```
 
 For local development, keep TypeScript rebuilding in one terminal:
@@ -44,8 +44,8 @@ Run smoke tests from another terminal.
 Quick local checks:
 
 ```bash
-pnpm -F @nebiusrelay/cli typecheck
-pnpm -F @nebiusrelay/cli test
+pnpm -F @nconnect/cli typecheck
+pnpm -F @nconnect/cli test
 ```
 
 ## Manual Harness Launches
@@ -54,98 +54,98 @@ Use these commands for quick live launches while validating a harness manually.
 
 ### OpenCode
 
-OpenCode uses ephemeral Nebius settings: `nebiusrelay opencode` injects the Nebius provider config only for that launch, so there is no `on`/`off` flow and no OpenCode config rewrite. OpenCode's own local session history can still persist normally.
+OpenCode uses ephemeral Nebius settings: `nconnect opencode` injects the Nebius provider config only for that launch, so there is no `on`/`off` flow and no OpenCode config rewrite. OpenCode's own local session history can still persist normally.
 
 ```bash
 export NEBIUS_API_KEY="..."
 
-pnpm -F @nebiusrelay/cli exec nebiusrelay opencode
+pnpm -F @nconnect/cli exec nconnect opencode
 ```
 
 ### Claude Code
 
-Claude Code uses ephemeral Nebius settings. `nebiusrelay` does not write `~/.claude/settings.json` and there is no `claude on/off` flow to remember; Claude Code's own session/history behavior is left intact.
+Claude Code uses ephemeral Nebius settings. `nconnect` does not write `~/.claude/settings.json` and there is no `claude on/off` flow to remember; Claude Code's own session/history behavior is left intact.
 
 Launch Claude Code through the local Nebius proxy:
 
 ```bash
 export NEBIUS_API_KEY="..."
 
-pnpm -F @nebiusrelay/cli exec nebiusrelay claude
+pnpm -F @nconnect/cli exec nconnect claude
 ```
 
 Pass arguments through to `claude` after the harness name:
 
 ```bash
-pnpm -F @nebiusrelay/cli exec nebiusrelay claude --help
-pnpm -F @nebiusrelay/cli exec nebiusrelay claude --version
+pnpm -F @nconnect/cli exec nconnect claude --help
+pnpm -F @nconnect/cli exec nconnect claude --version
 ```
 
 The Claude local proxy defaults to Nebius GLM-5.2 (`zai-org/GLM-5.2`) and can route Claude Code through any curated Nebius model in the repo's shared model list.
 Pick a backend for one launch:
 
 ```bash
-pnpm -F @nebiusrelay/cli exec nebiusrelay --main nebius-glm-5-2 claude
-pnpm -F @nebiusrelay/cli exec nebiusrelay --main nebius-kimi-k2-7-code claude
-pnpm -F @nebiusrelay/cli exec nebiusrelay --main Qwen/Qwen3.5-397B-A17B claude
+pnpm -F @nconnect/cli exec nconnect --main nebius-glm-5-2 claude
+pnpm -F @nconnect/cli exec nconnect --main nebius-kimi-k2-7-code claude
+pnpm -F @nconnect/cli exec nconnect --main Qwen/Qwen3.5-397B-A17B claude
 ```
 
 ### Codex
 
-Codex uses ephemeral Nebius settings. `nebiusrelay` launches the terminal `codex` CLI with per-run config flags and a local Responses-compatible proxy that translates Codex traffic to Nebius chat completions, while leaving Codex's own session/history behavior intact.
+Codex uses ephemeral Nebius settings. `nconnect` launches the terminal `codex` CLI with per-run config flags and a local Responses-compatible proxy that translates Codex traffic to Nebius chat completions, while leaving Codex's own session/history behavior intact.
 
 Launch Codex through Nebius:
 
 ```bash
 export NEBIUS_API_KEY="..."
 
-pnpm -F @nebiusrelay/cli exec nebiusrelay codex
+pnpm -F @nconnect/cli exec nconnect codex
 ```
 
 Run Codex headlessly through Nebius:
 
 ```bash
-pnpm -F @nebiusrelay/cli exec nebiusrelay codex exec "Say hi"
+pnpm -F @nconnect/cli exec nconnect codex exec "Say hi"
 ncodex exec "Say hi"
 ```
 
 ### Codex App
 
-Codex App support is an alpha feature. Unlike `nebiusrelay codex`, it persistently patches Codex's user config so the desktop app can use nebiusrelay's local Responses-compatible proxy. The config stays active until you run `--restore`, similar to `ollama launch codex-app`. If Codex App is already open, nebiusrelay asks before restarting it so the new profile can load.
+Codex App support is an alpha feature. Unlike `nconnect codex`, it persistently patches Codex's user config so the desktop app can use nconnect's local Responses-compatible proxy. The config stays active until you run `--restore`, similar to `ollama launch codex-app`. If Codex App is already open, nconnect asks before restarting it so the new profile can load.
 
 ```bash
 export NEBIUS_API_KEY="..."
 
-pnpm -F @nebiusrelay/cli exec nebiusrelay codex-app
-pnpm -F @nebiusrelay/cli exec nebiusrelay codex-app --model moonshotai/Kimi-K2.7-Code
+pnpm -F @nconnect/cli exec nconnect codex-app
+pnpm -F @nconnect/cli exec nconnect codex-app --model moonshotai/Kimi-K2.7-Code
 ```
 
 Restore the previous Codex config:
 
 ```bash
-pnpm -F @nebiusrelay/cli exec nebiusrelay codex-app --restore
+pnpm -F @nconnect/cli exec nconnect codex-app --restore
 ```
 
-Backups live under `~/.nebiusrelay/backup/codex-app/`. The managed model catalog lives under `~/.codex/` so Codex Desktop can load it, and the session lock lives under `~/.nebiusrelay/codex-app/`.
+Backups live under `~/.nconnect/backup/codex-app/`. The managed model catalog lives under `~/.codex/` so Codex Desktop can load it, and the session lock lives under `~/.nconnect/codex-app/`.
 
 ### Pi Code
 
-Pi Code uses ephemeral Nebius settings with persistent sessions. `nebiusrelay pi` uses Pi's official Nebius provider (`together`) and a temporary `PI_CODING_AGENT_DIR` for per-run model config, while pointing `PI_CODING_AGENT_SESSION_DIR` at the normal local Pi sessions folder. It does not write Pi config, and Pi sessions can still be resumed normally.
+Pi Code uses ephemeral Nebius settings with persistent sessions. `nconnect pi` uses Pi's official Nebius provider (`together`) and a temporary `PI_CODING_AGENT_DIR` for per-run model config, while pointing `PI_CODING_AGENT_SESSION_DIR` at the normal local Pi sessions folder. It does not write Pi config, and Pi sessions can still be resumed normally.
 
 Launch Pi Code through Nebius:
 
 ```bash
 export NEBIUS_API_KEY="..."
 
-pnpm -F @nebiusrelay/cli exec nebiusrelay pi
-pnpm -F @nebiusrelay/cli exec nebiusrelay picode
+pnpm -F @nconnect/cli exec nconnect pi
+pnpm -F @nconnect/cli exec nconnect picode
 npi
 ```
 
 Run Pi Code headlessly through Nebius:
 
 ```bash
-pnpm -F @nebiusrelay/cli exec nebiusrelay pi -p "Say hi"
+pnpm -F @nconnect/cli exec nconnect pi -p "Say hi"
 npi -p "Say hi"
 ```
 
@@ -156,13 +156,13 @@ Claude support must be tested headlessly before testing the interactive UI. Head
 Use debug logs while working on the proxy:
 
 ```bash
-export NEBIUSRELAY_DEBUG=1
+export NCONNECT_DEBUG=1
 ```
 
 Basic chat, no tools:
 
 ```bash
-pnpm -F @nebiusrelay/cli exec nebiusrelay claude -- \
+pnpm -F @nconnect/cli exec nconnect claude -- \
   --print \
   --output-format json \
   --no-session-persistence \
@@ -181,7 +181,7 @@ Expected result:
 Tool-use smoke test:
 
 ```bash
-pnpm -F @nebiusrelay/cli exec nebiusrelay claude -- \
+pnpm -F @nconnect/cli exec nconnect claude -- \
   --print \
   --output-format json \
   --no-session-persistence \
@@ -200,7 +200,7 @@ Expected result:
 Repo-context smoke test:
 
 ```bash
-pnpm -F @nebiusrelay/cli exec nebiusrelay claude -- \
+pnpm -F @nconnect/cli exec nconnect claude -- \
   --print \
   --output-format json \
   --no-session-persistence \
@@ -255,9 +255,9 @@ GLM-5.2 returns preserved reasoning in `choices[0].message.reasoning`. Keep that
 
 ## Codex Desktop App-Server Model List Probe
 
-Codex Desktop renders its model picker from the app-server JSON-RPC method `model/list`, not directly from the provider's raw `/v1/models` response. When debugging `nebiusrelay codex-app`, verify the real app-server contract before changing Desktop config again.
+Codex Desktop renders its model picker from the app-server JSON-RPC method `model/list`, not directly from the provider's raw `/v1/models` response. When debugging `nconnect codex-app`, verify the real app-server contract before changing Desktop config again.
 
-First make sure `~/.codex/config.toml` points at the Nebius TF Relay Codex App provider and that the local Nebius TF Relay daemon is reachable:
+First make sure `~/.codex/config.toml` points at the NConnect Codex App provider and that the local NConnect daemon is reachable:
 
 ```bash
 /Applications/Codex.app/Contents/Resources/codex doctor --json
@@ -318,8 +318,8 @@ function notify(method, params) {
 try {
   await request("initialize", {
     clientInfo: {
-      name: "nebiusrelay-debug",
-      title: "Nebius TF Relay Debug",
+      name: "nconnect-debug",
+      title: "NConnect Debug",
       version: "0.5.26",
     },
     capabilities: {
@@ -347,9 +347,9 @@ try {
 '
 ```
 
-Expected result for `nebiusrelay codex-app` is the visible Nebius catalog models, starting with the current default model. If this probe is correct but Desktop still shows stale or missing models, the bug is in the running Desktop process or frontend state, not the Codex app-server model manager.
+Expected result for `nconnect codex-app` is the visible Nebius catalog models, starting with the current default model. If this probe is correct but Desktop still shows stale or missing models, the bug is in the running Desktop process or frontend state, not the Codex app-server model manager.
 
-Also verify the active Nebius TF Relay daemon session route returns the same catalog without calling Nebius:
+Also verify the active NConnect daemon session route returns the same catalog without calling Nebius:
 
 ```bash
 node --input-type=module -e '
@@ -357,7 +357,7 @@ import { readFileSync } from "node:fs";
 
 const raw = readFileSync(process.env.HOME + "/.codex/config.toml", "utf8");
 const baseUrl = raw.match(/base_url\s*=\s*"([^"]+)"/)?.[1];
-if (!baseUrl) throw new Error("missing Nebius TF Relay codex-app base_url");
+if (!baseUrl) throw new Error("missing NConnect codex-app base_url");
 
 const response = await fetch(baseUrl + "/models");
 const body = await response.json();
@@ -370,7 +370,7 @@ console.log(JSON.stringify({
 '
 ```
 
-Codex Desktop has had a custom-provider picker bug where the frontend hides the model picker unless the provider reports auth as required: https://github.com/openai/codex/issues/10867. `nebiusrelay codex-app` intentionally writes `requires_openai_auth = true` for the custom provider as a Desktop workaround. If Desktop prompts for login during manual testing, choose API key and enter any placeholder character; model traffic still goes to the configured local Nebius TF Relay `base_url`.
+Codex Desktop has had a custom-provider picker bug where the frontend hides the model picker unless the provider reports auth as required: https://github.com/openai/codex/issues/10867. `nconnect codex-app` intentionally writes `requires_openai_auth = true` for the custom provider as a Desktop workaround. If Desktop prompts for login during manual testing, choose API key and enter any placeholder character; model traffic still goes to the configured local NConnect `base_url`.
 
 ## Notes
 
@@ -384,7 +384,7 @@ Build once, then run any harness test file:
 
 ```bash
 node_modules/.bin/tsc -p packages/cli/tsconfig.json
-chmod +x packages/cli/dist/bin/nebiusrelay.js
+chmod +x packages/cli/dist/bin/nconnect.js
 packages/tests/node_modules/.bin/vitest run --config packages/tests/vitest.config.ts packages/tests/src/Codex.test.ts
 packages/tests/node_modules/.bin/vitest run --config packages/tests/vitest.config.ts packages/tests/src/Claude.test.ts
 packages/tests/node_modules/.bin/vitest run --config packages/tests/vitest.config.ts packages/tests/src/OpenCode.test.ts
@@ -407,18 +407,18 @@ Current scenarios cover:
 
 ## Live Models Check
 
-`packages/tests/src/livemodelscheck.test.ts` is the exhaustive real-inference model check. It is skipped by the normal suite unless `NEBIUSRELAY_LIVE_MODELS_CHECK=1` is set, because it launches real Claude Code and Codex CLI sessions and calls Nebius for every curated model.
+`packages/tests/src/livemodelscheck.test.ts` is the exhaustive real-inference model check. It is skipped by the normal suite unless `NCONNECT_LIVE_MODELS_CHECK=1` is set, because it launches real Claude Code and Codex CLI sessions and calls Nebius for every curated model.
 
 Run it with:
 
 ```bash
-pnpm -F @nebiusrelay/tests test:live-models-check
+pnpm -F @nconnect/tests test:live-models-check
 ```
 
 The check runs one concurrent case per harness/model/probe tuple. Default concurrency is 6 and can be changed with:
 
 ```bash
-VITEST_MAX_CONCURRENCY=3 pnpm -F @nebiusrelay/tests test:live-models-check
+VITEST_MAX_CONCURRENCY=3 pnpm -F @nconnect/tests test:live-models-check
 ```
 
 For each curated `SELECTABLE_MODELS` entry it runs both harnesses through:
@@ -439,7 +439,7 @@ The workflow installs the real agent CLIs explicitly:
 npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai @earendil-works/pi-coding-agent
 ```
 
-This is intentionally a CI setup step, not something `nebiusrelay` does silently on a user's machine.
+This is intentionally a CI setup step, not something `nconnect` does silently on a user's machine.
 
 ## Tool Compatibility Audit
 

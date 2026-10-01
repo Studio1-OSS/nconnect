@@ -4,24 +4,23 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
 import { afterEach, expect, test } from "vitest";
-import { GLM_5_2, NEBIUS_BASE_URL } from "@nebiusrelay/models";
+import { GLM_5_2, NEBIUS_BASE_URL } from "@nconnect/models";
 import { CostTracker } from "../../cli/src/lib/claude/cost.js";
 import { handleProxyRequest, type ClaudeProxyOptions } from "../../cli/src/lib/claude/proxy.js";
 import type { ProxyPerfPayload } from "../../cli/src/lib/proxy-perf.js";
 
-const maybeTest = process.env.NEBIUSRELAY_LIVE_PROXY_BENCH === "1" ? test : test.skip;
-const maybeConnectionTest =
-  process.env.NEBIUSRELAY_LIVE_CONNECTION_BENCH === "1" ? test : test.skip;
+const maybeTest = process.env.NCONNECT_LIVE_PROXY_BENCH === "1" ? test : test.skip;
+const maybeConnectionTest = process.env.NCONNECT_LIVE_CONNECTION_BENCH === "1" ? test : test.skip;
 const maybeGenerationConnectionTest =
-  process.env.NEBIUSRELAY_LIVE_GENERATION_CONNECTION_BENCH === "1" ? test : test.skip;
+  process.env.NCONNECT_LIVE_GENERATION_CONNECTION_BENCH === "1" ? test : test.skip;
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
-const iterations = positiveInt(process.env.NEBIUSRELAY_LIVE_PROXY_BENCH_ITERATIONS) ?? 5;
-const warmup = positiveInt(process.env.NEBIUSRELAY_LIVE_PROXY_BENCH_WARMUP) ?? 1;
-const concurrentRequests = positiveInt(process.env.NEBIUSRELAY_LIVE_PROXY_BENCH_CONCURRENCY) ?? 3;
+const iterations = positiveInt(process.env.NCONNECT_LIVE_PROXY_BENCH_ITERATIONS) ?? 5;
+const warmup = positiveInt(process.env.NCONNECT_LIVE_PROXY_BENCH_WARMUP) ?? 1;
+const concurrentRequests = positiveInt(process.env.NCONNECT_LIVE_PROXY_BENCH_CONCURRENCY) ?? 3;
 const realFetch = globalThis.fetch.bind(globalThis);
 
 afterEach(() => {
-  delete process.env.NEBIUSRELAY_PERF;
+  delete process.env.NCONNECT_PERF;
   globalThis.fetch = realFetch;
 });
 
@@ -43,7 +42,7 @@ maybeTest(
       costTracker,
       perfSink: (payload) => perfPayloads.push(payload),
     };
-    process.env.NEBIUSRELAY_PERF = "1";
+    process.env.NCONNECT_PERF = "1";
     const server = createServer((req, res) => {
       handleProxyRequest(req, res, options).catch((err) => {
         res.writeHead(500, { "content-type": "application/json" });
@@ -413,7 +412,7 @@ async function startClaudeProxyServer({
         fields: { ...payload.fields, benchCondition: perfCondition?.() },
       }),
   };
-  process.env.NEBIUSRELAY_PERF = "1";
+  process.env.NCONNECT_PERF = "1";
   const server = createServer((req, res) => {
     handleProxyRequest(req, res, options).catch((err) => {
       res.writeHead(500, { "content-type": "application/json" });

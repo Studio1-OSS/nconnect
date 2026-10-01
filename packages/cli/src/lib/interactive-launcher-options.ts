@@ -2,7 +2,7 @@ import { ALL_HARNESSES, HARNESS, HARNESS_LABEL, type HarnessId } from "./harness
 import { detectInstalledHarness } from "./detect.js";
 
 /**
- * Options for the interactive `nebiusrelay` picker.
+ * Options for the interactive `nconnect` picker.
  *
  * Lives here rather than in the bin entry so it can be tested without running
  * the CLI - the list silently drifting out of date is exactly the failure this
@@ -43,7 +43,7 @@ function priorityRank(harness: HarnessId): number {
  * Built from ALL_HARNESSES rather than a second hand-written list. The previous
  * version enumerated five harnesses by hand, so when Hermes, DeepSeek and Grok
  * were added - with wrappers installed and README entries written - they never
- * appeared here, and `nebiusrelay` offered 5 of the 8 tools it ships.
+ * appeared here, and `nconnect` offered 5 of the 8 tools it ships.
  */
 export function interactiveLauncherOptions(
   isInstalled: (harness: HarnessId) => boolean = (harness) =>

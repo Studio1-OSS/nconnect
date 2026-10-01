@@ -41,7 +41,7 @@ describe("resolving a disable request", () => {
       expect(result.kind).toBe("error");
       if (result.kind === "error") {
         expect(result.message).toContain("no persistent configuration");
-        expect(result.message).toContain("nebiusrelay chatgpt off");
+        expect(result.message).toContain("nconnect chatgpt off");
       }
     }
   });

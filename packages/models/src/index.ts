@@ -1,5 +1,5 @@
 /**
- * Single source of truth for the Nebius models nebiusrelay routes to:
+ * Single source of truth for the Nebius models nconnect routes to:
  * ids, capabilities, modalities, and per-token cost. Both harnesses (Claude
  * Code's local proxy and OpenCode's ephemeral config) import from here so the
  * facts can't drift between them.

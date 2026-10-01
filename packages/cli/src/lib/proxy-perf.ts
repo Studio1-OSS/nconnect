@@ -40,7 +40,7 @@ export function createProxyPerfTracer(
   fields: ProxyPerfFields = {},
   sink?: ProxyPerfSink,
 ): ProxyPerfTracer {
-  if (process.env.NEBIUSRELAY_PERF !== "1") {
+  if (process.env.NCONNECT_PERF !== "1") {
     return disabledProxyPerfTracer;
   }
   const startedAt = performance.now();
@@ -113,7 +113,7 @@ export function createProxyPerfTracer(
       } catch {
         // Perf capture is diagnostic only and must never affect proxy traffic.
       }
-      process.stderr.write(`[nebiusrelay perf] ${JSON.stringify(payload)}\n`);
+      process.stderr.write(`[nconnect perf] ${JSON.stringify(payload)}\n`);
     },
   };
 }

@@ -3,10 +3,10 @@ import {
   getSelectableModels,
   resolveModelByKeys,
   type ModelDefinition,
-} from "@nebiusrelay/models";
+} from "@nconnect/models";
 
-export const CODEX_PROVIDER_ID = "nebiusrelay";
-export const CODEX_AUTH_ENV = "NEBIUSRELAY_CODEX_AUTH_TOKEN";
+export const CODEX_PROVIDER_ID = "nconnect";
+export const CODEX_AUTH_ENV = "NCONNECT_CODEX_AUTH_TOKEN";
 
 /** The default Codex model id (the live catalog's default). */
 export function codexDefaultModelId(): string {

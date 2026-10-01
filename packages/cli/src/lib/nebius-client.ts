@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { ModelDefinition } from "@nebiusrelay/models";
+import type { ModelDefinition } from "@nconnect/models";
 import { NEBIUS_BASE_URL } from "./nebius-core.js";
 import { backoffMs, parseRetryAfter, sleep } from "./nebius-retry.js";
 import { persistRequestDiagnostic } from "./request-diagnostics.js";
@@ -45,7 +45,7 @@ const DEFAULT_STREAM_RETRIES = 1;
 // down. On failover the request is retried on the fallback model (see
 // withModelFallback), and the circuit breaker then routes subsequent turns
 // straight to the fallback, so this timeout is only paid once per outage.
-// Override with NEBIUSRELAY_RESPONSE_HEADER_TIMEOUT_MS.
+// Override with NCONNECT_RESPONSE_HEADER_TIMEOUT_MS.
 const DEFAULT_RESPONSE_HEADER_TIMEOUT_MS = 45_000;
 
 // Automatic model fallback: when a request's target model returns no response
@@ -54,8 +54,8 @@ const DEFAULT_RESPONSE_HEADER_TIMEOUT_MS = 45_000;
 // an error - so a provider-side outage of one model (e.g. Kimi-K3) doesn't
 // break sessions mid-flight. A short-lived per-model circuit breaker then skips
 // the dead model entirely for a cooldown window, so only the first failing turn
-// pays the timeout. Configure with NEBIUSRELAY_FALLBACK_MODEL (set to
-// "off"/"none" to disable) and NEBIUSRELAY_FALLBACK_COOLDOWN_MS.
+// pays the timeout. Configure with NCONNECT_FALLBACK_MODEL (set to
+// "off"/"none" to disable) and NCONNECT_FALLBACK_COOLDOWN_MS.
 const DEFAULT_FALLBACK_MODEL = "moonshotai/Kimi-K2.6";
 const DEFAULT_FALLBACK_COOLDOWN_MS = 60_000;
 
@@ -63,7 +63,7 @@ const DEFAULT_FALLBACK_COOLDOWN_MS = 60_000;
 const unhealthySince = new Map<string, number>();
 
 function fallbackModel(): string | undefined {
-  const raw = process.env.NEBIUSRELAY_FALLBACK_MODEL;
+  const raw = process.env.NCONNECT_FALLBACK_MODEL;
   if (raw === undefined) {
     return DEFAULT_FALLBACK_MODEL;
   }
@@ -76,7 +76,7 @@ function fallbackModel(): string | undefined {
 }
 
 function fallbackCooldownMs(): number {
-  const raw = Number.parseInt(process.env.NEBIUSRELAY_FALLBACK_COOLDOWN_MS ?? "", 10);
+  const raw = Number.parseInt(process.env.NCONNECT_FALLBACK_COOLDOWN_MS ?? "", 10);
   return Number.isFinite(raw) && raw >= 0 ? raw : DEFAULT_FALLBACK_COOLDOWN_MS;
 }
 
@@ -381,7 +381,7 @@ async function fetchNebiusResponse(
 }
 
 function responseHeaderTimeoutMs(): number {
-  const raw = process.env.NEBIUSRELAY_RESPONSE_HEADER_TIMEOUT_MS;
+  const raw = process.env.NCONNECT_RESPONSE_HEADER_TIMEOUT_MS;
   const parsed = raw ? Number.parseInt(raw, 10) : NaN;
   return Number.isFinite(parsed) && parsed > 0
     ? Math.max(100, parsed)
@@ -389,14 +389,13 @@ function responseHeaderTimeoutMs(): number {
 }
 
 function streamRetries(): number {
-  const raw = process.env.NEBIUSRELAY_STREAM_RETRIES;
+  const raw = process.env.NCONNECT_STREAM_RETRIES;
   const parsed = raw ? Number.parseInt(raw, 10) : NaN;
   return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : DEFAULT_STREAM_RETRIES;
 }
 
 function responseHeaderRetries(): number {
-  const raw =
-    process.env.NEBIUSRELAY_RESPONSE_HEADER_RETRIES ?? process.env.NEBIUSRELAY_STREAM_RETRIES;
+  const raw = process.env.NCONNECT_RESPONSE_HEADER_RETRIES ?? process.env.NCONNECT_STREAM_RETRIES;
   const parsed = raw ? Number.parseInt(raw, 10) : NaN;
   return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : DEFAULT_STREAM_RETRIES;
 }
@@ -454,7 +453,7 @@ async function fetchWithContextFit(
     }
     if (fit.debug) {
       process.stderr.write(
-        `[nebiusrelay proxy] context-fit retry (${outcome.action}): ` +
+        `[nconnect proxy] context-fit retry (${outcome.action}): ` +
           `input ${outcome.inputTokens} tokens vs window ${outcome.contextWindow}\n`,
       );
     }

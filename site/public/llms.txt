@@ -1,21 +1,21 @@
-# nebiusrelay
+# nconnect
 
-> Use Nebius Token Factory models in the coding-agent CLIs you already run - OpenCode, Claude Code, Codex CLI, Pi Code, Prime Agent, and Unreal Agent. nebiusrelay injects Nebius settings for a single run so your normal tool configs stay untouched.
+> Use Nebius Token Factory models in the coding-agent CLIs you already run - OpenCode, Claude Code, Codex CLI, Pi Code, Prime Agent, and Unreal Agent. nconnect injects Nebius settings for a single run so your normal tool configs stay untouched.
 
-nebiusrelay is an MIT-licensed CLI router. Install once, then launch your agent with short commands (`ncodex`, `nclaude`, `nopencode`, `npi`, `nprime`, `nunreal`). For Claude Code, Codex CLI, and Unreal Agent it routes the agent's API traffic to Nebius Token Factory through a local translation proxy; for OpenCode, Pi Code, and Prime Agent it injects per-run provider config (they already speak Nebius's OpenAI-compatible format, so no proxy is needed). The installed binary keeps itself up to date automatically from nebius-tf-relay.vercel.app.
+nconnect is an MIT-licensed CLI router. Install once, then launch your agent with short commands (`ncodex`, `nclaude`, `nopencode`, `npi`, `nprime`, `nunreal`). For Claude Code, Codex CLI, and Unreal Agent it routes the agent's API traffic to Nebius Token Factory through a local translation proxy; for OpenCode, Pi Code, and Prime Agent it injects per-run provider config (they already speak Nebius's OpenAI-compatible format, so no proxy is needed). The installed binary keeps itself up to date automatically from nebius-tf-relay.vercel.app.
 
-This is the LLM-readable documentation file for the project. If you are an AI agent asked to install, configure, or use nebiusrelay (headless or interactive), read this file first. It covers installation, configuration, every command, the available models, headless/agentic usage patterns, how to keep the tool up to date, and the routing architecture.
+This is the LLM-readable documentation file for the project. If you are an AI agent asked to install, configure, or use nconnect (headless or interactive), read this file first. It covers installation, configuration, every command, the available models, headless/agentic usage patterns, how to keep the tool up to date, and the routing architecture.
 
-- Project: https://github.com/Studio1-OSS/nebius-tf-relay
+- Project: https://github.com/Studio1-OSS/nconnect
 - Website: https://nebius-tf-relay.vercel.app
 - Installer: https://nebius-tf-relay.vercel.app/install.sh
 - Version manifest: https://nebius-tf-relay.vercel.app/latest.json
-- README: https://github.com/Studio1-OSS/nebius-tf-relay/blob/main/README.md
+- README: https://github.com/Studio1-OSS/nconnect/blob/main/README.md
 - This file: https://nebius-tf-relay.vercel.app/llms.txt
 
 ## Install
 
-One command installs the `nebiusrelay`, `nclaude`, `nopencode`, `ncodex`, `npi`, `nprime`, and `nunreal` commands to `~/.nebiusrelay/bin/` and installs Bun for you if it isn't already present:
+One command installs the `nconnect`, `nclaude`, `nopencode`, `ncodex`, `npi`, `nprime`, and `nunreal` commands to `~/.nconnect/bin/` and installs Bun for you if it isn't already present:
 
 ```
 curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | sh
@@ -23,63 +23,63 @@ curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | sh
 
 After install, restart your shell (or run the `export PATH=...` line it prints) so the commands are on PATH. The install:
 
-- Downloads the self-contained JS bundle to `~/.nebiusrelay/bin/nebiusrelay.js`.
-- Writes shell wrappers (`nebiusrelay`, `ncodex`, `nclaude`, `nopencode`, `npi`, `nprime`, `nunreal`) that run the bundle with `bun`.
+- Downloads the self-contained JS bundle to `~/.nconnect/bin/nconnect.js`.
+- Writes shell wrappers (`nconnect`, `ncodex`, `nclaude`, `nopencode`, `npi`, `nprime`, `nunreal`) that run the bundle with `bun`.
 - Links them into a writable directory on your PATH.
-- Does NOT install the underlying agent CLIs. If a tool is missing, nebiusrelay prints its official install command and exits (Prime Agent: `curl -fsSL https://app.primeintellect.ai/prime-agent/install.sh | sh`).
+- Does NOT install the underlying agent CLIs. If a tool is missing, nconnect prints its official install command and exits (Prime Agent: `curl -fsSL https://app.primeintellect.ai/prime-agent/install.sh | sh`).
 
-To verify: `nebiusrelay --version`.
+To verify: `nconnect --version`.
 
 ## Configure
 
 Before the first launch you need a Nebius API key (get one at https://tokenfactory.nebius.com/?modals=create-api-key):
 
 ```
-nebiusrelay configure
+nconnect configure
 ```
 
-This stores your Nebius API key in `~/.nebiusrelay/` and optionally an Exa API key (https://exa.ai) that powers web-search emulation in Claude Code. Web search is optional - without it, searches return a clear "TAVILY_API_KEY not set" error instead of failing silently.
+This stores your Nebius API key in `~/.nconnect/` and optionally an Exa API key (https://exa.ai) that powers web-search emulation in Claude Code. Web search is optional - without it, searches return a clear "TAVILY_API_KEY not set" error instead of failing silently.
 
 You can also set the key non-interactively:
 
 ```
 export NEBIUS_API_KEY=...
-nebiusrelay configure        # stores it (skip prompts with the env present)
+nconnect configure        # stores it (skip prompts with the env present)
 ```
 
 The API key is required to actually route traffic; the installer lets you skip it (press Enter) and add it later.
 
 ## Commands
 
-Running `nebiusrelay` with no arguments opens an interactive launcher (requires a TTY) that lets you pick a tool. Run a tool directly with a subcommand:
+Running `nconnect` with no arguments opens an interactive launcher (requires a TTY) that lets you pick a tool. Run a tool directly with a subcommand:
 
 ```
-nebiusrelay configure                      # set API keys
-nebiusrelay whoami                         # print your anonymous install id
-nebiusrelay --version | -v                 # print the version
-nebiusrelay help | --help | -h             # print this usage
+nconnect configure                      # set API keys
+nconnect whoami                         # print your anonymous install id
+nconnect --version | -v                 # print the version
+nconnect help | --help | -h             # print this usage
 
-nebiusrelay codex [...]        # alias: ncodex   (Codex CLI)
-nebiusrelay claude [...]       # alias: nclaude  (Claude Code)
-nebiusrelay pi [...]           # alias: npi      (Pi Code)
-nebiusrelay opencode [...]     # alias: nopencode (OpenCode)
-nebiusrelay prime [...]        # alias: nprime   (Prime Agent, PrimeIntellect)
-nebiusrelay hermes [...]       # alias: nhermes  (Hermes Agent, Nous Research; `hermes desktop`)
-nebiusrelay deepseek [...]     # alias: ndeepseek (DeepSeek Harness, alpha)
-nebiusrelay grok [...]         # alias: ngrok    (Grok Build UI on Nebius models)
+nconnect codex [...]        # alias: ncodex   (Codex CLI)
+nconnect claude [...]       # alias: nclaude  (Claude Code)
+nconnect pi [...]           # alias: npi      (Pi Code)
+nconnect opencode [...]     # alias: nopencode (OpenCode)
+nconnect prime [...]        # alias: nprime   (Prime Agent, PrimeIntellect)
+nconnect hermes [...]       # alias: nhermes  (Hermes Agent, Nous Research; `hermes desktop`)
+nconnect deepseek [...]     # alias: ndeepseek (DeepSeek Harness, alpha)
+nconnect grok [...]         # alias: ngrok    (Grok Build UI on Nebius models)
 
-nebiusrelay usage [--last 7d]  # local spend report by model and tool
-nebiusrelay update             # update to the latest release
-nebiusrelay daemon install|uninstall|status   # daemon auto-start at login
+nconnect usage [--last 7d]  # local spend report by model and tool
+nconnect update             # update to the latest release
+nconnect daemon install|uninstall|status   # daemon auto-start at login
 
-nebiusrelay chatgpt [--model <model>] [--restore]   # alpha: ChatGPT Desktop (alias: codex-app)
+nconnect chatgpt [--model <model>] [--restore]   # alpha: ChatGPT Desktop (alias: codex-app)
 
-nebiusrelay daemon stop                   # stop the background proxy daemon
+nconnect daemon stop                   # stop the background proxy daemon
 ```
 
-Any arguments after the harness name are passed straight through to the underlying agent CLI. For example, `ncodex exec "fix the typo"` runs `codex exec` with nebiusrelay routing.
+Any arguments after the harness name are passed straight through to the underlying agent CLI. For example, `ncodex exec "fix the typo"` runs `codex exec` with nconnect routing.
 
-Recognized nebiusrelay flags (parsed before the passthrough):
+Recognized nconnect flags (parsed before the passthrough):
 
 - `--api-key <key>` - use this Nebius API key for the run.
 - `--main <model>` / `--model <model>` - select the model for this run.
@@ -90,28 +90,28 @@ Recognized nebiusrelay flags (parsed before the passthrough):
 
 ### ChatGPT Desktop App (alpha)
 
-`nebiusrelay chatgpt` persistently patches the ChatGPT Desktop config so the desktop app routes through Nebius. Unlike the CLI wrappers, this change stays active until you restore it:
+`nconnect chatgpt` persistently patches the ChatGPT Desktop config so the desktop app routes through Nebius. Unlike the CLI wrappers, this change stays active until you restore it:
 
 ```
-nebiusrelay chatgpt                     # configure (patches config)
-nebiusrelay chatgpt --restore           # restore your OpenAI profile
-nebiusrelay chatgpt --model <model>     # use a specific model
+nconnect chatgpt                     # configure (patches config)
+nconnect chatgpt --restore           # restore your OpenAI profile
+nconnect chatgpt --model <model>     # use a specific model
 ```
 
-Backups of your original config live under `~/.nebiusrelay/backup/codex-app/`.
+Backups of your original config live under `~/.nconnect/backup/codex-app/`.
 
 ## Models
 
-The model list is fetched live from Nebius (`GET /v1/models?verbose=true`) at startup, so every model Nebius serves is available and each model's vision support (modality) comes straight from the API, not a hand-maintained list. Results are cached in `~/.nebiusrelay/model-catalog.json` and fall back to a bundled snapshot when offline. The default for Codex and Claude Code is GLM 5.3 Flash.
+The model list is fetched live from Nebius (`GET /v1/models?verbose=true`) at startup, so every model Nebius serves is available and each model's vision support (modality) comes straight from the API, not a hand-maintained list. Results are cached in `~/.nconnect/model-catalog.json` and fall back to a bundled snapshot when offline. The default for Codex and Claude Code is GLM 5.3 Flash.
 
 ### Selecting a model (flag order matters)
 
-Put `--model` (or `--main` for Claude) BEFORE the harness subcommand - nebiusrelay consumes it there and routes to that model:
+Put `--model` (or `--main` for Claude) BEFORE the harness subcommand - nconnect consumes it there and routes to that model:
 
 ```
-nebiusrelay --model moonshotai/Kimi-K2.6 codex exec "task"
-nebiusrelay --model moonshotai/Kimi-K2.6 claude -p "task"
-nebiusrelay --main nebius-kimi-k2-7-code claude -p "task"   # Claude matches alias OR id
+nconnect --model moonshotai/Kimi-K2.6 codex exec "task"
+nconnect --model moonshotai/Kimi-K2.6 claude -p "task"
+nconnect --main nebius-kimi-k2-7-code claude -p "task"   # Claude matches alias OR id
 ```
 
 The long form above works across harnesses. Since Relay 0.15.3, Codex also supports `ncodex --model MODEL_ID` and `ncodex -m MODEL_ID`; invalid explicit model names fail instead of silently using the default.
@@ -141,20 +141,20 @@ Both Claude Code and Codex CLI run headlessly (no TTY), so you can delegate code
 
 Both wrappers spawn the agent pointed at the local Nebius proxy and pass your flags through to the underlying binary. Always close stdin and capture stderr. To run a non-default model, put `--model <id>` before the harness (see Models above).
 
-### Prefer native subagents for delegated nebiusrelay runs
+### Prefer native subagents for delegated nconnect runs
 
-If you are an orchestrating agent running inside Claude Code, Codex, or another CLI that has its own native subagent/delegation tool, prefer this pattern for non-trivial nebiusrelay work:
+If you are an orchestrating agent running inside Claude Code, Codex, or another CLI that has its own native subagent/delegation tool, prefer this pattern for non-trivial nconnect work:
 
 1. Spawn a native subagent first.
-2. Tell that subagent to run the needed `nebiusrelay` command itself (`ncodex`, `nclaude`, `nopencode`, or `npi`) with a tight task, explicit files, `< /dev/null`, and the guardrails below.
-3. Have the subagent wait for the delegated nebiusrelay run, inspect its result/diff, and report only the useful summary back to you.
+2. Tell that subagent to run the needed `nconnect` command itself (`ncodex`, `nclaude`, `nopencode`, or `npi`) with a tight task, explicit files, `< /dev/null`, and the guardrails below.
+3. Have the subagent wait for the delegated nconnect run, inspect its result/diff, and report only the useful summary back to you.
 
-Do this instead of having the main orchestrating agent call `ncodex`/`nclaude` directly for every delegated edit. It keeps the main agent's context and inference budget focused on coordination/review, lets the native subagent own the details of launching and monitoring nebiusrelay, and works especially well when Claude Code delegates to a subagent that then uses Codex through `ncodex`.
+Do this instead of having the main orchestrating agent call `ncodex`/`nclaude` directly for every delegated edit. It keeps the main agent's context and inference budget focused on coordination/review, lets the native subagent own the details of launching and monitoring nconnect, and works especially well when Claude Code delegates to a subagent that then uses Codex through `ncodex`.
 
 Codex CLI - non-interactive `exec` (the `-s workspace-write` sandbox grants write access; `exec` never prompts interactively):
 
 ```
-nebiusrelay codex exec -s workspace-write -C /abs/repo "<tight, single-concern task with explicit files + guardrails>" < /dev/null 2>&1
+nconnect codex exec -s workspace-write -C /abs/repo "<tight, single-concern task with explicit files + guardrails>" < /dev/null 2>&1
 ```
 
 If the working directory isn't a git repo, codex refuses to start ("Not inside a trusted directory"); add `--skip-git-repo-check`, or run inside a git repo.
@@ -162,7 +162,7 @@ If the working directory isn't a git repo, codex refuses to start ("Not inside a
 Claude Code - print mode `-p` (runs once and exits). Add `--dangerously-skip-permissions` so a headless subagent never blocks on a permission prompt:
 
 ```
-nebiusrelay claude -p "<tight, single-concern task with explicit files + guardrails>" --dangerously-skip-permissions --output-format json < /dev/null 2>&1
+nconnect claude -p "<tight, single-concern task with explicit files + guardrails>" --dangerously-skip-permissions --output-format json < /dev/null 2>&1
 ```
 
 Run it in the background, health-check at ~60s, review the diff, run lint, then commit. One file or one concern per task gives the cleanest reviews.
@@ -210,11 +210,11 @@ Per-task cost varies a lot with how verbose the agent is. Mechanical, well-scope
 5. Review the diff + re-run lint yourself before committing.
 6. To select a model, put `--model` (or `--main` for Claude) before the harness subcommand - after the harness it is silently ignored and the default runs.
 7. For Claude `-p`, pass `--dangerously-skip-permissions` so a headless subagent never blocks on a permission prompt. Codex `exec` is non-interactive by design; use `-s workspace-write` for edits and `--skip-git-repo-check` outside a git repo.
-8. If your current CLI has native subagents, delegate nebiusrelay launches to one of those subagents and let it return the result, instead of spending the main orchestrator's context on the full `ncodex`/`nclaude` run.
+8. If your current CLI has native subagents, delegate nconnect launches to one of those subagents and let it return the result, instead of spending the main orchestrator's context on the full `ncodex`/`nclaude` run.
 
-## Keeping nebiusrelay up to date
+## Keeping nconnect up to date
 
-The installed binary self-updates automatically in the background. The check is throttled and bounded, never throws, and runs before argument parsing - so even `nebiusrelay help` keeps an install current. The update is pulled from https://nebius-tf-relay.vercel.app/latest.json, which contains `version`, `url`, and `publishedAt`.
+The installed binary self-updates automatically in the background. The check is throttled and bounded, never throws, and runs before argument parsing - so even `nconnect help` keeps an install current. The update is pulled from https://nebius-tf-relay.vercel.app/latest.json, which contains `version`, `url`, and `publishedAt`.
 
 To force a refresh, re-run the install one-liner:
 
@@ -222,7 +222,7 @@ To force a refresh, re-run the install one-liner:
 curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | sh
 ```
 
-You can check the installed version with `nebiusrelay --version` and compare it against the published manifest at https://nebius-tf-relay.vercel.app/latest.json.
+You can check the installed version with `nconnect --version` and compare it against the published manifest at https://nebius-tf-relay.vercel.app/latest.json.
 
 ## Architecture (how routing works)
 
@@ -230,24 +230,24 @@ There are two harness families behind the four tools:
 
 - **Proxied harnesses - Claude Code, Codex CLI.** `nclaude` and `ncodex` spawn a shared local daemon and route the agent's `/v1/*` traffic through it. The daemon translates the agent's native wire format (Anthropic Messages for Claude, OpenAI Responses for Codex) to Nebius's chat-completions API and back. Per run: it resolves the model, ensures the daemon, registers a session with your token, prints a banner, spawns the agent pointed at the local proxy, tracks cost, and deregisters on exit. Nothing is written to your real agent config - close it and your setup is exactly as it was.
 
-- **Spawned harnesses - OpenCode, Pi Code, Prime Agent.** `nopencode`, `npi`, and `nprime` spawn the agent binary directly. The binary talks to Nebius itself, using ephemeral config injected only for that launch (OpenCode), a temporary `models.json` on disk (Pi), or a relay-owned config dir under `~/.nebiusrelay/prime-agent` (Prime Agent). No daemon, no proxy.
+- **Spawned harnesses - OpenCode, Pi Code, Prime Agent.** `nopencode`, `npi`, and `nprime` spawn the agent binary directly. The binary talks to Nebius itself, using ephemeral config injected only for that launch (OpenCode), a temporary `models.json` on disk (Pi), or a relay-owned config dir under `~/.nconnect/prime-agent` (Prime Agent). No daemon, no proxy.
 
 The daemon is one persistent local process shared by all proxied sessions. If you ever need to stop it manually:
 
 ```
-nebiusrelay daemon stop
+nconnect daemon stop
 ```
 
-`nebiusrelay chatgpt` (alpha) is the exception: it persistently patches ChatGPT Desktop config to route through Nebius (instead of per-run injection), with backups under `~/.nebiusrelay/backup/codex-app/`. Restore with `nebiusrelay chatgpt --restore`.
+`nconnect chatgpt` (alpha) is the exception: it persistently patches ChatGPT Desktop config to route through Nebius (instead of per-run injection), with backups under `~/.nconnect/backup/codex-app/`. Restore with `nconnect chatgpt --restore`.
 
 ## Troubleshooting
 
-- **"No Nebius API key found"** - run `nebiusrelay configure` or set `NEBIUS_API_KEY`.
-- **A tool command is not found** - nebiusrelay does not install the agent CLIs for you. It prints the official install command (e.g. `npm install -g @openai/codex`) and the docs link when the tool is missing; install it, then re-run.
-- **Web search fails in Claude Code** - set an Exa API key via `nebiusrelay configure`. Without it, searches return a clear "TAVILY_API_KEY not set" error.
+- **"No Nebius API key found"** - run `nconnect configure` or set `NEBIUS_API_KEY`.
+- **A tool command is not found** - nconnect does not install the agent CLIs for you. It prints the official install command (e.g. `npm install -g @openai/codex`) and the docs link when the tool is missing; install it, then re-run.
+- **Web search fails in Claude Code** - set an Exa API key via `nconnect configure`. Without it, searches return a clear "TAVILY_API_KEY not set" error.
 - **Headless run hangs and produces no edits** - you forgot `< /dev/null`. Close stdin and relaunch; see the Headless usage section.
 - **Cost seems high for a small change** - the agent over-documented. Scope the task tighter and add a "don't over-explain" instruction.
-- **Want your normal config back** - stop using the wrappers. No agent config was saved, so your OpenCode / Claude Code / Codex CLI / Pi Code setup is untouched. For ChatGPT Desktop, run `nebiusrelay chatgpt --restore`.
+- **Want your normal config back** - stop using the wrappers. No agent config was saved, so your OpenCode / Claude Code / Codex CLI / Pi Code setup is untouched. For ChatGPT Desktop, run `nconnect chatgpt --restore`.
 
 ## Links
 

@@ -90,14 +90,14 @@ async function captureCodex(outDir) {
       "-c",
       'model_providers.capture.wire_api="responses"',
       "-c",
-      'model_providers.capture.env_key="NEBIUSRELAY_CODEX_AUTH_TOKEN"',
+      'model_providers.capture.env_key="NCONNECT_CODEX_AUTH_TOKEN"',
       codingPrompt(),
     ];
     const result = await runCommand("codex", args, {
       cwd: repo.path,
       env: {
         ...isolatedHomeEnv(runtimeHome.path),
-        NEBIUSRELAY_CODEX_AUTH_TOKEN: "local-token",
+        NCONNECT_CODEX_AUTH_TOKEN: "local-token",
       },
       timeoutMs: 45_000,
     });
@@ -166,7 +166,7 @@ function assertCommandExists(command) {
 }
 
 async function createFixtureRepo(prefix) {
-  const repoPath = await mkdtemp(path.join(os.tmpdir(), `nebiusrelay-${prefix}-session-`));
+  const repoPath = await mkdtemp(path.join(os.tmpdir(), `nconnect-${prefix}-session-`));
   await mkdir(path.join(repoPath, "lib"), { recursive: true });
   await mkdir(path.join(repoPath, "test"), { recursive: true });
   await writeFile(
@@ -217,7 +217,7 @@ async function createFixtureRepo(prefix) {
 }
 
 async function createRuntimeHome(prefix) {
-  const homePath = await mkdtemp(path.join(os.tmpdir(), `nebiusrelay-${prefix}-home-`));
+  const homePath = await mkdtemp(path.join(os.tmpdir(), `nconnect-${prefix}-home-`));
   await mkdir(path.join(homePath, ".config"), { recursive: true });
   await mkdir(path.join(homePath, ".cache"), { recursive: true });
   await mkdir(path.join(homePath, ".local/share"), { recursive: true });
@@ -326,7 +326,7 @@ async function loadCodexCatalog() {
         {
           slug: GLM_MODEL_ID,
           display_name: GLM_NAME,
-          description: "Nebius Token Factory model via nebiusrelay",
+          description: "Nebius Token Factory model via nconnect",
           default_reasoning_level: "medium",
           supported_reasoning_levels: [{ effort: "medium", description: "Default" }],
           shell_type: "shell_command",

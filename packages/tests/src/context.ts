@@ -8,14 +8,14 @@ export async function createTestContext(): Promise<TestContext> {
   await mkdir(artifactsDir, { recursive: true });
   await mkdir(tmpDir, { recursive: true });
   const suiteTmpDir = await mkdtemp(path.join(tmpDir, "suite-"));
-  const nebiusrelayHome = path.join(suiteTmpDir, "nebiusrelay-home");
-  await mkdir(nebiusrelayHome, { recursive: true });
+  const nconnectHome = path.join(suiteTmpDir, "nconnect-home");
+  await mkdir(nconnectHome, { recursive: true });
   return {
     repoRoot,
     cliBin,
     artifactsDir,
     tmpDir: suiteTmpDir,
-    nebiusrelayHome,
+    nconnectHome,
     daemonPort: await findOpenPort(),
     results: [],
   };
@@ -25,8 +25,8 @@ export async function resetTmpDir(context: TestContext): Promise<void> {
   await stopContextDaemon(context);
   await rm(context.tmpDir, { recursive: true, force: true });
   await mkdir(context.tmpDir, { recursive: true });
-  if (context.nebiusrelayHome) {
-    await mkdir(context.nebiusrelayHome, { recursive: true });
+  if (context.nconnectHome) {
+    await mkdir(context.nconnectHome, { recursive: true });
   }
 }
 
@@ -48,10 +48,10 @@ async function findOpenPort(): Promise<number> {
 }
 
 async function stopContextDaemon(context: TestContext): Promise<void> {
-  if (!context.nebiusrelayHome) {
+  if (!context.nconnectHome) {
     return;
   }
-  const raw = await readFile(path.join(context.nebiusrelayHome, "daemon.pid"), "utf8").catch(
+  const raw = await readFile(path.join(context.nconnectHome, "daemon.pid"), "utf8").catch(
     () => undefined,
   );
   const pid = raw ? Number.parseInt(raw.trim(), 10) : NaN;

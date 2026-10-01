@@ -23,11 +23,11 @@ export type CodexAppSessionLock = {
 };
 
 export function appSessionLockPath(home: string): string {
-  return path.join(nebiusrelayHomeDir(home), "codex-app", "session.json");
+  return path.join(nconnectHomeDir(home), "codex-app", "session.json");
 }
 
-function nebiusrelayHomeDir(home: string): string {
-  return process.env.NEBIUSRELAY_HOME || path.join(home, ".nebiusrelay");
+function nconnectHomeDir(home: string): string {
+  return process.env.NCONNECT_HOME || path.join(home, ".nconnect");
 }
 
 export async function readAppSessionLock(home: string): Promise<CodexAppSessionLock | undefined> {
@@ -56,12 +56,12 @@ export async function assertNoLiveCodexAppSession(home: string): Promise<void> {
     return;
   }
   throw new Error(
-    `Another nebiusrelay chatgpt session appears to be running (pid ${lock.pid}). Stop it with Ctrl+C, or run \`nebiusrelay chatgpt --restore\` after it exits.`,
+    `Another nconnect chatgpt session appears to be running (pid ${lock.pid}). Stop it with Ctrl+C, or run \`nconnect chatgpt --restore\` after it exits.`,
   );
 }
 
 /**
- * Is the codex config at ~/.codex/config.toml one that nebiusrelay wrote?
+ * Is the codex config at ~/.codex/config.toml one that nconnect wrote?
  * Detects both the current managed block (marker comments) and the legacy
  * openai-provider+local-proxy+catalog triplet. Used by the orchestrator to
  * decide whether an interrupted session is recoverable, and by backup to
@@ -111,4 +111,4 @@ function isNodeError(err: unknown): err is NodeJS.ErrnoException {
   return err instanceof Error && "code" in err;
 }
 
-// avoid a dead-import lint once nebiusrelayHomeDir is consolidated (see #7).
+// avoid a dead-import lint once nconnectHomeDir is consolidated (see #7).
