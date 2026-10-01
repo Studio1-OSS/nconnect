@@ -8,10 +8,6 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# Vercel runs this from the project's Root Directory, which is either the repo
-# root (vercel.json) or site/ (site/vercel.json). Remember it so the output
-# lands where Vercel looks for it.
-INVOKE_DIR="$(pwd)"
 cd "$ROOT"
 
 # The CLI bundle is produced with `bun build`; Vercel's build image may not
@@ -22,11 +18,3 @@ if ! command -v bun >/dev/null 2>&1; then
 fi
 
 pnpm build:site:preview
-
-# Nitro writes the Build Output API tree to <repo>/.vercel/output. When the
-# project's Root Directory is site/, Vercel reads site/.vercel/output instead.
-if [ "$INVOKE_DIR" != "$ROOT" ]; then
-  rm -rf "$INVOKE_DIR/.vercel/output"
-  mkdir -p "$INVOKE_DIR/.vercel"
-  cp -R "$ROOT/.vercel/output" "$INVOKE_DIR/.vercel/output"
-fi
