@@ -1,8 +1,13 @@
 <div align="center">
 
-<img src="site/public/relay-logo.png" alt="NConnect logo" width="96" height="96" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="site/public/nconnect-white.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="site/public/nconnect-black.svg" />
+  <img src="site/public/nconnect-black.svg" alt="NConnect" width="360" />
+</picture>
 
-# NConnect
+<br />
+<br />
 
 **Run the coding agents you already use on open models from [Nebius Token Factory](https://tokenfactory.nebius.com/).**
 
