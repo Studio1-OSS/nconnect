@@ -1,0 +1,354 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+/* ─────────────────────────────────────────────────────────
+ * TASK ROWS
+ *
+ *     0ms   rows enter staggered (80ms apart)
+ *   600ms   row 1 ring sweeps 0 → 66%
+ *  1500ms   row 1 expands — detail steps drop down
+ *  3900ms   row 1 collapses; row 2 flips to Failed + retry
+ *  5300ms   row 2 resolves to Completed
+ * The status run completes once; task details stay clickable.
+ * ───────────────────────────────────────────────────────── */
+
+const TICKS = [600, 900, 2400, 1400, 2400, 600];
+
+function useTick(intervals: number[]) {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (tick >= intervals.length) return;
+
+    if (tick === intervals.length - 1) {
+      const t = setTimeout(() => setTick(0), 4000);
+      return () => clearTimeout(t);
+    }
+
+    const t = setTimeout(() => setTick((x) => x + 1), intervals[tick]);
+    return () => clearTimeout(t);
+  }, [tick, intervals]);
+  return tick;
+}
+
+export function SpinnerRing({
+  active,
+  children,
+}: {
+  active?: boolean;
+  children?: React.ReactNode;
+}) {
+  const size = 28,
+    stroke = 2.5;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  return (
+    <span
+      className="relative inline-flex shrink-0 items-center justify-center"
+      style={{ width: size, height: size }}
+    >
+      <svg
+        width={size}
+        height={size}
+        className="absolute inset-0"
+        style={active ? { animation: "spin 1.1s linear infinite" } : undefined}
+      >
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke="var(--relay-line)"
+          strokeWidth={stroke}
+        />
+        {active && (
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            stroke="var(--relay-ink)"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={`${c * 0.28} ${c * 0.72}`}
+          />
+        )}
+      </svg>
+      <span className="relative text-[12px] font-semibold tabular-nums text-[var(--relay-ink)]">
+        {children}
+      </span>
+    </span>
+  );
+}
+
+export function Badge({ tone, children }: { tone: "red" | "green"; children: React.ReactNode }) {
+  return (
+    <span
+      key={tone}
+      className={`flex w-[26px] h-[26px] shrink-0 items-center justify-center rounded-full text-white
+        ${tone === "red" ? "bg-[#ef4444]" : "bg-[#22c55e]"}`}
+      style={{ animation: "pop-in 300ms cubic-bezier(0.23,1,0.32,1) both" }}
+    >
+      {children}
+    </span>
+  );
+}
+
+const XIcon = (
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="3.5"
+    strokeLinecap="round"
+  >
+    <path d="M18 6L6 18M6 6l12 12" />
+  </svg>
+);
+export const CheckIcon = (
+  <svg
+    width="13"
+    height="13"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="3.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M20 6L9 17l-5-5" />
+  </svg>
+);
+const RetryIcon = (
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="3"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
+  </svg>
+);
+
+/* One detail line shown when a task row is expanded. */
+export type TaskDetail = { label: string; meta: string };
+
+/* A single task row. */
+export type TaskRow = {
+  key: string;
+  label: string;
+  amount: string;
+  status: "done" | "running" | "sequence";
+  step?: number;
+  details: TaskDetail[];
+};
+
+export type TaskRowsLabels = {
+  completed: string;
+  failed: string;
+};
+
+const DEFAULT_LABELS: TaskRowsLabels = {
+  completed: "Completed",
+  failed: "Failed",
+};
+
+const TASK_ROWS: TaskRow[] = [
+  {
+    key: "verify",
+    label: "Verified vendor records",
+    amount: "12 suppliers",
+    status: "done",
+    details: [
+      { label: "Matched tax and contact IDs", meta: "12/12" },
+      { label: "Flagged stale records", meta: "0" },
+    ],
+  },
+  {
+    key: "index",
+    label: "Build reorder task list",
+    amount: "7 SKUs",
+    status: "running",
+    step: 2,
+    details: [
+      { label: "Reading POS export", meta: "3 files" },
+      { label: "Scoring stockout risk", meta: "68%" },
+    ],
+  },
+  {
+    key: "draft",
+    label: "Draft supplier emails",
+    amount: "2 messages",
+    status: "sequence",
+    step: 3,
+    details: [
+      { label: "Cone supplier follow-up", meta: "draft" },
+      { label: "Pistachio reorder note", meta: "draft" },
+    ],
+  },
+];
+
+export function TaskRows({
+  variant = "Capsules",
+  rows = TASK_ROWS,
+  labels,
+  className,
+  onToggleRow,
+}: {
+  variant?: string;
+  rows?: TaskRow[];
+  labels?: Partial<TaskRowsLabels>;
+  className?: string;
+  onToggleRow?: (key: string, open: boolean) => void;
+}) {
+  const tick = useTick(TICKS);
+  const [manualOpen, setManualOpen] = useState<Record<string, boolean>>({});
+  const row2: "pending" | "failed" | "done" = tick < 3 ? "pending" : tick === 3 ? "failed" : "done";
+  const copy = { ...DEFAULT_LABELS, ...labels };
+
+  const badgeFor = (row: TaskRow) => {
+    if (row.status === "done") return <Badge tone="green">{CheckIcon}</Badge>;
+    if (row.status === "running") return <SpinnerRing active>{row.step}</SpinnerRing>;
+    return row2 === "pending" ? (
+      <SpinnerRing active>{row.step}</SpinnerRing>
+    ) : row2 === "failed" ? (
+      <Badge tone="red">{XIcon}</Badge>
+    ) : (
+      <Badge tone="green">{CheckIcon}</Badge>
+    );
+  };
+
+  const pillFor = (row: TaskRow) => {
+    if (row.status === "done")
+      return (
+        <span className="inline-flex h-5.5 items-center rounded-full bg-[#dcfce7] px-2 text-[11.5px] font-medium text-[#166534]">
+          {copy.completed}
+        </span>
+      );
+    if (row.status === "running") return null;
+    return row2 === "failed" ? (
+      <span
+        className="inline-flex h-5.5 items-center gap-1.5 rounded-full bg-[#fee2e2] px-2 text-[11.5px] font-medium text-[#991b1b]"
+        style={{ animation: "fade-in 200ms ease-out both" }}
+      >
+        {copy.failed}{" "}
+        <span style={{ animation: "spin 1.2s linear infinite" }} className="flex">
+          {RetryIcon}
+        </span>
+      </span>
+    ) : row2 === "done" ? (
+      <span
+        className="inline-flex h-5.5 items-center gap-1.5 rounded-full bg-[#dcfce7] px-2 text-[11.5px] font-medium text-[#166534]"
+        style={{ animation: "fade-in 200ms ease-out both" }}
+      >
+        {copy.completed}
+      </span>
+    ) : null;
+  };
+
+  const list = variant === "List";
+  return (
+    <div
+      className={`flex w-full flex-col ${
+        list ? "gap-0 self-start overflow-hidden rounded-2xl bg-transparent" : "min-h-[180px] gap-2"
+      }${className ? ` ${className}` : ""}`}
+    >
+      {rows.map((row, i) => {
+        const open = manualOpen[row.key] ?? (row.key === "config" && (tick === 2 || tick === 3));
+        return (
+          <div
+            key={row.key}
+            className={`self-stretch overflow-hidden transition-[border-radius,background-color] duration-300 hover:bg-black/5 ${
+              list ? "border-b border-[var(--relay-line)] last:border-0" : "bg-[#fcfcfb] shadow-sm"
+            }`}
+            style={{
+              borderRadius: list ? 0 : open ? 14 : 22,
+              animation: `fade-up 450ms cubic-bezier(0.23,1,0.32,1) ${i * 80}ms both`,
+            }}
+          >
+            <button
+              type="button"
+              aria-expanded={open}
+              onClick={() => {
+                setManualOpen((current) => ({ ...current, [row.key]: !open }));
+                onToggleRow?.(row.key, !open);
+              }}
+              className="flex h-10 w-full items-center gap-3 px-3 text-left"
+            >
+              <span className="flex w-[26px] h-[26px] shrink-0 items-center justify-center">
+                {badgeFor(row)}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-[var(--relay-ink)]">
+                {row.label}
+              </span>
+              <span className="text-[13px] text-[var(--relay-muted)] tabular-nums">
+                {row.amount}
+              </span>
+              {pillFor(row)}
+              <span
+                aria-hidden="true"
+                className="-ml-1 flex w-8 h-8 shrink-0 items-center justify-center rounded-full text-gray-500"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="transition-transform duration-300"
+                  style={{ transform: open ? "rotate(180deg)" : "rotate(0)" }}
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </span>
+            </button>
+
+            <div
+              className="grid transition-[grid-template-rows,opacity] duration-300"
+              style={{
+                gridTemplateRows: open ? "1fr" : "0fr",
+                opacity: open ? 1 : 0,
+                transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
+              }}
+            >
+              <div className="overflow-hidden">
+                <div className="mb-4 grid grid-cols-[28px_1fr] gap-3 px-3">
+                  <span aria-hidden className="mx-auto h-full w-px bg-[var(--relay-line)]" />
+                  <div className="flex flex-col gap-2.5">
+                    {row.details.map((d, j) => (
+                      <div
+                        key={d.label}
+                        className="flex items-center justify-between"
+                        style={
+                          open
+                            ? {
+                                animation: `fade-up 300ms cubic-bezier(0.23,1,0.32,1) ${120 + j * 100}ms both`,
+                              }
+                            : undefined
+                        }
+                      >
+                        <span className="text-[14px] text-[var(--relay-muted)]">{d.label}</span>
+                        <span className="font-mono text-[13px] text-gray-500 tabular-nums">
+                          {d.meta}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

@@ -12,7 +12,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/relay-favicon.png", type: "image/png", sizes: "32x32" },
+      { rel: "icon", href: "/hero/favicon.ico", type: "image/x-icon", sizes: "any" },
       { rel: "apple-touch-icon", href: "/relay-apple-touch-icon.png", sizes: "180x180" },
       { rel: "llms-txt", href: "/llms.txt" },
     ],

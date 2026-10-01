@@ -194,12 +194,12 @@ An LLM-readable guide is published at <https://nconnect.sh/llms.txt>. If you are
 
 Monorepo: pnpm workspaces + Turbo.
 
-| Path              | What it is                   |
-| ----------------- | ---------------------------- |
-| `packages/cli`    | The relay (CLI and daemon)   |
-| `packages/models` | The model catalog            |
-| `packages/tests`  | Offline and live test suites |
-| `site/`           | The install and update host  |
+| Path              | What it is                                            |
+| ----------------- | ----------------------------------------------------- |
+| `packages/cli`    | The relay (CLI and daemon)                            |
+| `packages/models` | The model catalog                                     |
+| `packages/tests`  | Offline and live test suites                          |
+| `site/`           | The install and update host, plus the landing page UI |
 
 ```bash
 pnpm install                       # from repo root

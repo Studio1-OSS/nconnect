@@ -6,6 +6,7 @@ import { ProviderBrand } from "../components/ProviderBrand";
 import { pageHead, siteUrl, structuredData } from "../lib/seo";
 import "../styles/landing.css";
 import "../styles/docs.css";
+import { ClaudeMark, PiMark, PrimeMark, DeepSeekMark, GrokMark } from "./index";
 
 const installCommand = "curl -fsSL https://nconnect.sh/install.sh | bash";
 const githubUrl = "https://github.com/Studio1-OSS/nconnect";
@@ -60,42 +61,107 @@ const sections = [
   { id: "agents", label: "For AI agents" },
 ];
 
-const harnesses = [
-  ["Claude Code", "nclaude", "Proxied", "Anthropic Messages API translated to Nebius."],
-  ["Codex CLI", "ncodex", "Proxied", "OpenAI Responses API translated to Nebius."],
-  ["OpenCode", "nopencode", "Spawned", "Nebius wired in as an OpenAI-compatible provider."],
-  ["Pi Code", "npi", "Spawned", "Custom Nebius provider in a temporary config directory."],
-  ["Prime Agent", "nprime", "Spawned", "PrimeIntellect's RLM agent on Nebius models."],
-  ["Hermes Agent", "nhermes", "Spawned", "Nous Research's agent, isolated home overlay."],
-  ["DeepSeek Harness", "ndeepseek", "Spawned", "DeepSeek's web profile with Nebius layered in."],
-  ["Grok Build", "ngrok", "Spawned", "xAI's terminal harness; your key never reaches api.x.ai."],
+const harnesses: Array<[string, string, string, string, ReactNode]> = [
+  [
+    "Claude Code",
+    "nclaude",
+    "Proxied",
+    "Anthropic Messages API translated to Nebius.",
+    <ClaudeMark />,
+  ],
+  [
+    "Codex CLI",
+    "ncodex",
+    "Proxied",
+    "OpenAI Responses API translated to Nebius.",
+    "/chatgpt-icon.png",
+  ],
+  [
+    "OpenCode",
+    "nopencode",
+    "Spawned",
+    "Nebius wired in as an OpenAI-compatible provider.",
+    "/logos/opensource.png",
+  ],
+  [
+    "Pi Code",
+    "npi",
+    "Spawned",
+    "Custom Nebius provider in a temporary config directory.",
+    <PiMark />,
+  ],
+  [
+    "Prime Agent",
+    "nprime",
+    "Spawned",
+    "PrimeIntellect's RLM agent on Nebius models.",
+    <PrimeMark />,
+  ],
+  [
+    "Hermes Agent",
+    "nhermes",
+    "Spawned",
+    "Nous Research's agent, isolated home overlay.",
+    "/hermes-icon.png",
+  ],
+  [
+    "DeepSeek Harness",
+    "ndeepseek",
+    "Spawned",
+    "DeepSeek's web profile with Nebius layered in.",
+    <DeepSeekMark />,
+  ],
+  [
+    "Grok Build",
+    "ngrok",
+    "Spawned",
+    "xAI's terminal harness; your key never reaches api.x.ai.",
+    <GrokMark />,
+  ],
   [
     "Unreal Agent",
     "nunreal",
     "Proxied",
     "Unreal Labs' async-first runner; its Responses API traffic translated to Nebius.",
+    "/unreal-icon.png",
   ],
+  ["Cursor", "", "Editor", "Native Nebius configuration.", "/logos/cursor.png"],
+  ["Antigravity IDE", "", "Editor", "Native Nebius configuration.", "/logos/antigravity.png"],
 ];
 
-const models = [
-  ["GLM 5.3 Flash", "Fast, very low cost, agentic", "1M", "No", true],
-  ["GLM 5.3", "Coding, reasoning, tool use", "1,024K", "No", false],
-  ["DeepSeek V4 Pro 0813", "Reasoning and agentic coding", "979K", "No", false],
-  ["Kimi K3", "Frontier coding + agentic", "1M", "No", false],
-  ["Kimi K2.6", "Vision flagship", "262K", "Yes", false],
-  ["Kimi K2.7 Code", "Coding", "262K", "No", false],
-  ["MiniMax M3", "Fast, cheap", "196K", "No", false],
-  ["Qwen 3.5 397B", "General / coding flagship", "262K", "No", false],
-  ["DeepSeek V4 Flash", "Fast DeepSeek V4", "1M", "No", false],
-  ["DeepSeek V4 Pro", "Long-context reasoning", "1M", "No", false],
-  ["Qwen2.5-VL 72B", "Vision fallback", "32K", "Yes", false],
+const models: Array<[string, string, string, string, boolean, ReactNode]> = [
+  [
+    "GLM 5.3 Flash",
+    "Fast, very low cost, agentic",
+    "1M",
+    "No",
+    true,
+    <img src="/zai-logo.svg" className="w-4 h-4 object-contain" alt="" />,
+  ],
+  [
+    "GLM 5.3",
+    "Coding, reasoning, tool use",
+    "1,024K",
+    "No",
+    false,
+    <img src="/zai-logo.svg" className="w-4 h-4 object-contain" alt="" />,
+  ],
+  ["DeepSeek V4 Pro 0813", "Reasoning and agentic coding", "979K", "No", false, <DeepSeekMark />],
+  ["Kimi K3", "Frontier coding + agentic", "1M", "No", false, "/logos/kimi.png"],
+  ["Kimi K2.6", "Vision flagship", "262K", "Yes", false, "/logos/kimi.png"],
+  ["Kimi K2.7 Code", "Coding", "262K", "No", false, "/logos/kimi.png"],
+  ["MiniMax M3", "Fast, cheap", "196K", "No", false, "/logos/minimax.png"],
+  ["Qwen 3.5 397B", "General / coding flagship", "262K", "No", false, "/logos/qwen.png"],
+  ["DeepSeek V4 Flash", "Fast DeepSeek V4", "1M", "No", false, <DeepSeekMark />],
+  ["DeepSeek V4 Pro", "Long-context reasoning", "1M", "No", false, <DeepSeekMark />],
+  ["Qwen2.5-VL 72B", "Vision fallback", "32K", "Yes", false, "/logos/qwen.png"],
 ];
 
 const envVars: Array<[string, ReactNode]> = [
   [
-    "NEBIUS_API_KEY",
+    "NCONNECT_API_KEY",
     <>
-      Nebius Token Factory key (or set it via <Code>configure</Code>).
+      Nebius key (or set it via <Code>configure</Code>).
     </>,
   ],
   [
@@ -105,7 +171,7 @@ const envVars: Array<[string, ReactNode]> = [
     </>,
   ],
   [
-    "NEBIUS_BASE_URL",
+    "NCONNECT_BASE_URL",
     <>
       Override the API base. Default <Code>https://api.tokenfactory.nebius.com/v1</Code>.
     </>,
@@ -187,25 +253,28 @@ function Docs() {
 
   return (
     <div className="relay-home docs-page">
+      <div className="page-grid-lines" aria-hidden="true" />
       <a className="skip-link" href="#docs-content">
         Skip to documentation
       </a>
-      <header className="relay-nav wrap docs-header">
-        <a className="relay-brand" href="/" aria-label="NConnect home">
-          <img src="/relay-logo.png" alt="" width="36" height="36" />
-          <span>
-            <b>NConnect</b>
-          </span>
-        </a>
-        <nav aria-label="Main navigation">
-          <a href="/">Home</a>
-          <a href={githubUrl} target="_blank" rel="noopener noreferrer">
-            GitHub <ArrowUpRight size={14} />
+      <header className="relay-nav-container docs-header">
+        <div className="relay-nav wrap">
+          <a className="relay-brand" href="/" aria-label="NConnect home">
+            <img src="/relay-logo.png" alt="" width="36" height="36" />
+            <span>
+              <b>NConnect</b>
+            </span>
           </a>
-          <a className="button button-dark" href="#install">
-            Quick start <ArrowUpRight size={14} />
-          </a>
-        </nav>
+          <nav aria-label="Main navigation">
+            <a href="/">Home</a>
+            <a href={githubUrl} target="_blank" rel="noopener noreferrer">
+              GitHub <ArrowUpRight size={14} />
+            </a>
+            <a className="button button-dark" href="#install">
+              Quick start <ArrowUpRight size={14} />
+            </a>
+          </nav>
+        </div>
       </header>
       <div className="docs-layout wrap">
         <aside className="docs-sidebar">
@@ -274,8 +343,8 @@ function Docs() {
             </p>
             <h1>Documentation</h1>
             <p>
-              Everything you need to run your coding agents on Nebius Token Factory, with optional
-              Tavily web search.
+              Everything you need to run your coding agents on Nebius, with optional Tavily web
+              search.
             </p>
             <div className="docs-provider-row">
               <ProviderBrand provider="nebius" />
@@ -295,11 +364,11 @@ function Docs() {
           </div>
           <Section id="what-it-does" title="What it does">
             <P>
-              Nebius Token Factory serves open models over an OpenAI-compatible API. It does not
-              speak the Anthropic Messages API that Claude Code uses, nor the OpenAI Responses API
-              that Codex uses. The relay runs a small local daemon that translates those wire
-              formats to Nebius <Code>/chat/completions</Code> on the fly - your agent believes it
-              is talking to its native backend, while every token is served by Nebius.
+              Nebius serves open models over an OpenAI-compatible API. It does not speak the
+              Anthropic Messages API that Claude Code uses, nor the OpenAI Responses API that Codex
+              uses. The relay runs a small local daemon that translates those wire formats to Nebius{" "}
+              <Code>/chat/completions</Code> on the fly - your agent believes it is talking to its
+              native backend, while every token is served by Nebius.
             </P>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <Card title="Proxied harnesses">
@@ -357,18 +426,31 @@ function Docs() {
               underlying agent.
             </P>
             <Table head={["Harness", "Command", "Mode", "Notes"]}>
-              {harnesses.map(([name, cmd, mode, note]) => (
-                <Row key={cmd}>
-                  <Cell strong>{name}</Cell>
+              {harnesses.map(([name, cmd, mode, note, logo]) => (
+                <Row key={name}>
+                  <Cell strong>
+                    <span className="flex items-center gap-2">
+                      {typeof logo === "string" ? (
+                        logo && <img src={logo} alt="" className="w-4 h-4 object-contain" />
+                      ) : (
+                        <div className="w-4 h-4 flex items-center justify-center [&>svg]:w-4 [&>svg]:h-4">
+                          {logo}
+                        </div>
+                      )}
+                      {name}
+                    </span>
+                  </Cell>
                   <Cell>
-                    <Code>{cmd}</Code>
+                    {cmd ? <Code>{cmd}</Code> : <span style={{ color: "#a1a1aa" }}>-</span>}
                   </Cell>
                   <Cell>
                     <span
                       className={`rounded-full px-2 py-0.5 text-[12px] font-medium ${
                         mode === "Proxied"
                           ? "bg-violet-soft text-violet"
-                          : "bg-lime/25 text-lime-ink"
+                          : mode === "Editor"
+                            ? "bg-zinc-100 text-zinc-600 border border-zinc-200"
+                            : "bg-lime/25 text-lime-ink"
                       }`}
                     >
                       {mode}
@@ -432,15 +514,28 @@ function Docs() {
               snapshot when offline.
             </P>
             <Table head={["Model", "Best for", "Context", "Vision"]}>
-              {models.map(([name, best, ctx, vision, isDefault]) => (
+              {models.map(([name, best, ctx, vision, isDefault, logo]) => (
                 <Row key={name as string}>
                   <Cell strong>
-                    {name}
-                    {isDefault ? (
-                      <span className="ml-2 rounded-full bg-lime/25 px-2 py-0.5 text-[11px] font-semibold text-lime-ink">
-                        DEFAULT
-                      </span>
-                    ) : null}
+                    <span className="flex items-center gap-2">
+                      {typeof logo === "string" ? (
+                        logo && (
+                          <img src={logo} alt="" className="w-4 h-4 object-contain rounded-[3px]" />
+                        )
+                      ) : logo ? (
+                        <div className="w-4 h-4 flex items-center justify-center [&>svg]:w-4 [&>svg]:h-4">
+                          {logo}
+                        </div>
+                      ) : (
+                        <div className="w-4 h-4 flex items-center justify-center"></div>
+                      )}
+                      {name}
+                      {isDefault ? (
+                        <span className="ml-2 rounded-full bg-zinc-200 px-2 py-0.5 text-[10px] font-semibold text-zinc-500">
+                          DEFAULT
+                        </span>
+                      ) : null}
+                    </span>
                   </Cell>
                   <Cell>{best}</Cell>
                   <Cell>{ctx}</Cell>

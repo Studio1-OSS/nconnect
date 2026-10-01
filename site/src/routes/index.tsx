@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { StreamingText } from "../components/StreamingText";
+import { CofounderGraphic } from "../components/CofounderGraphic";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -7,15 +9,44 @@ import {
   ChartNoAxesCombined,
   Check,
   Copy,
-  GitBranch,
+  Cpu,
+  FileText,
+  Key,
   Search,
+  Settings,
   ShieldCheck,
   Terminal,
+  ChevronRight,
+  Loader2,
+  CircleHelp,
 } from "lucide-react";
 import "../styles/landing.css";
 import { ProviderBrand } from "../components/ProviderBrand";
+import { ThinkingState, useSequence } from "../components/ThinkingState";
+import { TaskRows, SpinnerRing, Badge, CheckIcon, TaskRow } from "../components/TaskRows";
 import { pageHead, siteUrl, structuredData } from "../lib/seo";
 import { useEffect, useRef, useState } from "react";
+
+function useInView(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [threshold]);
+  return { ref, inView };
+}
 
 const installCommand = "curl -fsSL https://nconnect.sh/install.sh | bash";
 const githubUrl = "https://github.com/Studio1-OSS/nconnect";
@@ -119,6 +150,7 @@ const steps = [
         your PATH and installs Bun if you don&apos;t have it.
       </>
     ),
+    graphic: <Step1Graphic />,
   },
   {
     title: "Add your keys",
@@ -135,6 +167,7 @@ const steps = [
         key for live web search.
       </>
     ),
+    graphic: <Step2Graphic />,
   },
   {
     title: "Launch an agent",
@@ -144,6 +177,7 @@ const steps = [
         settings for that run only. Nothing is written to your real agent config.
       </>
     ),
+    graphic: <Step3Graphic />,
   },
 ];
 
@@ -167,14 +201,14 @@ const features = [
 ];
 
 const modelHighlights = [
-  { name: "GLM 5.3 Flash", note: "default · 1M context" },
-  { name: "GLM 5.3", note: "coding and tool use" },
-  { name: "DeepSeek V4 Pro 0813", note: "979K context" },
-  { name: "Kimi K3", note: "frontier coding" },
-  { name: "Kimi K2.6", note: "vision" },
-  { name: "DeepSeek V4 Flash", note: "fast 1M context" },
-  { name: "DeepSeek V4 Pro", note: "long-context reasoning" },
-  { name: "Qwen 3.5", note: "flagship" },
+  { name: "GLM 5.3 Flash", note: "default · 1M context", logo: "/zai-logo.svg" },
+  { name: "GLM 5.3", note: "coding and tool use", logo: "/zai-logo.svg" },
+  { name: "DeepSeek V4 Pro 0813", note: "979K context", mark: <DeepSeekMark /> },
+  { name: "Kimi K3", note: "frontier coding", logo: "/logos/kimi.png" },
+  { name: "Kimi K2.6", note: "vision", logo: "/logos/kimi.png" },
+  { name: "DeepSeek V4 Flash", note: "fast 1M context", mark: <DeepSeekMark /> },
+  { name: "DeepSeek V4 Pro", note: "long-context reasoning", mark: <DeepSeekMark /> },
+  { name: "Qwen 3.5", note: "flagship", logo: "/logos/qwen.png" },
 ];
 
 export const Route = createFileRoute("/")({
@@ -191,7 +225,7 @@ export const Route = createFileRoute("/")({
         name: "NConnect",
         url: `${siteUrl}/`,
         description:
-          "A local open-source relay connecting eight coding agents to models on Nebius Token Factory.",
+          "A local open-source relay connecting eight coding agents to models on Nebius.",
         applicationCategory: "DeveloperApplication",
         operatingSystem: "macOS, Linux",
         license: "https://opensource.org/license/mit",
@@ -208,6 +242,7 @@ function Home() {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "select">("idle");
   const [release, setRelease] = useState<{ version?: string; age?: string }>({});
   const commandRef = useRef<HTMLElement>(null);
+  const { ref: featuresRef, inView: featuresInView } = useInView(0.1);
 
   useEffect(() => {
     fetch("/latest.json", { cache: "no-store" })
@@ -244,99 +279,147 @@ function Home() {
 
   return (
     <div className="relay-home">
+      <div className="page-grid-lines" aria-hidden="true" />
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
-      <header className="relay-nav wrap">
-        <a className="relay-brand" href="/" aria-label="NConnect home">
-          <img src="/relay-logo.png" alt="" />{" "}
-          <span>
-            <b>NConnect</b>
-          </span>
-        </a>
-        <nav aria-label="Main navigation">
-          <a href="#agents">Agents</a>
-          <a href={docsUrl}>Docs</a>
-          <a className="github-link" href={githubUrl} target="_blank" rel="noopener noreferrer">
-            <GitBranch size={16} /> GitHub
+      <div className="relay-nav-container">
+        <header className="relay-nav wrap">
+          <a className="relay-brand" href="/" aria-label="NConnect home">
+            <img src="/hero/logo.png" alt="NConnect" />
           </a>
-          <a className="button button-dark" href="#install">
-            Get started <ArrowRight size={16} />
-          </a>
-        </nav>
-      </header>
+          <nav aria-label="Main navigation">
+            <a href="#agents">Agents</a>
+            <a href={docsUrl}>Docs</a>
+            <a className="github-link" href={githubUrl} target="_blank" rel="noopener noreferrer">
+              <svg
+                height="16"
+                width="16"
+                viewBox="0 0 16 16"
+                aria-hidden="true"
+                fill="currentColor"
+              >
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+              </svg>
+              GitHub
+            </a>
+            <a className="button button-dark" href="#install">
+              Get started <ArrowRight size={16} />
+            </a>
+          </nav>
+        </header>
+      </div>
       <main id="main-content">
         <section className="relay-hero" aria-labelledby="hero-heading">
-          <img className="hero-art" src="/relay-mark.png" alt="" aria-hidden="true" />
-          <div className="wrap hero-content">
-            <a
-              className="release-note"
-              href={glmFlashUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span className="live-dot" /> GLM 5.3 Flash is now the default{" "}
-              <ArrowUpRight size={14} />
-            </a>
-            <p className="eyebrow">YOUR AGENTS. OPEN MODELS.</p>
-            <h1 id="hero-heading">
-              <span className="relay-name">NConnect</span>
-            </h1>
-            <p className="hero-tagline">
-              Use open models
-              <br />
-              with your existing harness.
-            </p>
-            <p className="hero-description">
-              Run the coding agents you love on Nebius Token Factory. One local relay. Eight agents.
-              Your setup stays yours.
-            </p>
-            <div className="install-terminal hero-install" id="install">
-              <div className="terminal-bar">
+          <div className="wrap relay-hero-split">
+            <div className="hero-split-left">
+              <div className="hero-eyebrow-container">
+                <div className="hero-eyebrow-logos">
+                  <div className="eyebrow-logo">
+                    <ClaudeMark />
+                  </div>
+                  <div className="eyebrow-logo">
+                    <CodexMark />
+                  </div>
+                  <div className="eyebrow-logo">
+                    <PiMark />
+                  </div>
+                </div>
+                <p className="eyebrow">YOUR AGENTS. OPEN MODELS.</p>
+              </div>
+              <h1 id="hero-heading">
+                Use open models
+                <br />
+                with your existing harness.
+              </h1>
+              <div
+                className="hero-actions-container"
+                style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "24px" }}
+              >
+                <a className="button button-dark" href="#install">
+                  Get started <ArrowUpRight size={16} />
+                </a>
+                <a className="button button-light" href={docsUrl}>
+                  <FileText size={16} /> Read the docs
+                </a>
+              </div>
+            </div>
+            <div className="hero-split-right">
+              <p className="hero-description">
+                Run the coding agents you love on Nebius. One local relay. Eight agents. Your setup
+                stays yours.
+              </p>
+              <div className="hero-meta">
                 <span>
-                  <Terminal size={15} /> Terminal
+                  <img
+                    src="/logos/opensource.png"
+                    alt=""
+                    style={{ width: "14px", height: "14px", objectFit: "contain" }}
+                  />{" "}
+                  Open source
                 </span>
-                <span>{releaseLabel}</span>
-              </div>
-              <div className="install-command">
-                <span aria-hidden="true">$</span>
-                <code ref={commandRef}>{installCommand}</code>
-                <button
-                  type="button"
-                  className="copy-button"
-                  onClick={handleCopy}
-                  title="Copy install command"
-                  aria-label="Copy install command"
-                >
-                  {copyState === "copied" ? <Check size={18} /> : <Copy size={18} />}
-                </button>
-              </div>
-              <div className="terminal-foot">
-                <span>macOS / Linux</span>
-                <span role="status">
-                  {copyState === "copied"
-                    ? "Copied to clipboard"
-                    : copyState === "select"
-                      ? "Clipboard unavailable; command selected"
-                      : "Bun is installed automatically if needed"}
+                <span>
+                  <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                    <img
+                      src="/logos/mac.png"
+                      alt=""
+                      style={{ width: "14px", height: "14px", objectFit: "contain" }}
+                    />
+                    <img
+                      src="/logos/linux.png"
+                      alt=""
+                      style={{ width: "14px", height: "14px", objectFit: "contain" }}
+                    />
+                  </div>
+                  macOS & Linux
+                </span>
+                <span>
+                  <img
+                    src="/logos/config.png"
+                    alt=""
+                    style={{ width: "14px", height: "14px", objectFit: "contain" }}
+                  />{" "}
+                  Config-free
                 </span>
               </div>
             </div>
-            <div className="hero-actions">
-              <a className="text-link" href={docsUrl}>
-                Read the docs <ArrowUpRight size={16} />
-              </a>
-            </div>
-            <div className="hero-meta">
-              <span>
-                <Check size={14} /> Open source
-              </span>
-              <span>
-                <Check size={14} /> macOS & Linux
-              </span>
-              <span>
-                <Check size={14} /> Config-free
-              </span>
+          </div>
+          <div className="relay-hero-banner">
+            <div style={{ position: "relative" }}>
+              <img src="/hero/hero_orange_abstract.png" alt="" />
+              <div className="install-terminal hero-install" id="install">
+                <div className="terminal-inner">
+                  <div className="terminal-bar">
+                    <span>
+                      <Terminal size={15} /> Terminal
+                    </span>
+                    <span>{releaseLabel}</span>
+                  </div>
+                  <div className="install-command">
+                    <span aria-hidden="true">$</span>
+                    <code ref={commandRef}>{installCommand}</code>
+                    <button
+                      type="button"
+                      className="copy-button"
+                      onClick={handleCopy}
+                      title="Copy install command"
+                      aria-label="Copy install command"
+                    >
+                      {copyState === "copied" ? <Check size={18} /> : <Copy size={18} />}
+                    </button>
+                  </div>
+                  <div className="terminal-foot">
+                    <span>macOS / Linux</span>
+                    <span role="status">
+                      {copyState === "copied"
+                        ? "Copied to clipboard"
+                        : copyState === "select"
+                          ? "Clipboard unavailable; command selected"
+                          : "Bun is installed automatically if needed"}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -351,13 +434,19 @@ function Home() {
             <br />
             MORE POSSIBILITIES.
           </span>
-          <div>
-            {agents.map((agent) => (
-              <a href="#agents" key={agent.command}>
-                {agent.mark}
-                <span>{agent.name}</span>
-              </a>
-            ))}
+          <div className="agent-strip-divider" />
+          <div className="agent-marquee">
+            <div className="agent-marquee-track">
+              {[...Array(4)].map((_, i) => (
+                <div className="agent-marquee-group" key={i} aria-hidden={i > 0}>
+                  {agents.map((agent) => (
+                    <div className="agent-marquee-logo" key={`${i}-${agent.name}`}>
+                      {agent.mark}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </section>
         <section className="install-section wrap">
@@ -382,7 +471,7 @@ function Home() {
                 <span className="step-number">0{i + 1}</span>
                 <h3>{step.title}</h3>
                 <p>{step.body}</p>
-                {i === 1 ? <code>nconnect configure</code> : i === 2 ? <code>ncodex</code> : null}
+                {step.graphic}
               </li>
             ))}
           </ol>
@@ -429,7 +518,10 @@ function Home() {
             <div className="desktop-integration">
               <div>
                 <p className="eyebrow">DESKTOP INTEGRATION / ALPHA</p>
-                <h3>ChatGPT / Codex Desktop</h3>
+                <h3 style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <img src="/chatgpt-icon.png" alt="" width={28} height={28} />
+                  ChatGPT / Codex Desktop
+                </h3>
                 <p>
                   An optional managed profile routes compatible desktop coding tasks through Relay.
                   It changes the shared Codex config until you restore it; it does not replace
@@ -477,6 +569,31 @@ function Home() {
                 key={model.name}
               >
                 <span className="model-index">0{i + 1}</span>
+                {model.logo ? (
+                  <img
+                    src={model.logo}
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="model-logo"
+                    style={{ objectFit: "contain" }}
+                  />
+                ) : model.mark ? (
+                  <div
+                    className="model-logo"
+                    style={{
+                      width: 24,
+                      height: 24,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {model.mark}
+                  </div>
+                ) : (
+                  <Cpu size={20} color="#a1a1aa" className="model-logo" />
+                )}
                 <h3>{model.name}</h3>
                 <span>{model.note}</span>
                 <ArrowUpRight size={18} />
@@ -486,25 +603,75 @@ function Home() {
         </section>
         <section className="features-section">
           <div className="wrap">
-            <p className="eyebrow">BUILT TO STAY OUT OF YOUR WAY</p>
-            <div className="feature-grid">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">04 / FEATURES</p>
+                <h2>
+                  Built to stay
+                  <br />
+                  out of your way.
+                </h2>
+              </div>
+              <p>
+                A seamless proxy that works
+                <br />
+                with your existing setup.
+              </p>
+            </div>
+            <div className="feature-grid" ref={featuresRef}>
               {features.map((feature, i) => {
                 const Icon = [Cable, Search, ChartNoAxesCombined, ShieldCheck][i];
+                if (i === 3) {
+                  // Wide card: text left, animation right — side by side
+                  return (
+                    <article
+                      key={feature.title}
+                      className="feature-card feature-card-3 feature-card-horizontal"
+                      style={
+                        featuresInView
+                          ? {
+                              animation: `fade-up 600ms cubic-bezier(0.23,1,0.32,1) ${i * 120}ms both`,
+                            }
+                          : { opacity: 0, transform: "translateY(16px)" }
+                      }
+                    >
+                      <div className="feature-card-text feature-card-text-left">
+                        <div className="feature-icon-wrapper">
+                          <Icon size={20} strokeWidth={2} />
+                        </div>
+                        <h3>{feature.title}</h3>
+                        <p>{feature.body}</p>
+                      </div>
+                      <div className="feature-graphic-container">
+                        <FeatureGraphic3 />
+                      </div>
+                    </article>
+                  );
+                }
                 return (
-                  <article key={feature.title}>
-                    {i === 1 ? (
-                      <img
-                        className="feature-provider-logo"
-                        src="/tavily-icon.png"
-                        alt="Tavily"
-                        width="32"
-                        height="32"
-                      />
-                    ) : (
-                      <Icon size={24} />
-                    )}
-                    <h3>{feature.title}</h3>
-                    <p>{feature.body}</p>
+                  <article
+                    key={feature.title}
+                    className={`feature-card feature-card-${i}`}
+                    style={
+                      featuresInView
+                        ? {
+                            animation: `fade-up 600ms cubic-bezier(0.23,1,0.32,1) ${i * 120}ms both`,
+                          }
+                        : { opacity: 0, transform: "translateY(16px)" }
+                    }
+                  >
+                    <div className="feature-card-text">
+                      <div className="feature-icon-wrapper">
+                        <Icon size={20} strokeWidth={2} />
+                      </div>
+                      <h3>{feature.title}</h3>
+                      <p>{feature.body}</p>
+                    </div>
+                    <div className="feature-graphic-container">
+                      {i === 0 && <FeatureGraphic0 />}
+                      {i === 1 && <FeatureGraphic1 />}
+                      {i === 2 && <FeatureGraphic2 />}
+                    </div>
                   </article>
                 );
               })}
@@ -512,34 +679,40 @@ function Home() {
           </div>
         </section>
         <section className="closing-section wrap">
-          <img src="/relay-logo.png" alt="" width="42" height="42" />
-          <p className="eyebrow">LESS SETUP. MORE BUILDING.</p>
-          <h2>
-            Your next coding session,
-            <br />
-            powered by Open Models.
-          </h2>
-          <a href="#install" className="button button-dark">
-            Get started <ArrowRight size={17} />
-          </a>
-          <p>Free to install. MIT licensed. Yours to explore.</p>
+          <div className="closing-inner">
+            <div className="closing-left">
+              <p className="eyebrow">LESS SETUP. MORE BUILDING.</p>
+              <h2>
+                Your next coding session,
+                <br />
+                powered by Open Models.
+              </h2>
+              <p className="closing-sub">Free to install. MIT licensed. Yours to explore.</p>
+            </div>
+            <div className="closing-right">
+              <a href="#install" className="button button-dark closing-cta">
+                Get started <ArrowRight size={17} />
+              </a>
+            </div>
+          </div>
         </section>
       </main>
       <footer className="relay-footer wrap">
-        <a href="/" className="relay-brand">
-          <img src="/relay-logo.png" alt="" />
-          <span>
-            <b>NConnect</b>
-          </span>
-        </a>
-        <span>An open-source project by Studio1.</span>
-        <nav aria-label="Footer navigation">
-          <a href={docsUrl}>Docs</a>
-          <a href={githubUrl} target="_blank" rel="noopener noreferrer">
-            GitHub
+        <div className="footer-big-logo">
+          <a href="/" aria-label="NConnect home" className="logo-mask">
+            <span className="sr-only">NConnect</span>
           </a>
-          <a href={llmsUrl}>llms.txt</a>
-        </nav>
+        </div>
+        <div className="footer-bottom">
+          <span>An open-source project by Studio1.</span>
+          <nav aria-label="Footer navigation">
+            <a href={docsUrl}>Docs</a>
+            <a href={githubUrl} target="_blank" rel="noopener noreferrer">
+              GitHub
+            </a>
+            <a href={llmsUrl}>llms.txt</a>
+          </nav>
+        </div>
       </footer>
     </div>
   );
@@ -547,7 +720,7 @@ function Home() {
 
 /* ---------- small pieces ---------- */
 
-function OpenCodeMark() {
+export function OpenCodeMark() {
   return (
     <svg className="h-6 w-[19px]" viewBox="0 0 240 300" fill="none" aria-hidden="true">
       <path d="M180 240H60V120H180V240Z" fill="#CFCECD" />
@@ -556,7 +729,7 @@ function OpenCodeMark() {
   );
 }
 
-function ClaudeMark() {
+export function ClaudeMark() {
   return (
     <svg className="size-[22px]" viewBox="0 0 1200 1200" aria-hidden="true">
       <path
@@ -567,7 +740,7 @@ function ClaudeMark() {
   );
 }
 
-function CodexMark() {
+export function CodexMark() {
   return (
     <svg
       className="size-[24px]"
@@ -599,7 +772,7 @@ function CodexMark() {
   );
 }
 
-function PiMark() {
+export function PiMark() {
   return (
     <svg className="size-[22px]" viewBox="0 0 800 800" aria-hidden="true">
       <path
@@ -611,7 +784,7 @@ function PiMark() {
     </svg>
   );
 }
-function HermesMark() {
+export function HermesMark() {
   // Nous Research ship the Hermes mark as artwork, not a path.
   return (
     <img
@@ -622,7 +795,7 @@ function HermesMark() {
     />
   );
 }
-function DeepSeekMark() {
+export function DeepSeekMark() {
   // Official DeepSeek whale. Keeps its brand blue rather than currentColor.
   return (
     <svg className="h-[18px] w-[25px]" viewBox="0 0 23.16 17.04" fill="none" aria-hidden="true">
@@ -633,7 +806,7 @@ function DeepSeekMark() {
     </svg>
   );
 }
-function GrokMark() {
+export function GrokMark() {
   // Official xAI mark, matching the one upstream uses.
   return (
     <svg className="size-[22px]" viewBox="0 0 1024 1024" aria-hidden="true">
@@ -648,7 +821,7 @@ function GrokMark() {
     </svg>
   );
 }
-function UnrealMark() {
+export function UnrealMark() {
   // Unreal Labs ship their mark (the hand-drawn smiley) as artwork, not a path.
   return (
     <img
@@ -659,7 +832,7 @@ function UnrealMark() {
     />
   );
 }
-function PrimeMark() {
+export function PrimeMark() {
   // Official PrimeIntellect mark.
   return (
     <svg className="size-[22px]" viewBox="0 0 178 178" fill="none" aria-hidden="true">
@@ -710,4 +883,342 @@ function formatReleaseAge(publishedAt: string | undefined) {
   if (diffMs < day) return `${Math.floor(diffMs / hour)}h ago`;
   if (diffMs < week) return `${Math.floor(diffMs / day)}d ago`;
   return `${Math.floor(diffMs / week)}w ago`;
+}
+
+function MacWindowControls() {
+  return (
+    <div className="flex gap-1.5 group cursor-default">
+      <div className="w-2.5 h-2.5 rounded-full bg-red-500 opacity-80 flex items-center justify-center">
+        <svg
+          className="w-[6px] h-[6px] opacity-0 group-hover:opacity-100 text-red-950"
+          viewBox="0 0 14 14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        >
+          <path d="M3 3L11 11M11 3L3 11" />
+        </svg>
+      </div>
+      <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 opacity-80 flex items-center justify-center">
+        <svg
+          className="w-[6px] h-[6px] opacity-0 group-hover:opacity-100 text-yellow-950"
+          viewBox="0 0 14 14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+        >
+          <path d="M2 7H12" />
+        </svg>
+      </div>
+      <div className="w-2.5 h-2.5 rounded-full bg-green-500 opacity-80 flex items-center justify-center">
+        <svg
+          className="w-[6px] h-[6px] opacity-0 group-hover:opacity-100 text-green-950"
+          viewBox="0 0 14 14"
+          fill="currentColor"
+        >
+          <path d="M2 2H7V4H4V7H2V2Z" />
+          <path d="M12 12H7V10H10V7H12V12Z" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function Step1Graphic() {
+  const stage = useSequence([1500, 1500, 2000]);
+
+  return (
+    <div className="step-graphic">
+      <div className="step-icon-wrapper w-full flex items-center justify-center pointer-events-none animate-step1">
+        <div className="relative w-[88%] max-w-[360px]">
+          <div className="rounded-lg border shadow-lg bg-black border-[#262626] text-left overflow-hidden h-[240px] flex flex-col relative">
+            <div className="p-4 font-mono text-[11px] leading-relaxed text-gray-300">
+              <div className="flex items-center gap-2">
+                <span className="text-green-400">~</span>
+                <span className="text-gray-500">$</span>
+                <span className="text-white">curl -sL nconnect.sh | bash</span>
+              </div>
+
+              {stage >= 1 && (
+                <div
+                  className="mt-2 flex flex-col gap-1.5 opacity-90"
+                  style={{ animation: "fade-in 300ms ease-out both" }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="scale-75 origin-left flex items-center justify-center w-5 h-5">
+                      {stage === 1 ? (
+                        <SpinnerRing active />
+                      ) : (
+                        <Badge tone="green">{CheckIcon}</Badge>
+                      )}
+                    </span>
+                    <span>Installing nconnect.sh...</span>
+                  </div>
+                  {stage >= 2 && (
+                    <div
+                      className="flex items-center gap-2"
+                      style={{ animation: "fade-up 300ms cubic-bezier(0.23,1,0.32,1) both" }}
+                    >
+                      <span className="scale-75 origin-left flex items-center justify-center w-5 h-5">
+                        {stage === 2 ? (
+                          <SpinnerRing active />
+                        ) : (
+                          <Badge tone="green">{CheckIcon}</Badge>
+                        )}
+                      </span>
+                      <span>Adding nclaude, ncodex to PATH...</span>
+                    </div>
+                  )}
+                  {stage >= 3 && (
+                    <div
+                      className="mt-1 flex items-center gap-2 text-green-400 font-medium"
+                      style={{ animation: "fade-up 300ms cubic-bezier(0.23,1,0.32,1) both" }}
+                    >
+                      <span className="px-2 py-0.5 rounded-full bg-green-500/20">✓ Success</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Step2Graphic() {
+  const stage = useSequence([1500, 1500, 1500, 2000]);
+
+  return (
+    <div className="step-graphic">
+      <div className="step-icon-wrapper w-full flex items-center justify-center pointer-events-none animate-step2">
+        <div className="relative w-[88%] max-w-[360px]">
+          <div className="rounded-xl border shadow-2xl bg-[#0a0a0a] border-white/10 text-left overflow-hidden h-[240px] flex flex-col relative">
+            <div className="p-4 font-mono text-[11px] leading-relaxed text-gray-300">
+              <div className="mb-2 text-gray-400 flex items-center gap-2">
+                <span className="text-green-400">~</span>
+                <span className="text-gray-500">$</span>
+                <span className="text-white">nconnect configure</span>
+              </div>
+
+              {stage >= 1 && (
+                <div
+                  className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1"
+                  style={{ animation: "fade-up 300ms ease-out both" }}
+                >
+                  <div className="flex items-center gap-2">
+                    <ChevronRight size={14} strokeWidth={3} className="text-blue-400" />
+                    <span
+                      className={
+                        stage === 1 ? "text-transparent bg-clip-text" : "text-white font-medium"
+                      }
+                      style={
+                        stage === 1
+                          ? {
+                              backgroundImage:
+                                "linear-gradient(90deg, #52525b 35%, #fff 50%, #52525b 65%)",
+                              backgroundSize: "200% 100%",
+                              animation: "shimmer-text 1.4s linear infinite",
+                            }
+                          : undefined
+                      }
+                    >
+                      Enter Nebius API Key:
+                    </span>
+                  </div>
+                  {stage >= 2 && (
+                    <div
+                      className="text-gray-500 tracking-[0.2em] flex items-center"
+                      style={{ animation: "fade-in 200ms ease-out both" }}
+                    >
+                      ••••••••••••••••
+                    </div>
+                  )}
+                </div>
+              )}
+              {stage >= 3 && (
+                <div
+                  className="mt-3 flex items-center flex-wrap gap-x-2 gap-y-1 opacity-90"
+                  style={{ animation: "fade-up 300ms ease-out both" }}
+                >
+                  <div className="flex items-center gap-2">
+                    <ChevronRight size={14} strokeWidth={3} className="text-blue-400" />
+                    <span
+                      className={
+                        stage === 3 ? "text-transparent bg-clip-text" : "text-white font-medium"
+                      }
+                      style={
+                        stage === 3
+                          ? {
+                              backgroundImage:
+                                "linear-gradient(90deg, #52525b 35%, #fff 50%, #52525b 65%)",
+                              backgroundSize: "200% 100%",
+                              animation: "shimmer-text 1.4s linear infinite",
+                            }
+                          : undefined
+                      }
+                    >
+                      Enter Tavily API Key{" "}
+                      <span className="text-gray-500 font-normal">(optional)</span>:
+                    </span>
+                  </div>
+                  {stage >= 4 && (
+                    <div
+                      className="text-gray-500 tracking-[0.2em] flex items-center"
+                      style={{ animation: "fade-in 200ms ease-out both" }}
+                    >
+                      ••••••••
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Step3Graphic() {
+  return (
+    <div className="step-graphic">
+      <div className="step-icon-wrapper w-full flex items-center justify-center animate-step3">
+        <div className="relative w-[90%] max-w-[380px] pointer-events-auto">
+          <div className="rounded-xl border shadow-2xl bg-[#0a0a0a] border-white/10 text-left overflow-hidden flex flex-col h-[240px] relative">
+            <div className="flex-1 p-3 font-mono text-[10px] leading-relaxed text-gray-300 overflow-hidden relative">
+              <div className="mb-2 text-gray-400">~/project</div>
+              <div className="mb-3 text-[#e5e5e5] border border-[#333] bg-[#1a1a1a] px-2 py-1.5 rounded shadow-sm">
+                $ ncodex --config "Use nconnect endpoint"
+              </div>
+
+              <div className="mt-2" style={{ marginLeft: "-4px" }}>
+                <ThinkingState variant="Coding" theme="dark" />
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeatureGraphic0() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="w-[115%] max-w-[420px] opacity-90 flex justify-center">
+        <CofounderGraphic />
+      </div>
+    </div>
+  );
+}
+
+function FeatureGraphic1() {
+  return (
+    <div className="absolute inset-0 flex items-start justify-center p-6 pb-0 pt-6">
+      <div className="w-[95%] flex justify-center">
+        <StreamingText fill loop />
+      </div>
+    </div>
+  );
+}
+
+import ToolChips from "../components/ToolChips";
+
+const COST_ROWS = [
+  {
+    icon: "think",
+    label: "Planning",
+    chip: "Estimating session cost",
+    mono: false,
+    detailMono: false,
+    detail: [{ text: "Model: GLM-5.3-Flash" }, { text: "Context window: 32k" }],
+  },
+  {
+    icon: "read",
+    label: "Analyze usage",
+    chip: "Session telemetry",
+    mono: true,
+    detailMono: true,
+    detail: [{ text: "Prompt tokens: 24,000" }, { text: "Completion tokens: 3,500" }],
+  },
+  {
+    icon: "run",
+    label: "Calculate cost",
+    chip: "Pricing engine",
+    mono: true,
+    detailMono: true,
+    detail: [
+      { text: "Input: $0.07" },
+      { text: "Output: $0.07" },
+      { text: "Total: $0.14", tone: "add" as const },
+    ],
+  },
+  {
+    icon: "write",
+    label: "Log result",
+    chip: "session.log",
+    mono: true,
+    detailMono: true,
+    detail: [{ text: "Saved to ~/.nconnect/logs", tone: "add" as const }],
+  },
+];
+
+const COST_DIFFS = [
+  { file: "session.log", add: 4, del: 0 },
+  { file: "usage.json", add: 12, del: 3 },
+];
+
+function FeatureGraphic2() {
+  return (
+    <div className="absolute inset-0 flex items-start justify-start p-5 pt-6">
+      <ToolChips
+        steps={COST_ROWS}
+        diffs={COST_DIFFS}
+        className="w-full"
+        labels={{ header: "4 tools · session cost", more: "+1 more" }}
+      />
+    </div>
+  );
+}
+
+const UPDATE_ROWS = [
+  {
+    key: "update",
+    label: "Check for updates",
+    amount: "Latest",
+    status: "done" as const,
+    details: [
+      { label: "Local version", meta: "v0.15.3" },
+      { label: "Remote version", meta: "v0.15.4" },
+    ],
+  },
+  {
+    key: "config",
+    label: "Inject config",
+    amount: "Ephemeral",
+    status: "sequence" as const,
+    step: 2,
+    details: [
+      { label: "Generate temporary keys", meta: "Success" },
+      { label: "Route local endpoints", meta: "Active" },
+    ],
+  },
+];
+
+function FeatureGraphic3() {
+  return (
+    <div
+      className="absolute inset-0 flex items-center justify-center"
+      style={{ padding: "20px 24px" }}
+    >
+      <TaskRows rows={UPDATE_ROWS} className="w-full" />
+    </div>
+  );
 }
