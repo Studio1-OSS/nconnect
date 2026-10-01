@@ -169,7 +169,7 @@ An LLM-readable doc is published at <https://nebius-tf-relay.vercel.app/llms.txt
 
 ## Local development
 
-Monorepo: pnpm workspaces + Turbo. `packages/cli` (the relay), `packages/models` (the catalog), `packages/tests`, and `site/` (the install/update host).
+Monorepo: pnpm workspaces + Turbo. `packages/cli` (the relay), `packages/models` (the catalog), `packages/tests`, and `site/` (the install/update host and landing page UI).
 
 ```bash
 pnpm install                       # from repo root
