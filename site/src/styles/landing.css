@@ -1317,7 +1317,13 @@
     font-size: 10px;
     justify-content: center;
   }
-  $140px$232px;
+  .agent-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0;
+    margin-inline: 0;
+    gap: 32px;
   }
   .agent-strip > .eyebrow {
     margin-bottom: 0;
@@ -1339,8 +1345,8 @@
     -webkit-mask-image: linear-gradient(
       to right,
       transparent 0%,
-      black 10%,
-      black 90%,
+      black 20%,
+      black 80%,
       transparent 100%
     );
   }
@@ -1545,7 +1551,13 @@
     font-size: 10px;
     justify-content: center;
   }
-  $140px$232px;
+  .agent-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0;
+    margin-inline: 0;
+    gap: 32px;
   }
   .agent-strip > .eyebrow {
     margin-bottom: 0;
@@ -1567,8 +1579,8 @@
     -webkit-mask-image: linear-gradient(
       to right,
       transparent 0%,
-      black 10%,
-      black 90%,
+      black 20%,
+      black 80%,
       transparent 100%
     );
   }
