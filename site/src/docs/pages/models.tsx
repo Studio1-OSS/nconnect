@@ -1,6 +1,5 @@
 import type { DocPage } from "../types";
 import { models } from "../data";
-import { ProviderBrand } from "../../components/ProviderBrand";
 import { Badge, Callout, Cell, Code, CodeBlock, H2, Mark, P, Row, Table } from "../ui";
 
 export const modelsPage: DocPage = {
@@ -12,9 +11,6 @@ export const modelsPage: DocPage = {
   Content() {
     return (
       <>
-        <div className="docs-provider-inline">
-          <ProviderBrand provider="nebius" />
-        </div>
         <P>
           The model list is fetched live from Nebius at startup, so every model they serve is
           available and each model's vision support comes from the API's own modality field, never a

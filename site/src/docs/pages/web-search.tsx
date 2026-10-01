@@ -1,6 +1,5 @@
 import type { DocPage } from "../types";
 import { tavilyUrl } from "../data";
-import { ProviderBrand } from "../../components/ProviderBrand";
 import { Code, CopyBox, Link, P } from "../ui";
 
 export const webSearch: DocPage = {
@@ -12,9 +11,6 @@ export const webSearch: DocPage = {
   Content() {
     return (
       <>
-        <div className="docs-provider-inline">
-          <ProviderBrand provider="tavily" />
-        </div>
         <P>
           Claude Code and Codex expose a native <Code>web_search</Code> tool. NConnect backs it with
           Tavily: with a key configured, searches return real results with citations. Without one, a

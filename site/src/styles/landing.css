@@ -39,79 +39,67 @@
 .skip-link:focus {
   top: 12px;
 }
+/*
+ * Logo system: third-party marks are small, grayscale and quiet at rest and
+ * regain their colour on hover. They attribute; they never compete with copy.
+ */
 .provider-strip {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 40px;
-  padding-block: 22px;
-  border-bottom: 1px solid #e0e5da;
+  padding-block: 16px;
+  border-bottom: 1px solid var(--color-line);
 }
-.provider-brand {
+.provider-credits {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 0;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-faint);
+}
+.provider-credit {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  text-decoration: none;
-  transition: opacity 0.2s ease;
+  gap: 8px;
 }
-.provider-brand:hover {
-  opacity: 0.8;
-}
-.provider-brand img {
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-.provider-brand small {
-  display: block;
-  font-family: var(--font-sans);
-  font-size: 11px;
-  color: #6c7662;
-  line-height: 1.4;
-  font-weight: 500;
-}
-.provider-brand strong {
-  display: block;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 600;
-  color: #26321a;
-  letter-spacing: -0.01em;
-}
-.provider-divider {
+.provider-credit + .provider-credit::before {
+  content: "";
   width: 1px;
-  height: 30px;
-  background: #e0e5da;
+  height: 12px;
+  margin: 0 20px;
+  background: var(--color-line-strong);
 }
-.feature-provider-logo {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
+.provider-credit a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+.provider-credit a:hover {
+  color: var(--color-ink);
+}
+.provider-credit img {
+  width: 16px;
+  height: 16px;
   border-radius: 4px;
+  object-fit: contain;
+  filter: grayscale(1);
+  opacity: 0.75;
+  transition:
+    filter 160ms,
+    opacity 160ms;
+}
+.provider-credit a:hover img {
+  filter: none;
+  opacity: 1;
 }
 @media (max-width: 640px) {
-  .provider-strip {
-    gap: 18px;
-    padding-block: 18px;
-    flex-wrap: wrap;
-  }
-  .provider-brand {
-    gap: 7px;
-  }
-  .provider-brand img {
-    width: 30px;
-    height: 30px;
-  }
-  .provider-brand small {
-    font-size: 9px;
-  }
-  .provider-brand strong {
-    font-size: 10px;
-  }
-  .provider-divider {
-    display: none;
+  .provider-credits {
+    justify-content: center;
+    font-size: 12px;
   }
   .page-grid-lines {
     display: none;
@@ -308,47 +296,8 @@
   background: var(--color-mint);
   flex-shrink: 0;
 }
-.hero-eyebrow-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.hero-eyebrow {
   margin: 0 0 16px;
-}
-.hero-eyebrow-container .eyebrow {
-  margin: 0;
-}
-.hero-eyebrow-logos {
-  display: flex;
-  align-items: center;
-}
-.eyebrow-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: -6px;
-  position: relative;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  overflow: hidden;
-  z-index: 1;
-}
-.eyebrow-logo svg {
-  width: 16px;
-  height: 16px;
-}
-.eyebrow-logo:first-child {
-  margin-left: 0;
-  z-index: 3;
-}
-.eyebrow-logo:nth-child(2) {
-  z-index: 2;
-}
-.eyebrow-logo:nth-child(3) {
-  z-index: 1;
 }
 .eyebrow {
   font-family: var(--font-sans);
@@ -421,24 +370,22 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 25px;
-  font-family: var(--font-sans);
-  font-size: 12px;
+  gap: 10px 24px;
+  margin: 25px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
   font-weight: 500;
   color: var(--relay-muted);
 }
-.hero-meta span {
-  display: flex;
+.hero-meta li {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--relay-text);
-  border: 1px solid var(--relay-line);
-  padding: 6px 12px;
-  border-radius: 0;
-  background: transparent;
+  gap: 7px;
+}
+.hero-meta svg {
+  color: var(--color-brand);
+  stroke-width: 2.25;
 }
 .desktop-integration {
   display: flex;
@@ -512,16 +459,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.8;
-  transition: opacity 0.2s ease;
+  filter: grayscale(1);
+  opacity: 0.5;
+  transition:
+    filter 0.2s ease,
+    opacity 0.2s ease;
 }
 .agent-marquee-logo:hover {
+  filter: none;
   opacity: 1;
 }
 .agent-marquee-logo svg,
 .agent-marquee-logo img {
   width: auto !important;
-  height: 38px !important;
+  height: 28px !important;
   max-width: none !important;
   max-height: none !important;
   object-fit: contain;
@@ -949,6 +900,15 @@
 .agent-mark {
   display: flex;
   align-items: center;
+  filter: grayscale(1);
+  opacity: 0.7;
+  transition:
+    filter 0.2s ease,
+    opacity 0.2s ease;
+}
+.agent-item:hover .agent-mark {
+  filter: none;
+  opacity: 1;
 }
 .agent-status {
   color: var(--color-amber-ink);
@@ -1032,6 +992,17 @@
   font-weight: 600;
   color: var(--relay-ink);
   transition: transform 0.3s ease;
+}
+.model-list .model-logo {
+  filter: grayscale(1);
+  opacity: 0.7;
+  transition:
+    filter 0.3s ease,
+    opacity 0.3s ease;
+}
+.model-list a:hover .model-logo {
+  filter: none;
+  opacity: 1;
 }
 .model-list a:hover h3 {
   transform: translateX(4px);
@@ -1298,8 +1269,8 @@
     gap: 20px;
   }
   .hero-meta {
-    gap: 14px;
-    font-size: 10px;
+    gap: 8px 18px;
+    font-size: 12px;
   }
   .agent-strip {
     display: block;
@@ -1498,8 +1469,8 @@
     gap: 20px;
   }
   .hero-meta {
-    gap: 14px;
-    font-size: 10px;
+    gap: 8px 18px;
+    font-size: 12px;
   }
   .agent-strip {
     display: block;

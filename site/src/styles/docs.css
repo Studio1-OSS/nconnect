@@ -175,14 +175,8 @@
   line-height: 1.7;
   color: var(--color-muted);
 }
-.docs-provider-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 28px;
-  margin-top: 28px;
-}
-.docs-provider-inline {
-  margin-bottom: 20px;
+.docs-provider-credits {
+  margin-top: 24px;
 }
 .docs-tutorial-meta {
   display: flex;
@@ -475,6 +469,18 @@ h2:hover > .section-anchor,
   flex: 0 0 18px;
   width: 18px;
   height: 18px;
+}
+/* Same logo rule as the landing page: grayscale at rest, colour on hover. */
+.docs-mark {
+  filter: grayscale(1);
+  opacity: 0.75;
+  transition:
+    filter 160ms,
+    opacity 160ms;
+}
+.docs-table tr:hover .docs-mark {
+  filter: none;
+  opacity: 1;
 }
 .docs-mark img,
 .docs-mark svg {

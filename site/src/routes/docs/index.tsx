@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { ProviderBrand } from "../../components/ProviderBrand";
+import { ProviderCredits } from "../../components/ProviderBrand";
 import { PageCards, TutorialCards } from "../../docs/cards";
 import { installCommand } from "../../docs/data";
 import { DocArticle, docHead } from "../../docs/layout";
@@ -41,12 +41,7 @@ function DocsOverview() {
       eyebrow="NCONNECT / DOCS"
       title={title}
       lead="Run the coding agents you already use on open models served by Nebius Token Factory, with optional Tavily web search."
-      meta={
-        <div className="docs-provider-row">
-          <ProviderBrand provider="nebius" />
-          <ProviderBrand provider="tavily" />
-        </div>
-      }
+      meta={<ProviderCredits className="docs-provider-credits" />}
     >
       <H2 id="quick-start">Quick start</H2>
       <P>Install on macOS or Linux, add your Nebius key, then launch any harness.</P>

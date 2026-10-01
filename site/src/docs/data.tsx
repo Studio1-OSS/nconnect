@@ -1,5 +1,12 @@
 import type { ReactNode } from "react";
-import { ClaudeMark, DeepSeekMark, GrokMark, PiMark, PrimeMark } from "../routes/index";
+import {
+  ClaudeMark,
+  DeepSeekMark,
+  GrokMark,
+  OpenCodeMark,
+  PiMark,
+  PrimeMark,
+} from "../routes/index";
 
 export const installCommand = "curl -fsSL https://nconnect.sh/install.sh | bash";
 export const githubUrl = "https://github.com/Studio1-OSS/nconnect";
@@ -41,7 +48,7 @@ export const harnesses: Array<{
     command: "nopencode",
     mode: "Spawned",
     note: "Nebius wired in as an OpenAI-compatible provider.",
-    logo: "/logos/opensource.png",
+    logo: <OpenCodeMark />,
   },
   {
     name: "Pi Code",
