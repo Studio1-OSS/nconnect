@@ -2,7 +2,7 @@ import { createSessionStore, type TrackedUsageSession } from "./daemon/storage.j
 import { CACHE_READ_RATIO_ENV, cacheReadRatio } from "./cost.js";
 
 /**
- * Local spend reporting for `nebiusrelay usage`.
+ * Local spend reporting for `nconnect usage`.
  *
  * Everything here reads the session store the daemon already writes on your own
  * machine - no telemetry, no server call. Cost figures are the ones the proxy
@@ -123,7 +123,7 @@ export function formatUsageReport(summary: UsageSummary, windowLabel: string): s
   }
 
   const lines: string[] = [];
-  lines.push(`Nebius TF Relay usage - last ${windowLabel}`);
+  lines.push(`NConnect usage - last ${windowLabel}`);
   lines.push("");
   lines.push(
     `  ${summary.sessions} session(s)` +
@@ -168,7 +168,7 @@ export function formatUsageReport(summary: UsageSummary, windowLabel: string): s
   }
 
   lines.push("");
-  lines.push("Local only - read from ~/.nebiusrelay, never uploaded.");
+  lines.push("Local only - read from ~/.nconnect, never uploaded.");
   return lines.join("\n");
 }
 

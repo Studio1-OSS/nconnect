@@ -9,10 +9,10 @@ const LOADABLE_ENV_KEYS = new Set(["NEBIUS_API_KEY"]);
  * real exports / shell-defined vars always win, matching dotenv's `override: false`.
  * Only the Nebius key is loaded from project .env files. TAVILY_API_KEY is not
  * loaded here because web-search queries would be visible to whoever owns that
- * key; use the real environment or `nebiusrelay configure` for Tavily.
+ * key; use the real environment or `nconnect configure` for Tavily.
  *
  * Looks first in the directory the CLI was invoked from (cwd), then walks up
- * to the repo root so `nebiusrelay claude` run from a workspace picks up the
+ * to the repo root so `nconnect claude` run from a workspace picks up the
  * shared root .env.
  */
 export function loadEnvFile(startDir = process.cwd()): void {

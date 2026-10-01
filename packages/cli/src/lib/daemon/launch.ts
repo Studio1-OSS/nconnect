@@ -14,7 +14,7 @@ import {
   type DaemonHealth,
 } from "./server.js";
 import type { RegisterSessionRequest } from "./state.js";
-import { nebiusrelayHome, isProcessAlive } from "../paths.js";
+import { nconnectHome, isProcessAlive } from "../paths.js";
 
 const HEALTH_POLL_INTERVAL_MS = 50;
 const HEALTH_POLL_TIMEOUT_MS = 5000;
@@ -67,7 +67,7 @@ export async function ensureDaemon(): Promise<{ url: string }> {
   // `import.meta.url` points at `dist/lib/daemon/launch.js`, which only exports
   // symbols and has no top-level main, so a self-spawn of it would exit
   // immediately and ensureDaemon would always time out. `process.argv[1]` is
-  // the entry the user invoked (the bundle path, or `dist/bin/nebiusrelay.js`
+  // the entry the user invoked (the bundle path, or `dist/bin/nconnect.js`
   // in dev) in both builds.
   const scriptPath = currentScriptPath();
   const child = spawn(process.execPath, [scriptPath, "--daemon"], {
@@ -75,7 +75,7 @@ export async function ensureDaemon(): Promise<{ url: string }> {
     stdio: "ignore",
     env: {
       ...process.env,
-      NEBIUSRELAY_PORT: String(port),
+      NCONNECT_PORT: String(port),
     },
   });
   child.unref();
@@ -89,8 +89,8 @@ export async function ensureDaemon(): Promise<{ url: string }> {
     }
   }
   throw new Error(
-    `nebiusrelay daemon did not become healthy on ${url} within ${HEALTH_POLL_TIMEOUT_MS / 1000}s. ` +
-      `Set NEBIUSRELAY_PORT to use a different port.`,
+    `nconnect daemon did not become healthy on ${url} within ${HEALTH_POLL_TIMEOUT_MS / 1000}s. ` +
+      `Set NCONNECT_PORT to use a different port.`,
   );
 }
 
@@ -111,7 +111,7 @@ async function currentScriptIdentity(): Promise<ScriptIdentity> {
 }
 
 function daemonMatchesCurrentScript(health: DaemonHealth, current: ScriptIdentity): boolean {
-  if (health.home !== null && health.home !== nebiusrelayHome()) {
+  if (health.home !== null && health.home !== nconnectHome()) {
     return false;
   }
   if (health.scriptPath !== current.scriptPath) {
@@ -177,7 +177,7 @@ async function waitForDaemonToExit(port: number): Promise<void> {
 /**
  * Absolute path of the CLI entrypoint, for `bun/node <scriptPath> --daemon`.
  * Prefers `process.argv[1]` (the entry the user actually invoked - the bundle
- * under the install, or `dist/bin/nebiusrelay.js` under `pnpm dev`), resolved
+ * under the install, or `dist/bin/nconnect.js` under `pnpm dev`), resolved
  * to an absolute path. Falls back to this module's `import.meta.url` only if
  * argv[1] is unavailable; note that import.meta.url is the wrong target in the
  * multi-file tsc dist (see the call-site comment above).
@@ -272,7 +272,7 @@ export async function updateDaemonSessionPid(
 }
 
 export async function localProxyAuthToken(): Promise<string> {
-  const file = path.join(nebiusrelayHome(), LOCAL_PROXY_TOKEN_FILE);
+  const file = path.join(nconnectHome(), LOCAL_PROXY_TOKEN_FILE);
   try {
     const token = (await readFile(file, "utf8")).trim();
     if (token) {
@@ -281,7 +281,7 @@ export async function localProxyAuthToken(): Promise<string> {
   } catch {
     // Create below.
   }
-  const token = `nebiusrelay-local-${randomBytes(32).toString("base64url")}`;
+  const token = `nconnect-local-${randomBytes(32).toString("base64url")}`;
   await mkdir(path.dirname(file), { recursive: true });
   await writeFile(file, `${token}\n`, { encoding: "utf8", mode: 0o600 });
   return token;
@@ -312,7 +312,7 @@ export function startDaemonSessionKeepalive(
     });
     if (options.debug) {
       process.stderr.write(
-        `[nebiusrelay daemon] restored ${options.label ?? registration.agent ?? "session"} after ${reason}.\n`,
+        `[nconnect daemon] restored ${options.label ?? registration.agent ?? "session"} after ${reason}.\n`,
       );
     }
   };
@@ -323,7 +323,7 @@ export function startDaemonSessionKeepalive(
     } catch (err) {
       if (options.debug) {
         process.stderr.write(
-          `[nebiusrelay daemon] could not restore ${options.label ?? registration.agent ?? "session"}: ${
+          `[nconnect daemon] could not restore ${options.label ?? registration.agent ?? "session"}: ${
             err instanceof Error ? err.message : String(err)
           }\n`,
         );

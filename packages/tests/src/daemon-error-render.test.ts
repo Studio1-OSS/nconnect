@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { type ServerResponse } from "node:http";
-import { renderDaemonError } from "@nebiusrelay/cli/dist/lib/daemon/server.js";
-import type { NebiusApiError } from "@nebiusrelay/cli/dist/lib/claude/wire-types.js";
+import { renderDaemonError } from "@nconnect/cli/dist/lib/daemon/server.js";
+import type { NebiusApiError } from "@nconnect/cli/dist/lib/claude/wire-types.js";
 
 // A minimal ServerResponse stub: capture statusCode + the JSON body written.
 function mockRes(): { res: ServerResponse; statusCode: number | undefined; body: string } {

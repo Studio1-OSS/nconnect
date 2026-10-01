@@ -34,8 +34,13 @@ function useInView(threshold = 0.15) {
     const el = ref.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setInView(true); observer.disconnect(); } },
-      { threshold }
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -43,10 +48,10 @@ function useInView(threshold = 0.15) {
   return { ref, inView };
 }
 
-const installCommand = "curl -fsSL https://nconnect.sh | bash";
-const githubUrl = "https://github.com/pradhan-not-found/nconnect-";
+const installCommand = "curl -fsSL https://nconnect.sh/install.sh | bash";
+const githubUrl = "https://github.com/Studio1-OSS/nconnect";
 const docsUrl = "/docs";
-const nconnectApiKeysUrl = "https://tokenfactory.nebius.com/?modals=create-api-key";
+const nebiusApiKeysUrl = "https://tokenfactory.nebius.com/?modals=create-api-key";
 const glmFlashUrl =
   "https://tokenfactory.nebius.com/endpoints?modals=endpoint-details&model-id=zai-org/GLM-5.3-Flash";
 const tavilyKeysUrl = "https://app.tavily.com";
@@ -67,7 +72,7 @@ const agents: Agent[] = [
     status: "Proxied",
     mark: <ClaudeMark />,
     blurb:
-      "Routes Claude Code through a local Anthropic-to-nConnect translation proxy. Your subscription, login, and config stay untouched.",
+      "Routes Claude Code through a local Anthropic-to-Nebius translation proxy. Your subscription, login, and config stay untouched.",
   },
   {
     name: "Codex CLI",
@@ -75,7 +80,7 @@ const agents: Agent[] = [
     status: "Proxied",
     mark: <CodexMark />,
     blurb:
-      "Talks to nConnect through a local Responses-to-chat proxy, with headless exec support. Sessions stay resumable across providers.",
+      "Talks to Nebius through a local Responses-to-chat proxy, with headless exec support. Sessions stay resumable across providers.",
   },
   {
     name: "OpenCode",
@@ -83,7 +88,7 @@ const agents: Agent[] = [
     status: "Provider config",
     mark: <OpenCodeMark />,
     blurb:
-      "Launches with nConnect wired in as an OpenAI-compatible provider, injected only for that run. Close it and your setup is exactly as it was.",
+      "Launches with Nebius wired in as an OpenAI-compatible provider, injected only for that run. Close it and your setup is exactly as it was.",
   },
   {
     name: "Pi Code",
@@ -91,7 +96,7 @@ const agents: Agent[] = [
     status: "Provider config",
     mark: <PiMark />,
     blurb:
-      "Starts with a custom nConnect provider and a temporary config directory, while normal local session history keeps persisting.",
+      "Starts with a custom Nebius provider and a temporary config directory, while normal local session history keeps persisting.",
   },
   {
     name: "Hermes Agent",
@@ -107,7 +112,7 @@ const agents: Agent[] = [
     status: "Alpha",
     mark: <DeepSeekMark />,
     blurb:
-      "Boots the DeepSeek web profile with nConnect layered in as a provider. Pairs naturally with DeepSeek V4 Pro and Flash.",
+      "Boots the DeepSeek web profile with Nebius layered in as a provider. Pairs naturally with DeepSeek V4 Pro and Flash.",
   },
   {
     name: "Grok Build",
@@ -115,7 +120,7 @@ const agents: Agent[] = [
     status: "Provider config",
     mark: <GrokMark />,
     blurb:
-      "xAI's terminal harness driving nConnect models. Your key is fenced off from api.x.ai, and the model is told not to claim it is Grok.",
+      "xAI's terminal harness driving Nebius models. Your key is fenced off from api.x.ai, and the model is told not to claim it is Grok.",
   },
   {
     name: "Prime Agent",
@@ -123,7 +128,15 @@ const agents: Agent[] = [
     status: "Provider config",
     mark: <PrimeMark />,
     blurb:
-      "PrimeIntellect's RLM agent, with its persistent IPython tool and subagents running on nConnect models. Your own Prime config stays untouched.",
+      "PrimeIntellect's RLM agent, with its persistent IPython tool and subagents running on Nebius models. Your own Prime config stays untouched.",
+  },
+  {
+    name: "Unreal Agent",
+    command: "nunreal",
+    status: "Proxied",
+    mark: <UnrealMark />,
+    blurb:
+      "Unreal Labs' async-first harness speaks only the OpenAI Responses API, so the relay translates it to Nebius the same way it does for Codex. Configured purely through env vars for that run.",
   },
 ];
 
@@ -132,7 +145,7 @@ const steps = [
     title: "Install once",
     body: (
       <>
-        Run the one-liner. It drops <code>nconnect.sh</code> plus <code>nclaude</code>,{" "}
+        Run the one-liner. It drops <code>nconnect</code> plus <code>nclaude</code>,{" "}
         <code>ncodex</code>, <code>nopencode</code>, <code>npi</code>, and <code>nprime</code> onto
         your PATH and installs Bun if you don&apos;t have it.
       </>
@@ -143,9 +156,9 @@ const steps = [
     title: "Add your keys",
     body: (
       <>
-        On first run, <code>nconnect.sh configure</code> asks for your{" "}
-        <a className="link" href={nconnectApiKeysUrl} target="_blank" rel="noopener noreferrer">
-          nConnect
+        On first run, <code>nconnect configure</code> asks for your{" "}
+        <a className="link" href={nebiusApiKeysUrl} target="_blank" rel="noopener noreferrer">
+          Nebius Token Factory
         </a>{" "}
         key and an optional{" "}
         <a className="link" href={tavilyKeysUrl} target="_blank" rel="noopener noreferrer">
@@ -160,7 +173,7 @@ const steps = [
     title: "Launch an agent",
     body: (
       <>
-        Type <code>nclaude</code> or <code>ncodex</code> and keep working. The Relay injects nConnect
+        Type <code>nclaude</code> or <code>ncodex</code> and keep working. The Relay injects Nebius
         settings for that run only. Nothing is written to your real agent config.
       </>
     ),
@@ -171,7 +184,7 @@ const steps = [
 const features = [
   {
     title: "One relay, eight harnesses",
-    body: "Claude Code, Codex, OpenCode, Pi Code, Prime Agent, Hermes, DeepSeek Harness, and Grok Build all run on nConnect open models through a single local install.",
+    body: "Claude Code, Codex, OpenCode, Pi Code, Prime Agent, Hermes, DeepSeek Harness, Grok Build, and Unreal Agent all run on Nebius open models through a single local install.",
   },
   {
     title: "Live web search, built in",
@@ -201,18 +214,18 @@ const modelHighlights = [
 export const Route = createFileRoute("/")({
   head: () => ({
     ...pageHead(
-      "nConnect | Open Models for Claude Code, Codex & More",
-      "Run eight coding agents on nConnect with a local, open-source relay. Install on macOS or Linux, configure API keys, and add Tavily web search.",
+      "NConnect | Open Models for Claude Code, Codex & More",
+      "Run eight coding agents on Nebius Token Factory with a local, open-source relay. Install on macOS or Linux, configure API keys, and add Tavily web search.",
       "/",
     ),
     scripts: [
       structuredData({
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
-        name: "nConnect",
+        name: "NConnect",
         url: `${siteUrl}/`,
         description:
-          "A local open-source relay connecting eight coding agents to models on nConnect.",
+          "A local open-source relay connecting eight coding agents to models on Nebius.",
         applicationCategory: "DeveloperApplication",
         operatingSystem: "macOS, Linux",
         license: "https://opensource.org/license/mit",
@@ -272,15 +285,21 @@ function Home() {
       </a>
       <div className="relay-nav-container">
         <header className="relay-nav wrap">
-          <a className="relay-brand" href="/" aria-label="nConnect home">
-            <img src="/hero/logo.png" alt="nConnect" />
+          <a className="relay-brand" href="/" aria-label="NConnect home">
+            <img src="/hero/logo.png" alt="NConnect" />
           </a>
           <nav aria-label="Main navigation">
             <a href="#agents">Agents</a>
             <a href={docsUrl}>Docs</a>
             <a className="github-link" href={githubUrl} target="_blank" rel="noopener noreferrer">
-              <svg height="16" width="16" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
-                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+              <svg
+                height="16"
+                width="16"
+                viewBox="0 0 16 16"
+                aria-hidden="true"
+                fill="currentColor"
+              >
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
               </svg>
               GitHub
             </a>
@@ -296,17 +315,27 @@ function Home() {
             <div className="hero-split-left">
               <div className="hero-eyebrow-container">
                 <div className="hero-eyebrow-logos">
-                  <div className="eyebrow-logo"><ClaudeMark /></div>
-                  <div className="eyebrow-logo"><CodexMark /></div>
-                  <div className="eyebrow-logo"><PiMark /></div>
+                  <div className="eyebrow-logo">
+                    <ClaudeMark />
+                  </div>
+                  <div className="eyebrow-logo">
+                    <CodexMark />
+                  </div>
+                  <div className="eyebrow-logo">
+                    <PiMark />
+                  </div>
                 </div>
                 <p className="eyebrow">YOUR AGENTS. OPEN MODELS.</p>
               </div>
               <h1 id="hero-heading">
-                Use open models<br />
+                Use open models
+                <br />
                 with your existing harness.
               </h1>
-              <div className="hero-actions-container" style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "24px" }}>
+              <div
+                className="hero-actions-container"
+                style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "24px" }}
+              >
                 <a className="button button-dark" href="#install">
                   Get started <ArrowUpRight size={16} />
                 </a>
@@ -317,27 +346,46 @@ function Home() {
             </div>
             <div className="hero-split-right">
               <p className="hero-description">
-                Run the coding agents you love on nConnect. One local relay. Eight agents. Your setup stays yours.
+                Run the coding agents you love on Nebius. One local relay. Eight agents. Your setup
+                stays yours.
               </p>
               <div className="hero-meta">
                 <span>
-                  <img src="/logos/opensource.png" alt="" style={{ width: '14px', height: '14px', objectFit: 'contain' }} /> Open source
+                  <img
+                    src="/logos/opensource.png"
+                    alt=""
+                    style={{ width: "14px", height: "14px", objectFit: "contain" }}
+                  />{" "}
+                  Open source
                 </span>
                 <span>
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <img src="/logos/mac.png" alt="" style={{ width: '14px', height: '14px', objectFit: 'contain' }} />
-                    <img src="/logos/linux.png" alt="" style={{ width: '14px', height: '14px', objectFit: 'contain' }} />
+                  <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                    <img
+                      src="/logos/mac.png"
+                      alt=""
+                      style={{ width: "14px", height: "14px", objectFit: "contain" }}
+                    />
+                    <img
+                      src="/logos/linux.png"
+                      alt=""
+                      style={{ width: "14px", height: "14px", objectFit: "contain" }}
+                    />
                   </div>
                   macOS & Linux
                 </span>
                 <span>
-                  <img src="/logos/config.png" alt="" style={{ width: '14px', height: '14px', objectFit: 'contain' }} /> Config-free
+                  <img
+                    src="/logos/config.png"
+                    alt=""
+                    style={{ width: "14px", height: "14px", objectFit: "contain" }}
+                  />{" "}
+                  Config-free
                 </span>
               </div>
             </div>
           </div>
           <div className="relay-hero-banner">
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: "relative" }}>
               <img src="/hero/hero_orange_abstract.png" alt="" />
               <div className="install-terminal hero-install" id="install">
                 <div className="terminal-inner">
@@ -504,7 +552,7 @@ function Home() {
               </p>
               <a
                 className="text-link"
-                href={nconnectApiKeysUrl}
+                href={nebiusApiKeysUrl}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -522,9 +570,25 @@ function Home() {
               >
                 <span className="model-index">0{i + 1}</span>
                 {model.logo ? (
-                  <img src={model.logo} alt="" width={24} height={24} className="model-logo" style={{ objectFit: "contain" }} />
+                  <img
+                    src={model.logo}
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="model-logo"
+                    style={{ objectFit: "contain" }}
+                  />
                 ) : model.mark ? (
-                  <div className="model-logo" style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div
+                    className="model-logo"
+                    style={{
+                      width: 24,
+                      height: 24,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     {model.mark}
                   </div>
                 ) : (
@@ -563,7 +627,13 @@ function Home() {
                     <article
                       key={feature.title}
                       className="feature-card feature-card-3 feature-card-horizontal"
-                      style={featuresInView ? { animation: `fade-up 600ms cubic-bezier(0.23,1,0.32,1) ${i * 120}ms both` } : { opacity: 0, transform: "translateY(16px)" }}
+                      style={
+                        featuresInView
+                          ? {
+                              animation: `fade-up 600ms cubic-bezier(0.23,1,0.32,1) ${i * 120}ms both`,
+                            }
+                          : { opacity: 0, transform: "translateY(16px)" }
+                      }
                     >
                       <div className="feature-card-text feature-card-text-left">
                         <div className="feature-icon-wrapper">
@@ -582,7 +652,13 @@ function Home() {
                   <article
                     key={feature.title}
                     className={`feature-card feature-card-${i}`}
-                    style={featuresInView ? { animation: `fade-up 600ms cubic-bezier(0.23,1,0.32,1) ${i * 120}ms both` } : { opacity: 0, transform: "translateY(16px)" }}
+                    style={
+                      featuresInView
+                        ? {
+                            animation: `fade-up 600ms cubic-bezier(0.23,1,0.32,1) ${i * 120}ms both`,
+                          }
+                        : { opacity: 0, transform: "translateY(16px)" }
+                    }
                   >
                     <div className="feature-card-text">
                       <div className="feature-icon-wrapper">
@@ -623,8 +699,8 @@ function Home() {
       </main>
       <footer className="relay-footer wrap">
         <div className="footer-big-logo">
-          <a href="/" aria-label="nConnect home" className="logo-mask">
-            <span className="sr-only">nConnect</span>
+          <a href="/" aria-label="NConnect home" className="logo-mask">
+            <span className="sr-only">NConnect</span>
           </a>
         </div>
         <div className="footer-bottom">
@@ -745,6 +821,17 @@ export function GrokMark() {
     </svg>
   );
 }
+export function UnrealMark() {
+  // Unreal Labs ship their mark (the hand-drawn smiley) as artwork, not a path.
+  return (
+    <img
+      className="size-[22px] rounded-[5px] object-cover outline outline-1 -outline-offset-1 outline-black/10"
+      src="/unreal-icon.png"
+      alt=""
+      aria-hidden="true"
+    />
+  );
+}
 export function PrimeMark() {
   // Official PrimeIntellect mark.
   return (
@@ -802,17 +889,35 @@ function MacWindowControls() {
   return (
     <div className="flex gap-1.5 group cursor-default">
       <div className="w-2.5 h-2.5 rounded-full bg-red-500 opacity-80 flex items-center justify-center">
-        <svg className="w-[6px] h-[6px] opacity-0 group-hover:opacity-100 text-red-950" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+        <svg
+          className="w-[6px] h-[6px] opacity-0 group-hover:opacity-100 text-red-950"
+          viewBox="0 0 14 14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        >
           <path d="M3 3L11 11M11 3L3 11" />
         </svg>
       </div>
       <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 opacity-80 flex items-center justify-center">
-        <svg className="w-[6px] h-[6px] opacity-0 group-hover:opacity-100 text-yellow-950" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+        <svg
+          className="w-[6px] h-[6px] opacity-0 group-hover:opacity-100 text-yellow-950"
+          viewBox="0 0 14 14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+        >
           <path d="M2 7H12" />
         </svg>
       </div>
       <div className="w-2.5 h-2.5 rounded-full bg-green-500 opacity-80 flex items-center justify-center">
-        <svg className="w-[6px] h-[6px] opacity-0 group-hover:opacity-100 text-green-950" viewBox="0 0 14 14" fill="currentColor">
+        <svg
+          className="w-[6px] h-[6px] opacity-0 group-hover:opacity-100 text-green-950"
+          viewBox="0 0 14 14"
+          fill="currentColor"
+        >
           <path d="M2 2H7V4H4V7H2V2Z" />
           <path d="M12 12H7V10H10V7H12V12Z" />
         </svg>
@@ -835,25 +940,42 @@ function Step1Graphic() {
                 <span className="text-gray-500">$</span>
                 <span className="text-white">curl -sL nconnect.sh | bash</span>
               </div>
-              
+
               {stage >= 1 && (
-                <div className="mt-2 flex flex-col gap-1.5 opacity-90" style={{ animation: "fade-in 300ms ease-out both" }}>
+                <div
+                  className="mt-2 flex flex-col gap-1.5 opacity-90"
+                  style={{ animation: "fade-in 300ms ease-out both" }}
+                >
                   <div className="flex items-center gap-2">
                     <span className="scale-75 origin-left flex items-center justify-center w-5 h-5">
-                      {stage === 1 ? <SpinnerRing active /> : <Badge tone="green">{CheckIcon}</Badge>}
+                      {stage === 1 ? (
+                        <SpinnerRing active />
+                      ) : (
+                        <Badge tone="green">{CheckIcon}</Badge>
+                      )}
                     </span>
                     <span>Installing nconnect.sh...</span>
                   </div>
                   {stage >= 2 && (
-                    <div className="flex items-center gap-2" style={{ animation: "fade-up 300ms cubic-bezier(0.23,1,0.32,1) both" }}>
+                    <div
+                      className="flex items-center gap-2"
+                      style={{ animation: "fade-up 300ms cubic-bezier(0.23,1,0.32,1) both" }}
+                    >
                       <span className="scale-75 origin-left flex items-center justify-center w-5 h-5">
-                        {stage === 2 ? <SpinnerRing active /> : <Badge tone="green">{CheckIcon}</Badge>}
+                        {stage === 2 ? (
+                          <SpinnerRing active />
+                        ) : (
+                          <Badge tone="green">{CheckIcon}</Badge>
+                        )}
                       </span>
                       <span>Adding nclaude, ncodex to PATH...</span>
                     </div>
                   )}
                   {stage >= 3 && (
-                    <div className="mt-1 flex items-center gap-2 text-green-400 font-medium" style={{ animation: "fade-up 300ms cubic-bezier(0.23,1,0.32,1) both" }}>
+                    <div
+                      className="mt-1 flex items-center gap-2 text-green-400 font-medium"
+                      style={{ animation: "fade-up 300ms cubic-bezier(0.23,1,0.32,1) both" }}
+                    >
                       <span className="px-2 py-0.5 rounded-full bg-green-500/20">✓ Success</span>
                     </div>
                   )}
@@ -880,30 +1002,75 @@ function Step2Graphic() {
               <div className="mb-2 text-gray-400 flex items-center gap-2">
                 <span className="text-green-400">~</span>
                 <span className="text-gray-500">$</span>
-                <span className="text-white">nconnect.sh configure</span>
+                <span className="text-white">nconnect configure</span>
               </div>
-              
+
               {stage >= 1 && (
-                <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1" style={{ animation: "fade-up 300ms ease-out both" }}>
+                <div
+                  className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1"
+                  style={{ animation: "fade-up 300ms ease-out both" }}
+                >
                   <div className="flex items-center gap-2">
                     <ChevronRight size={14} strokeWidth={3} className="text-blue-400" />
-                    <span className={stage === 1 ? "text-transparent bg-clip-text" : "text-white font-medium"} style={stage === 1 ? { backgroundImage: "linear-gradient(90deg, #52525b 35%, #fff 50%, #52525b 65%)", backgroundSize: "200% 100%", animation: "shimmer-text 1.4s linear infinite" } : undefined}>Enter nConnect API Key:</span>
+                    <span
+                      className={
+                        stage === 1 ? "text-transparent bg-clip-text" : "text-white font-medium"
+                      }
+                      style={
+                        stage === 1
+                          ? {
+                              backgroundImage:
+                                "linear-gradient(90deg, #52525b 35%, #fff 50%, #52525b 65%)",
+                              backgroundSize: "200% 100%",
+                              animation: "shimmer-text 1.4s linear infinite",
+                            }
+                          : undefined
+                      }
+                    >
+                      Enter Nebius API Key:
+                    </span>
                   </div>
                   {stage >= 2 && (
-                    <div className="text-gray-500 tracking-[0.2em] flex items-center" style={{ animation: "fade-in 200ms ease-out both" }}>
+                    <div
+                      className="text-gray-500 tracking-[0.2em] flex items-center"
+                      style={{ animation: "fade-in 200ms ease-out both" }}
+                    >
                       ••••••••••••••••
                     </div>
                   )}
                 </div>
               )}
               {stage >= 3 && (
-                <div className="mt-3 flex items-center flex-wrap gap-x-2 gap-y-1 opacity-90" style={{ animation: "fade-up 300ms ease-out both" }}>
+                <div
+                  className="mt-3 flex items-center flex-wrap gap-x-2 gap-y-1 opacity-90"
+                  style={{ animation: "fade-up 300ms ease-out both" }}
+                >
                   <div className="flex items-center gap-2">
                     <ChevronRight size={14} strokeWidth={3} className="text-blue-400" />
-                    <span className={stage === 3 ? "text-transparent bg-clip-text" : "text-white font-medium"} style={stage === 3 ? { backgroundImage: "linear-gradient(90deg, #52525b 35%, #fff 50%, #52525b 65%)", backgroundSize: "200% 100%", animation: "shimmer-text 1.4s linear infinite" } : undefined}>Enter Tavily API Key <span className="text-gray-500 font-normal">(optional)</span>:</span>
+                    <span
+                      className={
+                        stage === 3 ? "text-transparent bg-clip-text" : "text-white font-medium"
+                      }
+                      style={
+                        stage === 3
+                          ? {
+                              backgroundImage:
+                                "linear-gradient(90deg, #52525b 35%, #fff 50%, #52525b 65%)",
+                              backgroundSize: "200% 100%",
+                              animation: "shimmer-text 1.4s linear infinite",
+                            }
+                          : undefined
+                      }
+                    >
+                      Enter Tavily API Key{" "}
+                      <span className="text-gray-500 font-normal">(optional)</span>:
+                    </span>
                   </div>
                   {stage >= 4 && (
-                    <div className="text-gray-500 tracking-[0.2em] flex items-center" style={{ animation: "fade-in 200ms ease-out both" }}>
+                    <div
+                      className="text-gray-500 tracking-[0.2em] flex items-center"
+                      style={{ animation: "fade-in 200ms ease-out both" }}
+                    >
                       ••••••••
                     </div>
                   )}
@@ -929,7 +1096,7 @@ function Step3Graphic() {
               <div className="mb-3 text-[#e5e5e5] border border-[#333] bg-[#1a1a1a] px-2 py-1.5 rounded shadow-sm">
                 $ ncodex --config "Use nconnect endpoint"
               </div>
-              
+
               <div className="mt-2" style={{ marginLeft: "-4px" }}>
                 <ThinkingState variant="Coding" theme="dark" />
               </div>
@@ -966,21 +1133,41 @@ import ToolChips from "../components/ToolChips";
 
 const COST_ROWS = [
   {
-    icon: "think", label: "Planning", chip: "Estimating session cost", mono: false, detailMono: false,
-    detail: [{ text: "Model: GLM-5.3-Flash" }, { text: "Context window: 32k" }]
+    icon: "think",
+    label: "Planning",
+    chip: "Estimating session cost",
+    mono: false,
+    detailMono: false,
+    detail: [{ text: "Model: GLM-5.3-Flash" }, { text: "Context window: 32k" }],
   },
   {
-    icon: "read", label: "Analyze usage", chip: "Session telemetry", mono: true, detailMono: true,
-    detail: [{ text: "Prompt tokens: 24,000" }, { text: "Completion tokens: 3,500" }]
+    icon: "read",
+    label: "Analyze usage",
+    chip: "Session telemetry",
+    mono: true,
+    detailMono: true,
+    detail: [{ text: "Prompt tokens: 24,000" }, { text: "Completion tokens: 3,500" }],
   },
   {
-    icon: "run", label: "Calculate cost", chip: "Pricing engine", mono: true, detailMono: true,
-    detail: [{ text: "Input: $0.07" }, { text: "Output: $0.07" }, { text: "Total: $0.14", tone: "add" as const }]
+    icon: "run",
+    label: "Calculate cost",
+    chip: "Pricing engine",
+    mono: true,
+    detailMono: true,
+    detail: [
+      { text: "Input: $0.07" },
+      { text: "Output: $0.07" },
+      { text: "Total: $0.14", tone: "add" as const },
+    ],
   },
   {
-    icon: "write", label: "Log result", chip: "session.log", mono: true, detailMono: true,
-    detail: [{ text: "Saved to ~/.nconnect/logs", tone: "add" as const }]
-  }
+    icon: "write",
+    label: "Log result",
+    chip: "session.log",
+    mono: true,
+    detailMono: true,
+    detail: [{ text: "Saved to ~/.nconnect/logs", tone: "add" as const }],
+  },
 ];
 
 const COST_DIFFS = [
@@ -991,7 +1178,12 @@ const COST_DIFFS = [
 function FeatureGraphic2() {
   return (
     <div className="absolute inset-0 flex items-start justify-start p-5 pt-6">
-      <ToolChips steps={COST_ROWS} diffs={COST_DIFFS} className="w-full" labels={{ header: "4 tools · session cost", more: "+1 more" }} />
+      <ToolChips
+        steps={COST_ROWS}
+        diffs={COST_DIFFS}
+        className="w-full"
+        labels={{ header: "4 tools · session cost", more: "+1 more" }}
+      />
     </div>
   );
 }
@@ -1022,7 +1214,10 @@ const UPDATE_ROWS = [
 
 function FeatureGraphic3() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center" style={{ padding: "20px 24px" }}>
+    <div
+      className="absolute inset-0 flex items-center justify-center"
+      style={{ padding: "20px 24px" }}
+    >
       <TaskRows rows={UPDATE_ROWS} className="w-full" />
     </div>
   );

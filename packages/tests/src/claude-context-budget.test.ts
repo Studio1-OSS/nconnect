@@ -74,7 +74,7 @@ describe("Claude context budget utilities", () => {
     expect(result?.trimmedChars).toBeGreaterThan(0);
     expect(messages[0]?.content).toBe("system content should not be trimmed");
     expect(messages[1]?.content).toContain(
-      "[nebiusrelay trimmed older context to fit the model window]",
+      "[nconnect trimmed older context to fit the model window]",
     );
     expect(messages[1]?.content.length).toBeLessThan(longText.length);
   });

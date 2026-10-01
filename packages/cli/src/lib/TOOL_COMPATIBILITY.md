@@ -1,12 +1,12 @@
 # Tool Compatibility
 
-Live captures were run with `NEBIUSRELAY_DEBUG=1` and a debug-log sink against the terminal Codex and Claude Code harnesses.
+Live captures were run with `NCONNECT_DEBUG=1` and a debug-log sink against the terminal Codex and Claude Code harnesses.
 
 ## Pricing
 
 - Claude Code: accounted by the daemon-side `CostTracker`. Every proxied Nebius chat call records `prompt_tokens`, `cached_tokens`, and `completion_tokens` against the selected `ModelDefinition`. Vision description sub-calls are also recorded at the actual vision model's rates.
 - Codex: accounted by the same daemon-side `CostTracker`. Both non-streaming and streaming Responses proxy paths request Nebius usage and record it against the selected Codex model definition, so Codex pricing is handled on this branch.
-- OpenCode: model entries include the shared cost metadata, so OpenCode can price locally. nebiusrelay does not yet print a reliable per-session OpenCode cost summary because OpenCode talks directly to Nebius and the launcher does not currently self-report session usage into the daemon.
+- OpenCode: model entries include the shared cost metadata, so OpenCode can price locally. nconnect does not yet print a reliable per-session OpenCode cost summary because OpenCode talks directly to Nebius and the launcher does not currently self-report session usage into the daemon.
 
 ## Codex Terminal
 

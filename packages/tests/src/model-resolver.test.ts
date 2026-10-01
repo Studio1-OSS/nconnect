@@ -13,7 +13,7 @@ import {
   buildCatalog,
   resolveModelByKeys,
   type ModelDefinition,
-} from "@nebiusrelay/models";
+} from "@nconnect/models";
 
 // Unit tests for the shared model-selection mechanism. The per-harness
 // wrappers (resolveClaudeModel / resolveCodexModel) are thin policy over this

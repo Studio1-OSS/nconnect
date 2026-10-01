@@ -1,7 +1,37 @@
 # Changelog
 
-User-visible changes to Nebius TF Relay, newest first. This changelog starts at
+User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
+
+## Unreleased
+
+### Changed
+
+- Renamed the project to NConnect. The CLI is now `nconnect` (the `nclaude`,
+  `ncodex`, ... aliases are unchanged), env vars use the `NCONNECT_` prefix and
+  local state lives in `~/.nconnect`.
+
+## 0.16.1 - 2026-09-23
+
+### Fixed
+
+- `nunreal` in a terminal now prints readable output - the assistant's replies
+  and the tools it calls - instead of the runner's raw JSON event log. Piped
+  output is unchanged, so scripts still get the JSONL.
+- `nunreal -- -workspace <dir>` with no task asks for one instead of waiting
+  silently on stdin; only `-p` or a positional JSON request counts as a task.
+
+## 0.16.0 - 2026-09-23
+
+### Added
+
+- Unreal Agent (`nconnect unreal`, alias `nunreal`): Unreal Labs' async-first
+  harness. Its runner speaks only the OpenAI Responses API, so it is proxied
+  through the daemon like Codex and gets the same cost metering, retries and
+  model fallback. Configured entirely through env vars for the run; the Nebius
+  key stays inside the daemon.
+  A bare `nunreal` (or picking it from the launcher menu) asks for the task
+  instead of waiting silently on stdin.
 
 ## 0.15.4 - 2026-09-11
 
@@ -19,7 +49,7 @@ User-visible changes to Nebius TF Relay, newest first. This changelog starts at
 
 ### Fixed
 
-- `nebiusrelay configure` no longer crashes on untouched or navigation-key
+- `nconnect configure` no longer crashes on untouched or navigation-key
   password input (#3). The Clack patch initializes password state, guards empty
   rendering, and keeps Bun readline input masked instead of echoing secrets.
 - `ncodex --model` and `-m` honor the requested model. Invalid explicit model
@@ -97,12 +127,12 @@ tokens`, plus the machine-readable `(parameter=input_tokens, value=N)` tail.
 
 ### Added
 
-- `nebiusrelay chatgpt off` (also `codex off`, `restore`, or bare
-  `nebiusrelay off`) disables the relay-managed `~/.codex/config.toml` and
+- `nconnect chatgpt off` (also `codex off`, `restore`, or bare
+  `nconnect off`) disables the relay-managed `~/.codex/config.toml` and
   restores your previous profile. The managed config is shared by ChatGPT
   Desktop and the Codex CLI, so disabling from either fixes both. `--restore`
   still works.
-- `NEBIUSRELAY_REASONING_HISTORY=off|interleaved|full` controls how much of
+- `NCONNECT_REASONING_HISTORY=off|interleaved|full` controls how much of
   previous turns' reasoning is replayed. On a long session that is a large and
   growing share of input tokens. Default stays `full`, so upgrading changes
   nothing.
@@ -111,7 +141,7 @@ tokens`, plus the machine-readable `(parameter=input_tokens, value=N)` tail.
 
 - Harnesses that write no persistent config now refuse `off`/`restore` with a
   clear error. Previously the verb was forwarded to the harness as a prompt -
-  `nebiusrelay codex off` launched Codex with "off" as the task.
+  `nconnect codex off` launched Codex with "off" as the task.
 - Disabling when nothing is managed is a friendly no-op rather than a
   missing-backup error.
 
@@ -119,7 +149,7 @@ tokens`, plus the machine-readable `(parameter=input_tokens, value=N)` tail.
 
 ### Fixed
 
-- `nebiusrelay usage` counts sessions that are still running. It required an end
+- `nconnect usage` counts sessions that are still running. It required an end
   timestamp, and ChatGPT Desktop registers without a pid so it never ends while
   the app is open - its spend was permanently invisible.
 - Session cost survives a daemon restart. Proxied sessions only persisted cost
@@ -143,7 +173,7 @@ tokens`, plus the machine-readable `(parameter=input_tokens, value=N)` tail.
 
 ### Added
 
-- **Cost metering for the spawned harnesses** (`NEBIUSRELAY_METER=1`, opt-in).
+- **Cost metering for the spawned harnesses** (`NCONNECT_METER=1`, opt-in).
   Pi, Prime, Hermes, DeepSeek and Grok hold the API key and call Nebius
   directly, so none of the proxied path reached them: no per-turn cost, no model
   fallback, no circuit breaker, no retries. They can now route through the
@@ -152,7 +182,7 @@ tokens`, plus the machine-readable `(parameter=input_tokens, value=N)` tail.
   and connects directly.
 - Codex durable memory (`/v1/memories/trace_summarize`). The endpoint used to
   404, so Codex retained nothing between sessions.
-- `NEBIUSRELAY_CACHE_READ_RATIO` to price cached input tokens.
+- `NCONNECT_CACHE_READ_RATIO` to price cached input tokens.
 
 ### Changed
 

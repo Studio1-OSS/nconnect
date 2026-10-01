@@ -1,7 +1,7 @@
 import { mkdtemp, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { getDefaultModel, GLM_5_2 } from "@nebiusrelay/models";
+import { getDefaultModel, GLM_5_2 } from "@nconnect/models";
 import {
   appRegistrationPath,
   clearAppRegistration,
@@ -13,7 +13,7 @@ import { cleanupTmpDir, createTestContext } from "./context.js";
 import { startTestDaemon, type TestDaemon } from "./daemon-session.js";
 import type { TestContext } from "./types.js";
 
-const TOKEN = "nebiusrelay-local-app-registration-test";
+const TOKEN = "nconnect-local-app-registration-test";
 
 function registration(): RegisterSessionRequest {
   return {
@@ -83,7 +83,7 @@ describe("daemon lazy codex-app session restore", () => {
 
   test("re-registers the persisted codex-app session on a token miss instead of 401ing", async () => {
     // Simulate the state after a daemon restart / idle reap: the register
-    // body is on disk (written by `nebiusrelay codex-app`) but the daemon
+    // body is on disk (written by `nconnect codex-app`) but the daemon
     // has no in-memory session for the token the Codex app keeps sending.
     await writeAppRegistration(registration(), daemon.home);
     const before = await sessionCount();
@@ -109,7 +109,7 @@ describe("daemon lazy codex-app session restore", () => {
   });
 
   test("stops resurrecting the session after restore clears the registration", async () => {
-    // `nebiusrelay codex-app --restore` deletes both the daemon session and
+    // `nconnect codex-app --restore` deletes both the daemon session and
     // the persisted registration; the token must go back to 401.
     await fetch(`${daemon.url}/internal/sessions/${encodeURIComponent(TOKEN)}`, {
       method: "DELETE",

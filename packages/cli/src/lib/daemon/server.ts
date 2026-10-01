@@ -12,7 +12,7 @@ import { writeAnthropicError, isNebiusApiError } from "../claude/nebius-call.js"
 import { handleCodexProxyRequest, writeOpenAIError } from "../codex/proxy.js";
 import { handleChatPassthrough, isPassthroughPath } from "./chat-passthrough.js";
 import { readAppRegistration } from "./app-registration.js";
-import { nebiusrelayHome } from "../paths.js";
+import { nconnectHome } from "../paths.js";
 import { initModelCatalog } from "../model-catalog-init.js";
 import {
   sessions as defaultSessions,
@@ -23,6 +23,7 @@ import {
   type SessionState,
   type UsageReportRequest,
   isProxiedAgent,
+  speaksResponsesApi,
 } from "./state.js";
 
 /** Active registry - runDaemon may override this with an injected one. */
@@ -54,15 +55,15 @@ export type DaemonHealth = {
 
 /**
  * Where the launcher and daemon agree the daemon's pid file lives. Honors
- * `NEBIUSRELAY_HOME` (matching autoupdate.ts/install.sh's install dir) so a
+ * `NCONNECT_HOME` (matching autoupdate.ts/install.sh's install dir) so a
  * user with a custom install home keeps the pid file alongside the bundle.
  */
-export function daemonPidPath(home = nebiusrelayHome()): string {
+export function daemonPidPath(home = nconnectHome()): string {
   return path.join(home, "daemon.pid");
 }
 
 export function resolveDaemonPort(): number {
-  const raw = process.env.NEBIUSRELAY_PORT;
+  const raw = process.env.NCONNECT_PORT;
   const parsed = raw ? Number.parseInt(raw, 10) : NaN;
   return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_DAEMON_PORT;
 }
@@ -98,9 +99,7 @@ async function listenOrExitOnRace(server: Server, port: number): Promise<void> {
           if (healthy) {
             process.exit(0);
           }
-          process.stderr.write(
-            `[nebiusrelay daemon] port ${port} in use by a non-daemon process.\n`,
-          );
+          process.stderr.write(`[nconnect daemon] port ${port} in use by a non-daemon process.\n`);
           process.exit(1);
         });
         return;
@@ -144,7 +143,7 @@ export function renderDaemonError(
     }
     return;
   }
-  if (agent === "codex" || agent === "codex-app") {
+  if (speaksResponsesApi(agent)) {
     if (isNebiusApiError(err)) {
       writeOpenAIError(res, err.anthropicStatus, err.anthropicType, err.message);
       return;
@@ -161,14 +160,14 @@ export function renderDaemonError(
 
 /**
  * Run the shared, persistent proxy daemon. One process serves every
- * `nebiusrelay claude` session: each registers its token + credentials at
+ * `nconnect claude` session: each registers its token + credentials at
  * `POST /internal/sessions`, and the daemon resolves every `/v1/*` request to
  * that session (and its CostTracker) by the presented Bearer token. Runs
  * forever - the http server keeps the event loop alive - until SIGTERM/SIGINT.
  */
 export async function runDaemon(options: DaemonOptions = {}): Promise<void> {
   const port = resolveDaemonPort();
-  const debug = options.debug ?? process.env.NEBIUSRELAY_DEBUG === "1";
+  const debug = options.debug ?? process.env.NCONNECT_DEBUG === "1";
   activeSessions = options.sessions ?? defaultSessions;
   const restored = await activeSessions.restorePersisted();
 
@@ -206,18 +205,16 @@ export async function runDaemon(options: DaemonOptions = {}): Promise<void> {
   // "error sending request for url". Best-effort: never throws.
   void initModelCatalog({ home: os.homedir() }).then(() => {
     if (debug) {
-      process.stderr.write(`[nebiusrelay daemon] model catalog loaded.\n`);
+      process.stderr.write(`[nconnect daemon] model catalog loaded.\n`);
     }
   });
 
   await mkdir(path.dirname(daemonPidPath()), { recursive: true });
   await writeFile(daemonPidPath(), `${process.pid}\n`, { encoding: "utf8" });
   if (debug) {
-    process.stderr.write(
-      `[nebiusrelay daemon] listening: ${daemonUrl(port)} (pid ${process.pid})\n`,
-    );
+    process.stderr.write(`[nconnect daemon] listening: ${daemonUrl(port)} (pid ${process.pid})\n`);
     if (restored > 0) {
-      process.stderr.write(`[nebiusrelay daemon] restored ${restored} active session(s).\n`);
+      process.stderr.write(`[nconnect daemon] restored ${restored} active session(s).\n`);
     }
   }
 
@@ -228,7 +225,7 @@ export async function runDaemon(options: DaemonOptions = {}): Promise<void> {
   const reaper = setInterval(() => {
     const removed = activeSessions.reapDead();
     if (debug && removed > 0) {
-      process.stderr.write(`[nebiusrelay daemon] reaped ${removed} dead session(s).\n`);
+      process.stderr.write(`[nconnect daemon] reaped ${removed} dead session(s).\n`);
     }
   }, SESSION_REAP_INTERVAL_MS);
   reaper.unref();
@@ -240,7 +237,7 @@ export async function runDaemon(options: DaemonOptions = {}): Promise<void> {
     closing = true;
     clearInterval(reaper);
     if (debug) {
-      process.stderr.write(`[nebiusrelay daemon] ${signal} - shutting down.\n`);
+      process.stderr.write(`[nconnect daemon] ${signal} - shutting down.\n`);
     }
     // Persist every live session's cost before the store closes: a restart
     // would otherwise drop whatever the running sessions had spent.
@@ -276,7 +273,7 @@ async function handleDaemonRequest(
 ): Promise<void> {
   const path_ = requestPath(req);
   if (opts.debug) {
-    process.stderr.write(`[nebiusrelay daemon] ${req.method} ${path_}\n`);
+    process.stderr.write(`[nconnect daemon] ${req.method} ${path_}\n`);
   }
 
   // Unauthenticated liveness + health (must work before any session exists).
@@ -290,7 +287,7 @@ async function handleDaemonRequest(
       ok: true,
       pid: process.pid,
       version: VERSION,
-      home: nebiusrelayHome(),
+      home: nconnectHome(),
       scriptPath: RUNNING_DAEMON_IDENTITY.scriptPath,
       scriptSize: RUNNING_DAEMON_IDENTITY.scriptSize,
       scriptMtimeMs: RUNNING_DAEMON_IDENTITY.scriptMtimeMs,
@@ -302,7 +299,7 @@ async function handleDaemonRequest(
   if (req.method === "GET" && path_ === "/") {
     writeJson(res, 200, {
       ok: true,
-      service: "nebiusrelay daemon",
+      service: "nconnect daemon",
       version: VERSION,
       activeSessionCount: activeSessions.size,
     });
@@ -311,7 +308,7 @@ async function handleDaemonRequest(
 
   // Internal session-management endpoints. Loopback binding is the boundary
   // (same trust model as today's single-session proxy, which has no internal
-  // secret either). Used only by `nebiusrelay` itself.
+  // secret either). Used only by `nconnect` itself.
   if (path_ === "/internal/sessions") {
     if (req.method === "POST") {
       await registerSession(req, res);
@@ -468,7 +465,7 @@ async function handleDaemonRequest(
     delete req.headers["x-api-key"];
   }
 
-  if (session.agent === "codex" || session.agent === "codex-app") {
+  if (speaksResponsesApi(session.agent)) {
     try {
       await handleCodexProxyRequest(req, res, session.options);
     } finally {
@@ -492,7 +489,7 @@ async function handleDaemonRequest(
  * The Codex desktop app holds the stable local-proxy token in its config with
  * no launcher process alive to re-register when this daemon loses the session
  * (restart, idle reap, kill -9). Without this fallback every request from the
- * app 401s until the user re-runs `nebiusrelay codex-app`.
+ * app 401s until the user re-runs `nconnect codex-app`.
  */
 async function restoreAppSession(token: string): Promise<SessionState | undefined> {
   const registration = await readAppRegistration();

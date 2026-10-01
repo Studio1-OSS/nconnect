@@ -17,7 +17,7 @@
  * Current-turn reasoning and live reasoning output are never affected.
  */
 
-export const REASONING_HISTORY_ENV = "NEBIUSRELAY_REASONING_HISTORY";
+export const REASONING_HISTORY_ENV = "NCONNECT_REASONING_HISTORY";
 
 export const REASONING_HISTORY_MODES = ["off", "interleaved", "full"] as const;
 

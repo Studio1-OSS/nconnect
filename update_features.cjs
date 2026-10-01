@@ -1,25 +1,34 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const cssPath = path.join('site', 'src', 'styles', 'landing.css');
-let css = fs.readFileSync(cssPath, 'utf-8');
+const cssPath = path.join("site", "src", "styles", "landing.css");
+let css = fs.readFileSync(cssPath, "utf-8");
 
 // 1. Fix overlap: add z-index to feature-card-text
-css = css.replace('.feature-card {', '.feature-card-text { position: relative; z-index: 10; pointer-events: none; }\n.feature-card {');
+css = css.replace(
+  ".feature-card {",
+  ".feature-card-text { position: relative; z-index: 10; pointer-events: none; }\n.feature-card {",
+);
 
 // 2. Fix layout: 2x2 grid
-css = css.replace('grid-template-columns: repeat(3, minmax(0, 1fr));', 'grid-template-columns: repeat(2, minmax(0, 1fr));');
-css = css.replace(/\.feature-card-0 \{[\s\S]*?grid-row: span 2;\n\}/g, '');
-css = css.replace(/\.feature-card-1 \{[\s\S]*?grid-row: span 1;\n\}/g, '');
-css = css.replace(/\.feature-card-2 \{[\s\S]*?grid-row: span 1;\n\}/g, '');
-css = css.replace(/\.feature-card-3 \{[\s\S]*?grid-row: span 1;\n\}/g, '');
-css = css.replace(/\.feature-card-0, \.feature-card-1, \.feature-card-2 \{[\s\S]*?grid-row: span 1;\n  \}/g, '');
-css = css.replace(/\.feature-card-3 \{[\s\S]*?grid-column: span 2;\n  \}/g, '');
+css = css.replace(
+  "grid-template-columns: repeat(3, minmax(0, 1fr));",
+  "grid-template-columns: repeat(2, minmax(0, 1fr));",
+);
+css = css.replace(/\.feature-card-0 \{[\s\S]*?grid-row: span 2;\n\}/g, "");
+css = css.replace(/\.feature-card-1 \{[\s\S]*?grid-row: span 1;\n\}/g, "");
+css = css.replace(/\.feature-card-2 \{[\s\S]*?grid-row: span 1;\n\}/g, "");
+css = css.replace(/\.feature-card-3 \{[\s\S]*?grid-row: span 1;\n\}/g, "");
+css = css.replace(
+  /\.feature-card-0, \.feature-card-1, \.feature-card-2 \{[\s\S]*?grid-row: span 1;\n  \}/g,
+  "",
+);
+css = css.replace(/\.feature-card-3 \{[\s\S]*?grid-column: span 2;\n  \}/g, "");
 
 fs.writeFileSync(cssPath, css);
 
-const tsxPath = path.join('site', 'src', 'routes', 'index.tsx');
-let tsx = fs.readFileSync(tsxPath, 'utf-8');
+const tsxPath = path.join("site", "src", "routes", "index.tsx");
+let tsx = fs.readFileSync(tsxPath, "utf-8");
 
 // 3. Change FeatureGraphic3 animation
 const oldGraphic3 = `function FeatureGraphic3() {
@@ -47,4 +56,4 @@ tsx = tsx.replace(oldGraphic3, newGraphic3);
 
 fs.writeFileSync(tsxPath, tsx);
 
-console.log('done');
+console.log("done");

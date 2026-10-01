@@ -19,8 +19,8 @@ describe("shared Nebius SSE transport", () => {
   });
 
   test("retries an idle response before harness output starts", async () => {
-    vi.stubEnv("NEBIUSRELAY_STREAM_IDLE_TIMEOUT_MS", "100");
-    vi.stubEnv("NEBIUSRELAY_STREAM_RETRIES", "1");
+    vi.stubEnv("NCONNECT_STREAM_IDLE_TIMEOUT_MS", "100");
+    vi.stubEnv("NCONNECT_STREAM_RETRIES", "1");
     const retry = vi.fn(async () =>
       sseResponse([{ choices: [{ delta: { content: "recovered" } }] }]),
     );
@@ -37,7 +37,7 @@ describe("shared Nebius SSE transport", () => {
   });
 
   test("retries a stream that closes before DONE when no harness output started", async () => {
-    vi.stubEnv("NEBIUSRELAY_STREAM_RETRIES", "1");
+    vi.stubEnv("NCONNECT_STREAM_RETRIES", "1");
     const retry = vi.fn(async () =>
       sseResponse([
         { choices: [{ delta: { content: "recovered" } }] },
@@ -57,8 +57,8 @@ describe("shared Nebius SSE transport", () => {
   });
 
   test("does not retry an idle response after harness output starts", async () => {
-    vi.stubEnv("NEBIUSRELAY_STREAM_IDLE_TIMEOUT_MS", "100");
-    vi.stubEnv("NEBIUSRELAY_STREAM_RETRIES", "1");
+    vi.stubEnv("NCONNECT_STREAM_IDLE_TIMEOUT_MS", "100");
+    vi.stubEnv("NCONNECT_STREAM_RETRIES", "1");
     const retry = vi.fn(async () => sseResponse([]));
 
     const consume = async () => {
@@ -74,10 +74,10 @@ describe("shared Nebius SSE transport", () => {
   });
 
   test("persists and surfaces request IDs when an SSE stream stays idle", async () => {
-    temporaryHome = await mkdtemp(path.join(os.tmpdir(), "nebiusrelay-sse-test-"));
-    vi.stubEnv("NEBIUSRELAY_HOME", temporaryHome);
-    vi.stubEnv("NEBIUSRELAY_STREAM_IDLE_TIMEOUT_MS", "100");
-    vi.stubEnv("NEBIUSRELAY_STREAM_RETRIES", "0");
+    temporaryHome = await mkdtemp(path.join(os.tmpdir(), "nconnect-sse-test-"));
+    vi.stubEnv("NCONNECT_HOME", temporaryHome);
+    vi.stubEnv("NCONNECT_STREAM_IDLE_TIMEOUT_MS", "100");
+    vi.stubEnv("NCONNECT_STREAM_RETRIES", "0");
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => {

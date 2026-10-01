@@ -53,7 +53,7 @@ describe("harness invocation parsing", () => {
     expect(invocation.flags.passthroughSeparator).toBeUndefined();
   });
 
-  test("keeps nebiusrelay flags before the harness", () => {
+  test("keeps nconnect flags before the harness", () => {
     const parsed = parseArgs([
       "--main",
       "nebius-kimi-k2-7-code",
@@ -68,7 +68,7 @@ describe("harness invocation parsing", () => {
     expect(invocation.flags.passthrough).toEqual(["--resume", "session-id"]);
   });
 
-  test("passes known nebiusrelay flags through after the harness", () => {
+  test("passes known nconnect flags through after the harness", () => {
     const parsed = parseArgs(["claude", "--main", "real-claude-value"]);
     const invocation = resolveHarnessInvocation(parsed.positional, parsed.flags);
 

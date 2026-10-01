@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { type ServerResponse } from "node:http";
-import { type ModelDefinition } from "@nebiusrelay/models";
+import { type ModelDefinition } from "@nconnect/models";
 import type { CostTracker } from "../cost.js";
 import { runNativeWebSearchCall } from "../native-web-search.js";
 import { writeProxyDebugLog } from "../proxy-debug.js";
@@ -749,8 +749,8 @@ function mergeUsage(
 
 function codexStreamIdleTimeoutMs(): number {
   const raw =
-    process.env.NEBIUSRELAY_STREAM_IDLE_TIMEOUT_MS ??
-    process.env.NEBIUSRELAY_CODEX_STREAM_IDLE_TIMEOUT_MS;
+    process.env.NCONNECT_STREAM_IDLE_TIMEOUT_MS ??
+    process.env.NCONNECT_CODEX_STREAM_IDLE_TIMEOUT_MS;
   const parsed = raw ? Number.parseInt(raw, 10) : NaN;
   return Number.isFinite(parsed) && parsed > 0
     ? Math.max(100, parsed)
@@ -758,7 +758,7 @@ function codexStreamIdleTimeoutMs(): number {
 }
 
 function codexStreamTurnTimeoutMs(): number {
-  const raw = process.env.NEBIUSRELAY_CODEX_STREAM_TURN_TIMEOUT_MS;
+  const raw = process.env.NCONNECT_CODEX_STREAM_TURN_TIMEOUT_MS;
   const parsed = raw ? Number.parseInt(raw, 10) : NaN;
   return Number.isFinite(parsed) && parsed > 0
     ? Math.max(100, parsed)
@@ -766,7 +766,7 @@ function codexStreamTurnTimeoutMs(): number {
 }
 
 function codexStreamIdleRetries(): number {
-  const raw = process.env.NEBIUSRELAY_CODEX_STREAM_IDLE_RETRIES;
+  const raw = process.env.NCONNECT_CODEX_STREAM_IDLE_RETRIES;
   const parsed = raw ? Number.parseInt(raw, 10) : NaN;
   return Number.isFinite(parsed) && parsed >= 0
     ? Math.floor(parsed)
@@ -778,5 +778,5 @@ function debugLog(
   label: string,
   payload: unknown | (() => unknown),
 ): void {
-  writeProxyDebugLog("nebiusrelay codex proxy", options, label, payload);
+  writeProxyDebugLog("nconnect codex proxy", options, label, payload);
 }

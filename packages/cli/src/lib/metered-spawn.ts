@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import type { ModelDefinition } from "@nebiusrelay/models";
+import type { ModelDefinition } from "@nconnect/models";
 import {
   daemonFetch,
   daemonSessionUrl,
@@ -23,12 +23,12 @@ import type { AgentId, RegisterSessionRequest } from "./daemon/state.js";
  * Nebius key inside the daemon, since the harness only ever sees the local
  * session token.
  *
- * Opt-in for now (NEBIUSRELAY_METER=1): it changes where every request from
+ * Opt-in for now (NCONNECT_METER=1): it changes where every request from
  * these tools goes, and a daemon that is down would take the harness with it.
  * When it is off, `resolve` returns the direct Nebius endpoint unchanged.
  */
 
-export const METER_ENV = "NEBIUSRELAY_METER";
+export const METER_ENV = "NCONNECT_METER";
 
 export function meteringEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   const raw = env[METER_ENV]?.trim().toLowerCase();
@@ -94,7 +94,7 @@ export async function meteredEndpoint(spec: MeteredSpawnSpec): Promise<MeteredEn
     targetModelId: spec.model.id,
     modelName: spec.model.name,
     modelDefinition: spec.model,
-    ...(process.env.NEBIUSRELAY_DEBUG === "1" ? { debug: true } : {}),
+    ...(process.env.NCONNECT_DEBUG === "1" ? { debug: true } : {}),
   };
   try {
     await registerDaemonSession(proxyUrl, registration);
@@ -104,7 +104,7 @@ export async function meteredEndpoint(spec: MeteredSpawnSpec): Promise<MeteredEn
   }
 
   const keepalive = startDaemonSessionKeepalive(registration, {
-    debug: process.env.NEBIUSRELAY_DEBUG === "1",
+    debug: process.env.NCONNECT_DEBUG === "1",
     label: `${spec.agent} session`,
   });
 
@@ -151,7 +151,7 @@ export async function meteredEndpoint(spec: MeteredSpawnSpec): Promise<MeteredEn
 
 function warnDegraded(err: unknown): void {
   process.stderr.write(
-    `Nebius TF Relay ▸ Cost metering unavailable (${err instanceof Error ? err.message : String(err)}); ` +
+    `NConnect ▸ Cost metering unavailable (${err instanceof Error ? err.message : String(err)}); ` +
       "connecting to Nebius directly.\n",
   );
 }

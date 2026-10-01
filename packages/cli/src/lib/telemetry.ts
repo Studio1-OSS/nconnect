@@ -2,15 +2,15 @@ import os from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { readJsonIfExists, writeJsonAtomic } from "./nebius-core.js";
-import { nebiusrelayHome } from "./global-config.js";
+import { nconnectHome } from "./global-config.js";
 import { VERSION } from "./version.js";
 
 // Telemetry is disabled by default in this fork until the collection endpoint
-// is deployed (see M6). It is only sent when NEBIUSRELAY_TELEMETRY_URL is set
+// is deployed (see M6). It is only sent when NCONNECT_TELEMETRY_URL is set
 // explicitly, so the CLI has no network dependency on a telemetry backend.
 // Resolved at call time (not module load) so it stays overridable in tests.
 function telemetryEndpoint(): string | undefined {
-  return process.env.NEBIUSRELAY_TELEMETRY_URL;
+  return process.env.NCONNECT_TELEMETRY_URL;
 }
 const TELEMETRY_TIMEOUT_MS = 2000;
 
@@ -82,7 +82,7 @@ export type TelemetryEvent = {
 };
 
 function installIdPath(home = os.homedir()): string {
-  return path.join(nebiusrelayHome(home), "install-id");
+  return path.join(nconnectHome(home), "install-id");
 }
 
 const pendingInstallIds = new Map<string, Promise<string>>();

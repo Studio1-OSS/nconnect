@@ -13,10 +13,10 @@ export async function runCommand(
   const cwd = options.cwd ?? context.repoRoot;
   const timeoutMs = options.timeoutMs ?? 120_000;
   const isolatedEnv =
-    context.nebiusrelayHome && context.daemonPort
+    context.nconnectHome && context.daemonPort
       ? {
-          NEBIUSRELAY_HOME: context.nebiusrelayHome,
-          NEBIUSRELAY_PORT: String(context.daemonPort),
+          NCONNECT_HOME: context.nconnectHome,
+          NCONNECT_PORT: String(context.daemonPort),
         }
       : {};
   const child = spawn(command, args, {
@@ -26,7 +26,7 @@ export async function runCommand(
       ...process.env,
       ...isolatedEnv,
       ...options.env,
-      NEBIUSRELAY_DEBUG: "1",
+      NCONNECT_DEBUG: "1",
       CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY: "1",
       DISABLE_FEEDBACK_COMMAND: "1",
     },

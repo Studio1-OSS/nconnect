@@ -1,4 +1,4 @@
-import type { ModelDefinition } from "@nebiusrelay/models";
+import type { ModelDefinition } from "@nconnect/models";
 import { type ContextTrimTelemetryInfo, sendTelemetryEvent } from "./telemetry.js";
 
 /**
@@ -32,8 +32,8 @@ const HARD_WARN_DROPPED_FRACTION = 0.5;
 /** Upper bound on fit retries per request; the ladder converges well under this. */
 export const CONTEXT_FIT_MAX_ATTEMPTS = 6;
 
-const IMAGE_REMOVED_PLACEHOLDER = "[nebiusrelay removed an older image to fit the model window]";
-const TRIM_MARKER = "\n[nebiusrelay trimmed older context to fit the model window]\n";
+const IMAGE_REMOVED_PLACEHOLDER = "[nconnect removed an older image to fit the model window]";
+const TRIM_MARKER = "\n[nconnect trimmed older context to fit the model window]\n";
 
 /** Structural view of an OpenAI chat message - harness-agnostic on purpose. */
 type FitContentPart = { type?: string; text?: string; image_url?: unknown };
@@ -531,7 +531,7 @@ function finish(
 export function emitContextTrimAlarm(info: ContextTrimTelemetryInfo): void {
   const severity = info.hard ? "DROPPED A LARGE PORTION of" : "trimmed";
   process.stderr.write(
-    `nebiusrelay: ${severity} ${info.trimmedChars} chars of conversation context ` +
+    `nconnect: ${severity} ${info.trimmedChars} chars of conversation context ` +
       `to fit <${info.model}> window (${info.path} path${info.action ? `, ${info.action}` : ""}) ` +
       `- if you see this often, report it\n`,
   );

@@ -3,7 +3,7 @@ import {
   findModelById,
   getDefaultModel,
   type ModelDefinition,
-} from "@nebiusrelay/models";
+} from "@nconnect/models";
 import { APPROX_CHARS_PER_TOKEN } from "./claude/context-budget.js";
 
 /**
@@ -13,7 +13,7 @@ import { APPROX_CHARS_PER_TOKEN } from "./claude/context-budget.js";
  * pricing table it can't apply to non-Anthropic Nebius models,
  * so its estimate is wrong for us. Since the proxy is the one talking to
  * Nebius and holds the real token counts, it tracks cost itself using the
- * selected model's rates from @nebiusrelay/models.
+ * selected model's rates from @nconnect/models.
  */
 
 /**
@@ -28,7 +28,7 @@ import { APPROX_CHARS_PER_TOKEN } from "./claude/context-budget.js";
  * watching their budget than a free lunch we cannot verify. Anyone who knows
  * their actual rate can set it - e.g. 0.1 for a 90%-off cache.
  */
-export const CACHE_READ_RATIO_ENV = "NEBIUSRELAY_CACHE_READ_RATIO";
+export const CACHE_READ_RATIO_ENV = "NCONNECT_CACHE_READ_RATIO";
 const DEFAULT_CACHE_READ_RATIO = 1;
 
 export function cacheReadRatio(env: NodeJS.ProcessEnv = process.env): number {
@@ -300,13 +300,13 @@ export class CostTracker {
       return this.externalSummary;
     }
     const main =
-      `[nebiusrelay cost] session total: $${this.costUsd.toFixed(4)} ` +
+      `[nconnect cost] session total: $${this.costUsd.toFixed(4)} ` +
       `(${this.formatTokens(this.promptTokens)} in` +
       (this.cachedTokens > 0 ? ` incl ${this.formatTokens(this.cachedTokens)} cached` : "") +
       `, ${this.formatTokens(this.completionTokens)} out)`;
     if (this.visionCalls > 0) {
       return (
-        `${main}\n[nebiusrelay cost] vision: ${this.visionCalls} image(s), ` +
+        `${main}\n[nconnect cost] vision: ${this.visionCalls} image(s), ` +
         `$${this.visionCostUsd.toFixed(4)} ` +
         `(${this.formatTokens(this.visionPromptTokens)} in, ${this.formatTokens(this.visionCompletionTokens)} out)`
       );

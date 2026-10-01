@@ -68,7 +68,7 @@ export function codexAppLaunchMessage(result: CodexAppLaunchResult): string {
     return "ChatGPT App is already open. Restart it when you are ready so it reloads this profile.";
   }
   if (result.wasRunning && result.restartUnsupported) {
-    return "ChatGPT App is already open, but nebiusrelay could not restart it. Quit and reopen ChatGPT App when you are ready.";
+    return "ChatGPT App is already open, but nconnect could not restart it. Quit and reopen ChatGPT App when you are ready.";
   }
   if (!result.wasRunning && !result.launchAttempted) {
     return "ChatGPT App was not running.";
@@ -84,9 +84,7 @@ async function shouldRestartCodexApp(reason: CodexAppLaunchReason): Promise<bool
   }
   const clack = await import("@clack/prompts");
   const action =
-    reason === "restored"
-      ? "reload your restored ChatGPT profile"
-      : "reload the Nebius TF Relay profile";
+    reason === "restored" ? "reload your restored ChatGPT profile" : "reload the NConnect profile";
   const restart = await clack.confirm({
     message: `ChatGPT App is already open. Restart it now to ${action}?`,
     initialValue: false,

@@ -13,31 +13,32 @@ import {
 import { VERSION } from "../version.js";
 
 export function printHelp() {
-  console.log(`nebiusrelay v${VERSION} - Nebius Token Factory for coding CLIs
+  console.log(`nconnect v${VERSION} - Nebius Token Factory for coding CLIs
 
 Usage:
-  nebiusrelay configure
-  nebiusrelay update            update to the latest release
-  nebiusrelay whoami
-  nebiusrelay usage [--last 7d] tracked local spend by model and tool
-  nebiusrelay daemon install    start the daemon at login (macOS/Linux)
-  nebiusrelay daemon uninstall  stop starting the daemon at login
-  nebiusrelay daemon status     show auto-start service status
-  nebiusrelay daemon stop       stop the running daemon
-  nebiusrelay chatgpt [--model <model>]              (alpha)
-  nebiusrelay chatgpt off       stop routing Codex/ChatGPT Desktop through the
+  nconnect configure
+  nconnect update            update to the latest release
+  nconnect whoami
+  nconnect usage [--last 7d] tracked local spend by model and tool
+  nconnect daemon install    start the daemon at login (macOS/Linux)
+  nconnect daemon uninstall  stop starting the daemon at login
+  nconnect daemon status     show auto-start service status
+  nconnect daemon stop       stop the running daemon
+  nconnect chatgpt [--model <model>]              (alpha)
+  nconnect chatgpt off       stop routing Codex/ChatGPT Desktop through the
                                 relay and restore your previous config
-                                (also: "codex off", or bare "nebiusrelay off")
-  nebiusrelay codex [...]       (alias: ncodex)
-  nebiusrelay claude [...]      (alias: nclaude)
-  nebiusrelay pi [...]          (alias: npi)
-  nebiusrelay opencode [...]    (alias: nopencode)
-  nebiusrelay prime [...]       (alias: nprime)
-  nebiusrelay hermes [...]      (alias: nhermes; "hermes desktop" for the app)
-  nebiusrelay deepseek [...]    (alpha, alias: ndeepseek)
-  nebiusrelay grok [...]        (alias: ngrok; Grok's UI on Nebius models)
+                                (also: "codex off", or bare "nconnect off")
+  nconnect codex [...]       (alias: ncodex)
+  nconnect claude [...]      (alias: nclaude)
+  nconnect pi [...]          (alias: npi)
+  nconnect opencode [...]    (alias: nopencode)
+  nconnect prime [...]       (alias: nprime)
+  nconnect hermes [...]      (alias: nhermes; "hermes desktop" for the app)
+  nconnect deepseek [...]    (alpha, alias: ndeepseek)
+  nconnect grok [...]        (alias: ngrok; Grok's UI on Nebius models)
+  nconnect unreal [...]      (alias: nunreal; Unreal Agent runner on Nebius models)
 
-Extra args after codex/claude/pi/opencode/prime are passed through.
+Extra args after codex/claude/pi/opencode/prime/unreal are passed through.
 ChatGPT App support is alpha. The managed ~/.codex/config.toml is shared with the
 Codex CLI, so "chatgpt off" (or "codex off") restores both.
 
@@ -48,14 +49,14 @@ Codex flags:
 Your last-used model is remembered per tool: change it with /model (or --model
 before the harness) and the next launch reuses it.
 
-Docs: https://nebius-tf-relay.vercel.app/llms.txt
+Docs: https://nconnect.sh/llms.txt
   LLM-readable documentation - if you are an AI agent asked to install, configure,
-  or use nebiusrelay (including headless use), read that file first.
+  or use nconnect (including headless use), read that file first.
 `);
 }
 
 export async function runConfigure(home = os.homedir()): Promise<boolean> {
-  clack.intro("nebiusrelay configure");
+  clack.intro("nconnect configure");
 
   const detected = detectInstalledHarnesses();
   const notImplemented = ALL_HARNESSES.filter((h) => !isHarnessImplemented(h));
@@ -116,7 +117,7 @@ export async function runConfigure(home = os.homedir()): Promise<boolean> {
     clack.log.info(
       `Ready to launch: ${launchable
         .map((h) => HARNESS_LABEL[h])
-        .join(", ")}. Run \`nebiusrelay <harness>\` to start - nothing is written to disk.`,
+        .join(", ")}. Run \`nconnect <harness>\` to start - nothing is written to disk.`,
     );
   }
 

@@ -1,4 +1,4 @@
-import type { ModelDefinition } from "@nebiusrelay/models";
+import type { ModelDefinition } from "@nconnect/models";
 import { type ContextTrimTelemetryInfo } from "../telemetry.js";
 import { writeProxyDebugLog } from "../proxy-debug.js";
 import {
@@ -205,5 +205,5 @@ function debugLog(
   label: string,
   value: unknown | (() => unknown),
 ): void {
-  writeProxyDebugLog("nebiusrelay proxy", options, label, value);
+  writeProxyDebugLog("nconnect proxy", options, label, value);
 }

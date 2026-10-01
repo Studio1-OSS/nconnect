@@ -47,7 +47,7 @@ jobs:
         run: pnpm typecheck
 
       - name: Build CLI + models
-        run: pnpm exec turbo run build --filter @nebiusrelay/models --filter @nebiusrelay/cli
+        run: pnpm exec turbo run build --filter @nconnect/models --filter @nconnect/cli
 
       - name: Offline tests
         run: pnpm test:offline

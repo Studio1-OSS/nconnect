@@ -155,7 +155,7 @@ images-test/*
 
 /site/public/install.sh
 /site/public/latest.json
-/site/public/nebiusrelay.js
+/site/public/nconnect.js
 
 MVP-PLAN.md
 

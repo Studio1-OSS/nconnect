@@ -12,7 +12,7 @@ describe("Codex generic user config", () => {
   let tmpDir: string;
 
   beforeEach(async () => {
-    tmpDir = await mkdtemp(path.join(os.tmpdir(), "nebiusrelay-codex-user-config-"));
+    tmpDir = await mkdtemp(path.join(os.tmpdir(), "nconnect-codex-user-config-"));
   });
 
   afterEach(async () => {

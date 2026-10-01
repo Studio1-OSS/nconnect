@@ -5,8 +5,7 @@ import { readFileSync } from "node:fs";
  * root package version from `scripts/build-bundle.sh`; local `tsc` builds read
  * the CLI package.json next to the compiled dist output.
  */
-export const VERSION: string =
-  process.env.NEBIUSRELAY_VERSION ?? readPackageVersion() ?? "0.0.0-dev";
+export const VERSION: string = process.env.NCONNECT_VERSION ?? readPackageVersion() ?? "0.0.0-dev";
 
 function readPackageVersion(): string | undefined {
   try {

@@ -22,7 +22,7 @@ export type CodexLaunchResult = {
 };
 
 /**
- * `--no-mcp` is a nebiusrelay convenience: Codex connects to every MCP server
+ * `--no-mcp` is a nconnect convenience: Codex connects to every MCP server
  * in `~/.codex/config.toml` at startup (docker containers, remote URLs), which
  * can add many seconds even to a "hi". We can't clear individual `[mcp_servers]`
  * TOML tables reliably via `-c`, so `--no-mcp` maps to Codex's own
@@ -69,7 +69,7 @@ export async function runCodexNebius(options: CodexLaunchOptions): Promise<Codex
     binary: "codex",
     keepaliveLabel: "Codex session",
     banner: (modelName) =>
-      `Nebius TF Relay ▸ Routing Codex → Nebius Token Factory (${modelName}). Not OpenAI.\n`,
+      `NConnect ▸ Routing Codex → Nebius Token Factory (${modelName}). Not OpenAI.\n`,
     beforeSpawn: () => {
       catalog = writeCodexModelCatalog();
       return catalog;
@@ -114,7 +114,7 @@ function codexConfigArgs(
     "-c",
     `model_catalog_json="${catalogPath}"`,
     "-c",
-    `model_providers.${CODEX_PROVIDER_ID}.name="Nebius TF Relay"`,
+    `model_providers.${CODEX_PROVIDER_ID}.name="NConnect"`,
     "-c",
     `model_providers.${CODEX_PROVIDER_ID}.base_url="${proxyUrl}/v1"`,
     "-c",
@@ -125,7 +125,7 @@ function codexConfigArgs(
 }
 
 function writeCodexModelCatalog(): { path: string; cleanup: () => void } {
-  const dir = mkdtempSync(join(tmpdir(), "nebiusrelay-codex-catalog-"));
+  const dir = mkdtempSync(join(tmpdir(), "nconnect-codex-catalog-"));
   const path = join(dir, "models.json");
   writeFileSync(path, codexModelCatalogJson(), "utf8");
   return {

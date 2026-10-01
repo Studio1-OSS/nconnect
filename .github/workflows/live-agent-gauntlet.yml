@@ -20,6 +20,7 @@ on:
           - live-models-check
           - opencode
           - pi
+          - unreal
 
 concurrency:
   group: live-agent-gauntlet-${{ github.ref }}
@@ -33,7 +34,7 @@ jobs:
     env:
       CI: "true"
       NEBIUS_API_KEY: ${{ secrets.NEBIUS_API_KEY }}
-      NEBIUSRELAY_DEBUG: "1"
+      NCONNECT_DEBUG: "1"
       VITEST_RETRY: "3"
       HARNESS: ${{ github.event.inputs.harness || 'all' }}
 
@@ -114,14 +115,23 @@ jobs:
               npm install -g @earendil-works/pi-coding-agent
               pi --version
               ;;
+            unreal)
+              # Prebuilt runner from the Unreal Agent release; building it needs Go 1.27+.
+              curl -fsSL -o /tmp/unreal.tgz https://github.com/unreallabsai/unreal-agent/releases/download/v0.1.1/unreal-agent-runner_0.1.1_linux_amd64.tar.gz
+              curl -fsSL -o /tmp/unreal.sums https://github.com/unreallabsai/unreal-agent/releases/download/v0.1.1/SHA256SUMS
+              echo "$(grep linux_amd64 /tmp/unreal.sums | awk '{print $1}')  /tmp/unreal.tgz" | sha256sum -c -
+              tar -xzf /tmp/unreal.tgz -C /tmp unreal-agent-runner
+              sudo install -m 755 /tmp/unreal-agent-runner /usr/local/bin/unreal-agent-runner
+              unreal-agent-runner -h | head -1
+              ;;
             *)
               echo "Unknown harness: $HARNESS" >&2
               exit 1
               ;;
           esac
 
-      - name: Build nebiusrelay CLI
-        run: pnpm exec turbo run build --filter @nebiusrelay/models --filter @nebiusrelay/cli
+      - name: Build nconnect CLI
+        run: pnpm exec turbo run build --filter @nconnect/models --filter @nconnect/cli
 
       - name: Typecheck live tests
         run: node_modules/.bin/tsc -p packages/tests/tsconfig.json --noEmit
@@ -130,22 +140,25 @@ jobs:
         run: |
           case "$HARNESS" in
             all)
-              VITEST_FILE_PARALLELISM=0 VITEST_MAX_CONCURRENCY=1 pnpm exec turbo run test:gauntlet:core test:gauntlet:claude test:gauntlet:codex test:gauntlet:opencode test:gauntlet:pi --filter @nebiusrelay/tests --concurrency=1
+              VITEST_FILE_PARALLELISM=0 VITEST_MAX_CONCURRENCY=1 pnpm exec turbo run test:gauntlet:core test:gauntlet:claude test:gauntlet:codex test:gauntlet:opencode test:gauntlet:pi --filter @nconnect/tests --concurrency=1
               ;;
             claude)
-              pnpm exec turbo run test:gauntlet:claude --filter @nebiusrelay/tests
+              pnpm exec turbo run test:gauntlet:claude --filter @nconnect/tests
               ;;
             codex)
-              pnpm exec turbo run test:gauntlet:codex --filter @nebiusrelay/tests
+              pnpm exec turbo run test:gauntlet:codex --filter @nconnect/tests
               ;;
             live-models-check)
-              pnpm exec turbo run test:gauntlet:live-models-check --filter @nebiusrelay/tests
+              pnpm exec turbo run test:gauntlet:live-models-check --filter @nconnect/tests
               ;;
             opencode)
-              pnpm exec turbo run test:gauntlet:opencode --filter @nebiusrelay/tests
+              pnpm exec turbo run test:gauntlet:opencode --filter @nconnect/tests
               ;;
             pi)
-              pnpm exec turbo run test:gauntlet:pi --filter @nebiusrelay/tests
+              pnpm exec turbo run test:gauntlet:pi --filter @nconnect/tests
+              ;;
+            unreal)
+              pnpm exec turbo run test:gauntlet:unreal --filter @nconnect/tests
               ;;
             *)
               echo "Unknown harness: $HARNESS" >&2
@@ -153,9 +166,9 @@ jobs:
               ;;
           esac
 
-      - name: Stop nebiusrelay daemon
+      - name: Stop nconnect daemon
         if: always()
-        run: node packages/cli/dist/bin/nebiusrelay.js daemon stop || true
+        run: node packages/cli/dist/bin/nconnect.js daemon stop || true
 
       - name: Save Turborepo cache
         if: always()

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the nebiusrelay site (landing page, install.sh, nebiusrelay.js bundle,
+# Builds the nconnect site (landing page, install.sh, nconnect.js bundle,
 # latest.json, llms.txt). Telemetry is opt-in in this fork and its Convex
 # backend is not part of the deploy, so every environment uses the standalone
 # build with no Convex deploy key required. To run the telemetry backend, set

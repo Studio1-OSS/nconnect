@@ -6,7 +6,7 @@ import {
   startTestDaemon,
 } from "./daemon-session.js";
 import { makeLongRecords, recordsToOverflow } from "./long-context.js";
-import { findModelById } from "@nebiusrelay/models";
+import { findModelById } from "@nconnect/models";
 import { initModelCatalog } from "../../cli/src/lib/model-catalog-init.js";
 import type { TestContext } from "./types.js";
 
@@ -43,13 +43,13 @@ export async function assertClaudeContextLimitRetry(context: TestContext): Promi
     assert(!looksLikeContextError(text), "context-length error leaked to the client");
     const stderr = daemon.stderr();
     assert(
-      stderr.includes("[nebiusrelay proxy] context-fit retry") ||
+      stderr.includes("[nconnect proxy] context-fit retry") ||
         stderr.includes('"maxTokens":28000') ||
         stderr.includes("retrying nebius request with reduced max_tokens") ||
         stderr.includes("clamped request max_tokens to estimated context budget") ||
         stderr.includes("trimmed request input to reserve requested output") ||
-        (stderr.includes("nebiusrelay: trimmed") && stderr.includes("(retry path")) ||
-        (stderr.includes("nebiusrelay: DROPPED A LARGE PORTION") && stderr.includes("(retry path")),
+        (stderr.includes("nconnect: trimmed") && stderr.includes("(retry path")) ||
+        (stderr.includes("nconnect: DROPPED A LARGE PORTION") && stderr.includes("(retry path")),
       `daemon did not log context-limit prevention; stderr=${stderr.slice(-2000)}`,
     );
     assert(/CONTEXT_RETRY_OK/i.test(text), "retry response did not include expected final answer");
@@ -88,7 +88,7 @@ export async function assertCodexContextLimitRetry(context: TestContext): Promis
     );
     assert(!looksLikeContextError(text), "context-length error leaked to the client");
     assert(
-      daemon.stderr().includes("[nebiusrelay proxy] context-fit retry"),
+      daemon.stderr().includes("[nconnect proxy] context-fit retry"),
       "daemon did not log Codex context-limit retry",
     );
     assert(

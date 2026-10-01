@@ -7,7 +7,7 @@ import { opencodeScenarios } from "./harnesses/opencode.js";
 import { piScenarios } from "./harnesses/pi.js";
 import type { Scenario, TestContext } from "./types.js";
 
-const maybeDescribe = process.env.NEBIUSRELAY_LIVE_SMOKE === "1" ? describe : describe.skip;
+const maybeDescribe = process.env.NCONNECT_LIVE_SMOKE === "1" ? describe : describe.skip;
 
 maybeDescribe("live headless harness smoke", () => {
   let context: TestContext;

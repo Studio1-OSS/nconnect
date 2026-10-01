@@ -1,4 +1,4 @@
-import type { ModelDefinition } from "@nebiusrelay/models";
+import type { ModelDefinition } from "@nconnect/models";
 import type { ResponsesInputItem, ResponsesRequest } from "./wire-types.js";
 
 /**
@@ -17,7 +17,7 @@ import type { ResponsesInputItem, ResponsesRequest } from "./wire-types.js";
  * hand the summary back as a `compaction` item Codex can replay.
  *
  * The summary is stored in `encrypted_content` because that is the field Codex
- * reads. It is NOT encryption - it is a versioned, reversible nebiusrelay
+ * reads. It is NOT encryption - it is a versioned, reversible nconnect
  * encoding (prefix `nrc1:`) so a later turn can recover the plain summary.
  */
 

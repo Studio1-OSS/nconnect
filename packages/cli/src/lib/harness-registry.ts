@@ -10,6 +10,7 @@ const LOADERS: Partial<Record<HarnessId, () => Promise<{ default: Harness }>>> =
   [HARNESS.DEEPSEEK]: () => import("./harnesses/deepseek.js"),
   [HARNESS.GROK]: () => import("./harnesses/grok.js"),
   [HARNESS.HERMES]: () => import("./harnesses/hermes.js"),
+  [HARNESS.UNREAL]: () => import("./harnesses/unreal.js"),
 };
 
 export async function loadHarness(harness: HarnessId): Promise<Harness> {

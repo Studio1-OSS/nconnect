@@ -23,7 +23,7 @@ export async function createFixtureRepo(context: TestContext, owner: string): Pr
     path.join(root, "package.json"),
     `${JSON.stringify(
       {
-        name: `nebiusrelay-fixture-${owner}`,
+        name: `nconnect-fixture-${owner}`,
         private: true,
         type: "module",
         scripts: { test: "node --test" },
@@ -37,7 +37,7 @@ export async function createFixtureRepo(context: TestContext, owner: string): Pr
     [
       "# Stats Fixture",
       "",
-      "This tiny repo is used by nebiusrelay live agent tests.",
+      "This tiny repo is used by nconnect live agent tests.",
       "",
       "Implemented functions:",
       "- sum(numbers)",
@@ -84,10 +84,10 @@ export async function createFixtureRepo(context: TestContext, owner: string): Pr
     cwd: root,
     env: {
       ...process.env,
-      GIT_AUTHOR_NAME: "nebiusrelay tests",
-      GIT_AUTHOR_EMAIL: "tests@nebiusrelay.local",
-      GIT_COMMITTER_NAME: "nebiusrelay tests",
-      GIT_COMMITTER_EMAIL: "tests@nebiusrelay.local",
+      GIT_AUTHOR_NAME: "nconnect tests",
+      GIT_AUTHOR_EMAIL: "tests@nconnect.local",
+      GIT_COMMITTER_NAME: "nconnect tests",
+      GIT_COMMITTER_EMAIL: "tests@nconnect.local",
     },
   });
 

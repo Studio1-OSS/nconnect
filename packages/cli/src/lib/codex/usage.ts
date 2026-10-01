@@ -1,4 +1,4 @@
-import { type ModelDefinition } from "@nebiusrelay/models";
+import { type ModelDefinition } from "@nconnect/models";
 import type { CostTracker } from "../cost.js";
 import type { ChatResponse } from "./wire-types.js";
 

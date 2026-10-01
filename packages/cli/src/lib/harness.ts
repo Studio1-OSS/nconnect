@@ -7,6 +7,7 @@ export const HARNESS = {
   OPENCODE: "opencode",
   PI: "pi",
   PRIME: "prime",
+  UNREAL: "unreal",
 } as const;
 
 export type HarnessId = (typeof HARNESS)[keyof typeof HARNESS];
@@ -20,6 +21,7 @@ export const ALL_HARNESSES = [
   HARNESS.OPENCODE,
   HARNESS.PI,
   HARNESS.PRIME,
+  HARNESS.UNREAL,
 ] as const;
 
 // The CLI binary each harness ships, used for `which`-based detection.
@@ -32,6 +34,7 @@ export const HARNESS_BIN: Record<HarnessId, string> = {
   [HARNESS.OPENCODE]: "opencode",
   [HARNESS.PI]: "pi",
   [HARNESS.PRIME]: "prime-agent",
+  [HARNESS.UNREAL]: "unreal-agent-runner",
 };
 
 export const HARNESS_LABEL: Record<HarnessId, string> = {
@@ -43,6 +46,7 @@ export const HARNESS_LABEL: Record<HarnessId, string> = {
   [HARNESS.OPENCODE]: "OpenCode",
   [HARNESS.PI]: "Pi Code",
   [HARNESS.PRIME]: "Prime Agent",
+  [HARNESS.UNREAL]: "Unreal Agent",
 };
 
 export const HARNESS_INSTALL: Record<HarnessId, { command: string; url: string }> = {
@@ -77,5 +81,10 @@ export const HARNESS_INSTALL: Record<HarnessId, { command: string; url: string }
   [HARNESS.PRIME]: {
     command: "curl -fsSL https://app.primeintellect.ai/prime-agent/install.sh | sh",
     url: "https://github.com/PrimeIntellect-ai/prime-agent",
+  },
+  [HARNESS.UNREAL]: {
+    // Needs Go 1.27+; prebuilt darwin/linux binaries are on the releases page.
+    command: "go install github.com/unreallabsai/unreal-agent/cmd/unreal-agent-runner@latest",
+    url: "https://github.com/unreallabsai/unreal-agent/releases",
   },
 };

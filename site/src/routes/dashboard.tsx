@@ -80,10 +80,7 @@ const saveInstallNickname = createServerFn({ method: "POST" })
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
-    meta: [
-      { title: "Dashboard | nConnect" },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: [{ title: "Dashboard | NConnect" }, { name: "robots", content: "noindex, nofollow" }],
   }),
   loader: async () => checkDashboardAuth(),
   component: DashboardRoute,
@@ -193,10 +190,9 @@ function DashboardRoute() {
       <div className="mb-6 rounded-md border border-line-strong bg-code px-4 py-3 text-sm text-muted">
         Scope: this dashboard only sees sessions launched through{" "}
         <code className="font-mono text-ink">nconnect claude</code> /{" "}
-        <code className="font-mono text-ink">nconnect codex</code>, which route through our
-        proxy. OpenCode sessions and any direct nConnect API key usage bypass the proxy entirely and
-        are not counted here - so these numbers are a lower bound on total usage, not the whole
-        picture.
+        <code className="font-mono text-ink">nconnect codex</code>, which route through our proxy.
+        OpenCode sessions and any direct Nebius API key usage bypass the proxy entirely and are not
+        counted here - so these numbers are a lower bound on total usage, not the whole picture.
       </div>
 
       {loading && !data && <p className="text-sm text-muted">Loading…</p>}

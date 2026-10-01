@@ -1,45 +1,542 @@
-import { ClaudeMark, CodexMark, OpenCodeMark, PiMark, HermesMark, DeepSeekMark, GrokMark, PrimeMark } from "./ProviderBrand";
+import {
+  ClaudeMark,
+  CodexMark,
+  OpenCodeMark,
+  PiMark,
+  HermesMark,
+  DeepSeekMark,
+  GrokMark,
+  PrimeMark,
+} from "./ProviderBrand";
 
 export function CofounderGraphic() {
   return (
-    <svg viewBox="0 0 520 520" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      viewBox="0 0 520 520"
+      className="w-full h-full"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <defs></defs>
       <g style={{ animation: "spin 40s linear infinite", transformOrigin: "260px 260px" }}>
         <circle cx="260" cy="260" r="204" stroke="rgba(0,0,0,0.10)" strokeWidth="1"></circle>
-        <line x1="260" y1="260" x2="260" y2="56" stroke="rgba(32,32,32,0.10)" strokeWidth="1.128" strokeLinecap="round" strokeDasharray="4.51 4.51"></line>
-        <line x1="260" y1="260" x2="404.25" y2="115.75" stroke="rgba(32,32,32,0.10)" strokeWidth="1.128" strokeLinecap="round" strokeDasharray="4.51 4.51"></line>
-        <line x1="260" y1="260" x2="464" y2="260" stroke="rgba(32,32,32,0.10)" strokeWidth="1.128" strokeLinecap="round" strokeDasharray="4.51 4.51"></line>
-        <line x1="260" y1="260" x2="404.25" y2="404.25" stroke="rgba(32,32,32,0.10)" strokeWidth="1.128" strokeLinecap="round" strokeDasharray="4.51 4.51"></line>
-        <line x1="260" y1="260" x2="260" y2="464" stroke="rgba(32,32,32,0.10)" strokeWidth="1.128" strokeLinecap="round" strokeDasharray="4.51 4.51"></line>
-        <line x1="260" y1="260" x2="115.75" y2="404.25" stroke="rgba(32,32,32,0.10)" strokeWidth="1.128" strokeLinecap="round" strokeDasharray="4.51 4.51"></line>
-        <line x1="260" y1="260" x2="56" y2="260" stroke="rgba(32,32,32,0.10)" strokeWidth="1.128" strokeLinecap="round" strokeDasharray="4.51 4.51"></line>
-        <line x1="260" y1="260" x2="115.75" y2="115.75" stroke="rgba(32,32,32,0.10)" strokeWidth="1.128" strokeLinecap="round" strokeDasharray="4.51 4.51"></line>
-        <circle cx="260" cy="260" r="3.5" fill="#F5F5F2" stroke="rgba(0,0,0,0.12)" strokeWidth="0.5"></circle>
-        <circle cx="260" cy="56" r="3.5" fill="#F5F5F2" stroke="rgba(0,0,0,0.12)" strokeWidth="0.5"></circle>
-        <circle cx="404.25" cy="115.75" r="3.5" fill="#F5F5F2" stroke="rgba(0,0,0,0.12)" strokeWidth="0.5"></circle>
-        <circle cx="464" cy="260" r="3.5" fill="#F5F5F2" stroke="rgba(0,0,0,0.12)" strokeWidth="0.5"></circle>
-        <circle cx="404.25" cy="404.25" r="3.5" fill="#F5F5F2" stroke="rgba(0,0,0,0.12)" strokeWidth="0.5"></circle>
-        <circle cx="260" cy="464" r="3.5" fill="#F5F5F2" stroke="rgba(0,0,0,0.12)" strokeWidth="0.5"></circle>
-        <circle cx="115.75" cy="404.25" r="3.5" fill="#F5F5F2" stroke="rgba(0,0,0,0.12)" strokeWidth="0.5"></circle>
-        <circle cx="56" cy="260" r="3.5" fill="#F5F5F2" stroke="rgba(0,0,0,0.12)" strokeWidth="0.5"></circle>
-        <circle cx="115.75" cy="115.75" r="3.5" fill="#F5F5F2" stroke="rgba(0,0,0,0.12)" strokeWidth="0.5"></circle>
+        <line
+          x1="260"
+          y1="260"
+          x2="260"
+          y2="56"
+          stroke="rgba(32,32,32,0.10)"
+          strokeWidth="1.128"
+          strokeLinecap="round"
+          strokeDasharray="4.51 4.51"
+        ></line>
+        <line
+          x1="260"
+          y1="260"
+          x2="404.25"
+          y2="115.75"
+          stroke="rgba(32,32,32,0.10)"
+          strokeWidth="1.128"
+          strokeLinecap="round"
+          strokeDasharray="4.51 4.51"
+        ></line>
+        <line
+          x1="260"
+          y1="260"
+          x2="464"
+          y2="260"
+          stroke="rgba(32,32,32,0.10)"
+          strokeWidth="1.128"
+          strokeLinecap="round"
+          strokeDasharray="4.51 4.51"
+        ></line>
+        <line
+          x1="260"
+          y1="260"
+          x2="404.25"
+          y2="404.25"
+          stroke="rgba(32,32,32,0.10)"
+          strokeWidth="1.128"
+          strokeLinecap="round"
+          strokeDasharray="4.51 4.51"
+        ></line>
+        <line
+          x1="260"
+          y1="260"
+          x2="260"
+          y2="464"
+          stroke="rgba(32,32,32,0.10)"
+          strokeWidth="1.128"
+          strokeLinecap="round"
+          strokeDasharray="4.51 4.51"
+        ></line>
+        <line
+          x1="260"
+          y1="260"
+          x2="115.75"
+          y2="404.25"
+          stroke="rgba(32,32,32,0.10)"
+          strokeWidth="1.128"
+          strokeLinecap="round"
+          strokeDasharray="4.51 4.51"
+        ></line>
+        <line
+          x1="260"
+          y1="260"
+          x2="56"
+          y2="260"
+          stroke="rgba(32,32,32,0.10)"
+          strokeWidth="1.128"
+          strokeLinecap="round"
+          strokeDasharray="4.51 4.51"
+        ></line>
+        <line
+          x1="260"
+          y1="260"
+          x2="115.75"
+          y2="115.75"
+          stroke="rgba(32,32,32,0.10)"
+          strokeWidth="1.128"
+          strokeLinecap="round"
+          strokeDasharray="4.51 4.51"
+        ></line>
+        <circle
+          cx="260"
+          cy="260"
+          r="3.5"
+          fill="#F5F5F2"
+          stroke="rgba(0,0,0,0.12)"
+          strokeWidth="0.5"
+        ></circle>
+        <circle
+          cx="260"
+          cy="56"
+          r="3.5"
+          fill="#F5F5F2"
+          stroke="rgba(0,0,0,0.12)"
+          strokeWidth="0.5"
+        ></circle>
+        <circle
+          cx="404.25"
+          cy="115.75"
+          r="3.5"
+          fill="#F5F5F2"
+          stroke="rgba(0,0,0,0.12)"
+          strokeWidth="0.5"
+        ></circle>
+        <circle
+          cx="464"
+          cy="260"
+          r="3.5"
+          fill="#F5F5F2"
+          stroke="rgba(0,0,0,0.12)"
+          strokeWidth="0.5"
+        ></circle>
+        <circle
+          cx="404.25"
+          cy="404.25"
+          r="3.5"
+          fill="#F5F5F2"
+          stroke="rgba(0,0,0,0.12)"
+          strokeWidth="0.5"
+        ></circle>
+        <circle
+          cx="260"
+          cy="464"
+          r="3.5"
+          fill="#F5F5F2"
+          stroke="rgba(0,0,0,0.12)"
+          strokeWidth="0.5"
+        ></circle>
+        <circle
+          cx="115.75"
+          cy="404.25"
+          r="3.5"
+          fill="#F5F5F2"
+          stroke="rgba(0,0,0,0.12)"
+          strokeWidth="0.5"
+        ></circle>
+        <circle
+          cx="56"
+          cy="260"
+          r="3.5"
+          fill="#F5F5F2"
+          stroke="rgba(0,0,0,0.12)"
+          strokeWidth="0.5"
+        ></circle>
+        <circle
+          cx="115.75"
+          cy="115.75"
+          r="3.5"
+          fill="#F5F5F2"
+          stroke="rgba(0,0,0,0.12)"
+          strokeWidth="0.5"
+        ></circle>
       </g>
-      
+
       <foreignObject x="60" y="60" width="400" height="400" style={{ overflow: "visible" }}>
         <div className="w-full h-full flex items-center justify-center pointer-events-none">
-          <img src="/hero/logo.png" alt="" className="w-[200px] h-[200px] object-contain drop-shadow-2xl" />
+          <img
+            src="/hero/logo.png"
+            alt=""
+            className="w-[200px] h-[200px] object-contain drop-shadow-2xl"
+          />
         </div>
       </foreignObject>
 
       <g style={{ animation: "spin 40s linear infinite", transformOrigin: "260px 260px" }}>
-        <g style={{ animation: "counter-spin 40s linear infinite", transformOrigin: "260px 56px" }}><foreignObject x="195" y="9" width="130" height="94" style={{ overflow: "visible" }}><div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent" }}><div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "8.287px", color: "rgba(32, 32, 32, 0.60)", textAlign: "center", fontFamily: "var(--font-neoris), sans-serif", fontSize: "11px", fontWeight: 400, lineHeight: "120%", whiteSpace: "nowrap" }}><div className="flex items-center justify-center drop-shadow-sm opacity-90" style={{ transform: "scale(1.8)" }}><ClaudeMark /></div></div></div></foreignObject></g>
-        <g style={{ animation: "counter-spin 40s linear infinite", transformOrigin: "404.25px 115.75px" }}><foreignObject x="339.25" y="68.75" width="130" height="94" style={{ overflow: "visible" }}><div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent" }}><div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "8.287px", color: "rgba(32, 32, 32, 0.60)", textAlign: "center", fontFamily: "var(--font-neoris), sans-serif", fontSize: "11px", fontWeight: 400, lineHeight: "120%", whiteSpace: "nowrap" }}><div className="flex items-center justify-center drop-shadow-sm opacity-90" style={{ transform: "scale(1.8)" }}><CodexMark /></div></div></div></foreignObject></g>
-        <g style={{ animation: "counter-spin 40s linear infinite", transformOrigin: "464px 260px" }}><foreignObject x="399" y="213" width="130" height="94" style={{ overflow: "visible" }}><div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent" }}><div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "8.287px", color: "rgba(32, 32, 32, 0.60)", textAlign: "center", fontFamily: "var(--font-neoris), sans-serif", fontSize: "11px", fontWeight: 400, lineHeight: "120%", whiteSpace: "nowrap" }}><div className="flex items-center justify-center drop-shadow-sm opacity-90" style={{ transform: "scale(1.8)" }}><OpenCodeMark /></div></div></div></foreignObject></g>
-        <g style={{ animation: "counter-spin 40s linear infinite", transformOrigin: "404.25px 404.25px" }}><foreignObject x="339.25" y="357.25" width="130" height="94" style={{ overflow: "visible" }}><div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent" }}><div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "8.287px", color: "rgba(32, 32, 32, 0.60)", textAlign: "center", fontFamily: "var(--font-neoris), sans-serif", fontSize: "11px", fontWeight: 400, lineHeight: "120%", whiteSpace: "nowrap" }}><div className="flex items-center justify-center drop-shadow-sm opacity-90" style={{ transform: "scale(1.8)" }}><PiMark /></div></div></div></foreignObject></g>
-        <g style={{ animation: "counter-spin 40s linear infinite", transformOrigin: "260px 464px" }}><foreignObject x="195" y="417" width="130" height="94" style={{ overflow: "visible" }}><div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent" }}><div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "8.287px", color: "rgba(32, 32, 32, 0.60)", textAlign: "center", fontFamily: "var(--font-neoris), sans-serif", fontSize: "11px", fontWeight: 400, lineHeight: "120%", whiteSpace: "nowrap" }}><div className="flex items-center justify-center drop-shadow-sm opacity-90" style={{ transform: "scale(1.8)" }}><HermesMark /></div></div></div></foreignObject></g>
-        <g style={{ animation: "counter-spin 40s linear infinite", transformOrigin: "115.75px 404.25px" }}><foreignObject x="50.75" y="357.25" width="130" height="94" style={{ overflow: "visible" }}><div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent" }}><div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "8.287px", color: "rgba(32, 32, 32, 0.60)", textAlign: "center", fontFamily: "var(--font-neoris), sans-serif", fontSize: "11px", fontWeight: 400, lineHeight: "120%", whiteSpace: "nowrap" }}><div className="flex items-center justify-center drop-shadow-sm opacity-90" style={{ transform: "scale(1.8)" }}><DeepSeekMark /></div></div></div></foreignObject></g>
-        <g style={{ animation: "counter-spin 40s linear infinite", transformOrigin: "56px 260px" }}><foreignObject x="-9" y="213.00" width="130" height="94" style={{ overflow: "visible" }}><div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent" }}><div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "8.287px", color: "rgba(32, 32, 32, 0.60)", textAlign: "center", fontFamily: "var(--font-neoris), sans-serif", fontSize: "11px", fontWeight: 400, lineHeight: "120%", whiteSpace: "nowrap" }}><div className="flex items-center justify-center drop-shadow-sm opacity-90" style={{ transform: "scale(1.8)" }}><GrokMark /></div></div></div></foreignObject></g>
-        <g style={{ animation: "counter-spin 40s linear infinite", transformOrigin: "115.75px 115.75px" }}><foreignObject x="50.75" y="68.75" width="130" height="94" style={{ overflow: "visible" }}><div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent" }}><div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "8.287px", color: "rgba(32, 32, 32, 0.60)", textAlign: "center", fontFamily: "var(--font-neoris), sans-serif", fontSize: "11px", fontWeight: 400, lineHeight: "120%", whiteSpace: "nowrap" }}><div className="flex items-center justify-center drop-shadow-sm opacity-90" style={{ transform: "scale(1.8)" }}><PrimeMark /></div></div></div></foreignObject></g>
+        <g style={{ animation: "counter-spin 40s linear infinite", transformOrigin: "260px 56px" }}>
+          <foreignObject x="195" y="9" width="130" height="94" style={{ overflow: "visible" }}>
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "8.287px",
+                  color: "rgba(32, 32, 32, 0.60)",
+                  textAlign: "center",
+                  fontFamily: "var(--font-neoris), sans-serif",
+                  fontSize: "11px",
+                  fontWeight: 400,
+                  lineHeight: "120%",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <div
+                  className="flex items-center justify-center drop-shadow-sm opacity-90"
+                  style={{ transform: "scale(1.8)" }}
+                >
+                  <ClaudeMark />
+                </div>
+              </div>
+            </div>
+          </foreignObject>
+        </g>
+        <g
+          style={{
+            animation: "counter-spin 40s linear infinite",
+            transformOrigin: "404.25px 115.75px",
+          }}
+        >
+          <foreignObject
+            x="339.25"
+            y="68.75"
+            width="130"
+            height="94"
+            style={{ overflow: "visible" }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "8.287px",
+                  color: "rgba(32, 32, 32, 0.60)",
+                  textAlign: "center",
+                  fontFamily: "var(--font-neoris), sans-serif",
+                  fontSize: "11px",
+                  fontWeight: 400,
+                  lineHeight: "120%",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <div
+                  className="flex items-center justify-center drop-shadow-sm opacity-90"
+                  style={{ transform: "scale(1.8)" }}
+                >
+                  <CodexMark />
+                </div>
+              </div>
+            </div>
+          </foreignObject>
+        </g>
+        <g
+          style={{ animation: "counter-spin 40s linear infinite", transformOrigin: "464px 260px" }}
+        >
+          <foreignObject x="399" y="213" width="130" height="94" style={{ overflow: "visible" }}>
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "8.287px",
+                  color: "rgba(32, 32, 32, 0.60)",
+                  textAlign: "center",
+                  fontFamily: "var(--font-neoris), sans-serif",
+                  fontSize: "11px",
+                  fontWeight: 400,
+                  lineHeight: "120%",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <div
+                  className="flex items-center justify-center drop-shadow-sm opacity-90"
+                  style={{ transform: "scale(1.8)" }}
+                >
+                  <OpenCodeMark />
+                </div>
+              </div>
+            </div>
+          </foreignObject>
+        </g>
+        <g
+          style={{
+            animation: "counter-spin 40s linear infinite",
+            transformOrigin: "404.25px 404.25px",
+          }}
+        >
+          <foreignObject
+            x="339.25"
+            y="357.25"
+            width="130"
+            height="94"
+            style={{ overflow: "visible" }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "8.287px",
+                  color: "rgba(32, 32, 32, 0.60)",
+                  textAlign: "center",
+                  fontFamily: "var(--font-neoris), sans-serif",
+                  fontSize: "11px",
+                  fontWeight: 400,
+                  lineHeight: "120%",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <div
+                  className="flex items-center justify-center drop-shadow-sm opacity-90"
+                  style={{ transform: "scale(1.8)" }}
+                >
+                  <PiMark />
+                </div>
+              </div>
+            </div>
+          </foreignObject>
+        </g>
+        <g
+          style={{ animation: "counter-spin 40s linear infinite", transformOrigin: "260px 464px" }}
+        >
+          <foreignObject x="195" y="417" width="130" height="94" style={{ overflow: "visible" }}>
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "8.287px",
+                  color: "rgba(32, 32, 32, 0.60)",
+                  textAlign: "center",
+                  fontFamily: "var(--font-neoris), sans-serif",
+                  fontSize: "11px",
+                  fontWeight: 400,
+                  lineHeight: "120%",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <div
+                  className="flex items-center justify-center drop-shadow-sm opacity-90"
+                  style={{ transform: "scale(1.8)" }}
+                >
+                  <HermesMark />
+                </div>
+              </div>
+            </div>
+          </foreignObject>
+        </g>
+        <g
+          style={{
+            animation: "counter-spin 40s linear infinite",
+            transformOrigin: "115.75px 404.25px",
+          }}
+        >
+          <foreignObject
+            x="50.75"
+            y="357.25"
+            width="130"
+            height="94"
+            style={{ overflow: "visible" }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "8.287px",
+                  color: "rgba(32, 32, 32, 0.60)",
+                  textAlign: "center",
+                  fontFamily: "var(--font-neoris), sans-serif",
+                  fontSize: "11px",
+                  fontWeight: 400,
+                  lineHeight: "120%",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <div
+                  className="flex items-center justify-center drop-shadow-sm opacity-90"
+                  style={{ transform: "scale(1.8)" }}
+                >
+                  <DeepSeekMark />
+                </div>
+              </div>
+            </div>
+          </foreignObject>
+        </g>
+        <g style={{ animation: "counter-spin 40s linear infinite", transformOrigin: "56px 260px" }}>
+          <foreignObject x="-9" y="213.00" width="130" height="94" style={{ overflow: "visible" }}>
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "8.287px",
+                  color: "rgba(32, 32, 32, 0.60)",
+                  textAlign: "center",
+                  fontFamily: "var(--font-neoris), sans-serif",
+                  fontSize: "11px",
+                  fontWeight: 400,
+                  lineHeight: "120%",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <div
+                  className="flex items-center justify-center drop-shadow-sm opacity-90"
+                  style={{ transform: "scale(1.8)" }}
+                >
+                  <GrokMark />
+                </div>
+              </div>
+            </div>
+          </foreignObject>
+        </g>
+        <g
+          style={{
+            animation: "counter-spin 40s linear infinite",
+            transformOrigin: "115.75px 115.75px",
+          }}
+        >
+          <foreignObject
+            x="50.75"
+            y="68.75"
+            width="130"
+            height="94"
+            style={{ overflow: "visible" }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "8.287px",
+                  color: "rgba(32, 32, 32, 0.60)",
+                  textAlign: "center",
+                  fontFamily: "var(--font-neoris), sans-serif",
+                  fontSize: "11px",
+                  fontWeight: 400,
+                  lineHeight: "120%",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <div
+                  className="flex items-center justify-center drop-shadow-sm opacity-90"
+                  style={{ transform: "scale(1.8)" }}
+                >
+                  <PrimeMark />
+                </div>
+              </div>
+            </div>
+          </foreignObject>
+        </g>
       </g>
     </svg>
   );

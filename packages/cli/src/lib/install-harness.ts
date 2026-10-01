@@ -72,7 +72,7 @@ export async function ensureHarnessInstalled(
   if (!installed) {
     process.stderr.write(
       `\n${label} installed, but "${HARNESS_BIN[harness]}" is still not on PATH. ` +
-        `Open a new shell and re-run: nebiusrelay ${harness}\n`,
+        `Open a new shell and re-run: nconnect ${harness}\n`,
     );
   }
   return installed;

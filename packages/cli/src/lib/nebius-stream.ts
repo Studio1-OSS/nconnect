@@ -196,8 +196,8 @@ async function persistStreamDiagnostic(
 
 function streamIdleTimeoutMs(): number {
   const raw =
-    process.env.NEBIUSRELAY_STREAM_IDLE_TIMEOUT_MS ??
-    process.env.NEBIUSRELAY_CODEX_STREAM_IDLE_TIMEOUT_MS;
+    process.env.NCONNECT_STREAM_IDLE_TIMEOUT_MS ??
+    process.env.NCONNECT_CODEX_STREAM_IDLE_TIMEOUT_MS;
   const parsed = raw ? Number.parseInt(raw, 10) : NaN;
   return Number.isFinite(parsed) && parsed > 0
     ? Math.max(100, parsed)
@@ -205,8 +205,7 @@ function streamIdleTimeoutMs(): number {
 }
 
 function streamRetries(): number {
-  const raw =
-    process.env.NEBIUSRELAY_STREAM_RETRIES ?? process.env.NEBIUSRELAY_CODEX_STREAM_IDLE_RETRIES;
+  const raw = process.env.NCONNECT_STREAM_RETRIES ?? process.env.NCONNECT_CODEX_STREAM_IDLE_RETRIES;
   const parsed = raw ? Number.parseInt(raw, 10) : NaN;
   return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : DEFAULT_STREAM_RETRIES;
 }

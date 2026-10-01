@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { type ModelDefinition } from "@nebiusrelay/models";
+import { type ModelDefinition } from "@nconnect/models";
 import type { WebSearchOutcome } from "../tavily-search.js";
 import { runNativeWebSearchCall } from "../native-web-search.js";
 import { writeProxyDebugLog } from "../proxy-debug.js";
@@ -138,8 +138,8 @@ export async function callNebiusChatCompletions(
     const json = response.json;
     if (typeof payload.max_tokens === "number") {
       (
-        json as OpenAIChatResponse & { _nebiusrelayRequestedMaxTokens?: number }
-      )._nebiusrelayRequestedMaxTokens = payload.max_tokens;
+        json as OpenAIChatResponse & { _nconnectRequestedMaxTokens?: number }
+      )._nconnectRequestedMaxTokens = payload.max_tokens;
     }
     const usage = json.usage;
     const promptTokens = usage?.prompt_tokens ?? 0;
@@ -170,7 +170,7 @@ export async function callNebiusChatCompletions(
     );
     if (nativeToolCalls.length === 0) {
       if (nativeWebSearches.length > 0) {
-        json._nebiusrelayNativeWebSearches = nativeWebSearches;
+        json._nconnectNativeWebSearches = nativeWebSearches;
       }
       return json;
     }
@@ -238,7 +238,7 @@ export async function callNebiusChatCompletions(
     ],
   };
   if (nativeWebSearches.length > 0) {
-    exhaustedResponse._nebiusrelayNativeWebSearches = nativeWebSearches;
+    exhaustedResponse._nconnectNativeWebSearches = nativeWebSearches;
   }
   return exhaustedResponse;
 }
@@ -248,7 +248,7 @@ function debugLog(
   label: string,
   value: unknown | (() => unknown),
 ): void {
-  writeProxyDebugLog("nebiusrelay proxy", options, label, value);
+  writeProxyDebugLog("nconnect proxy", options, label, value);
 }
 
 /**

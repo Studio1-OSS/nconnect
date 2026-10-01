@@ -1,4 +1,4 @@
-import type { ModelDefinition } from "@nebiusrelay/models";
+import type { ModelDefinition } from "@nconnect/models";
 import { callNebiusWithNativeTools } from "./nebius-call.js";
 import { EMPTY_CODEX_TOOL_TRANSLATION } from "./translate-request.js";
 import type { ChatResponse } from "./wire-types.js";

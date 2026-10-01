@@ -32,7 +32,7 @@ importers:
       '@clack/prompts':
         specifier: ^0.8.2
         version: 0.8.2
-      '@nebiusrelay/models':
+      '@nconnect/models':
         specifier: workspace:*
         version: link:../models
       yaml:
@@ -46,10 +46,10 @@ importers:
       '@clack/prompts':
         specifier: ^0.8.2
         version: 0.8.2
-      '@nebiusrelay/cli':
+      '@nconnect/cli':
         specifier: workspace:*
         version: link:../cli
-      '@nebiusrelay/models':
+      '@nconnect/models':
         specifier: workspace:*
         version: link:../models
       '@types/node':

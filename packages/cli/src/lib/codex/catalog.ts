@@ -1,4 +1,4 @@
-import { type ModelDefinition } from "@nebiusrelay/models";
+import { type ModelDefinition } from "@nconnect/models";
 import { getCodexSupportedModels } from "./defaults.js";
 
 const CODEX_BASE_INSTRUCTIONS =
@@ -59,7 +59,7 @@ export function toCodexModelCatalogEntry(
   return {
     slug: model.id,
     display_name: model.definition.name,
-    description: `Nebius Token Factory model via nebiusrelay (${model.definition.id})`,
+    description: `Nebius Token Factory model via nconnect (${model.definition.id})`,
     // Default GLM-5.2 (and other hybrid reasoners) to "minimal" so trivial turns
     // stay snappy - the proxy maps minimal->none, i.e. no reasoning before every
     // reply. Users can raise it in Codex's model picker. Without this, Codex

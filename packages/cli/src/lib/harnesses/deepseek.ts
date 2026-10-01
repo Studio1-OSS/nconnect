@@ -47,13 +47,13 @@ export default defineHarness({
       passthrough: ctx.passthrough ?? [],
     });
 
-    if (process.env.NEBIUSRELAY_DEBUG === "1") {
-      process.stderr.write(`[nebiusrelay deepseek] model: ${selectedModel.id}\n`);
-      process.stderr.write(`[nebiusrelay deepseek] patch: ${patchPath}\n`);
+    if (process.env.NCONNECT_DEBUG === "1") {
+      process.stderr.write(`[nconnect deepseek] model: ${selectedModel.id}\n`);
+      process.stderr.write(`[nconnect deepseek] patch: ${patchPath}\n`);
     }
 
     process.stderr.write(
-      `Nebius TF Relay ▸ Launching DeepSeek Harness with Nebius Token Factory (${selectedModel.definition.name}). Alpha.\n`,
+      `NConnect ▸ Launching DeepSeek Harness with Nebius Token Factory (${selectedModel.definition.name}). Alpha.\n`,
     );
     const child = spawn(launch.binary, launch.args, {
       env: { ...launch.env, DSH_HOME: dshHome },
@@ -61,9 +61,7 @@ export default defineHarness({
     });
     const result = await new Promise<{ status: number | null }>((resolve) => {
       child.on("error", (err) => {
-        process.stderr.write(
-          `Nebius TF Relay ▸ Failed to launch ${launch.binary}: ${err.message}.\n`,
-        );
+        process.stderr.write(`NConnect ▸ Failed to launch ${launch.binary}: ${err.message}.\n`);
         resolve({ status: 1 });
       });
       child.on("exit", (status) => resolve({ status }));

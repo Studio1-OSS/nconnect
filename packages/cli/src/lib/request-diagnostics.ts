@@ -1,6 +1,6 @@
 import { appendFile, chmod, mkdir } from "node:fs/promises";
 import path from "node:path";
-import { nebiusrelayHome } from "./paths.js";
+import { nconnectHome } from "./paths.js";
 
 const REQUEST_DIAGNOSTICS_FILE = "request-diagnostics.jsonl";
 
@@ -31,7 +31,7 @@ export type NebiusRequestDiagnostic = {
 export async function persistRequestDiagnostic(
   diagnostic: Omit<NebiusRequestDiagnostic, "at">,
 ): Promise<void> {
-  if (process.env.NEBIUSRELAY_REQUEST_DIAGNOSTICS === "0") {
+  if (process.env.NCONNECT_REQUEST_DIAGNOSTICS === "0") {
     return;
   }
   const file = resolveRequestDiagnosticsPath();
@@ -42,6 +42,6 @@ export async function persistRequestDiagnostic(
   await chmod(file, 0o600).catch(() => undefined);
 }
 
-export function resolveRequestDiagnosticsPath(home = nebiusrelayHome()): string {
+export function resolveRequestDiagnosticsPath(home = nconnectHome()): string {
   return path.join(home, REQUEST_DIAGNOSTICS_FILE);
 }

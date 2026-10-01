@@ -4,8 +4,8 @@
   "globalPassThroughEnv": [
     "CI",
     "NEBIUS_API_KEY",
-    "NEBIUSRELAY_DEBUG",
-    "NEBIUSRELAY_LIVE_MODELS_CHECK",
+    "NCONNECT_DEBUG",
+    "NCONNECT_LIVE_MODELS_CHECK",
     "VITEST_FILE_PARALLELISM",
     "VITEST_MAX_CONCURRENCY",
     "VITEST_RETRY"
@@ -122,6 +122,25 @@
         "vitest.config.ts",
         "src/Pi.test.ts",
         "src/harnesses/pi.ts",
+        "src/assert.ts",
+        "src/command.ts",
+        "src/context.ts",
+        "src/json-lines.ts",
+        "src/paths.ts",
+        "src/types.ts",
+        "$TURBO_ROOT$/packages/cli/src/**",
+        "$TURBO_ROOT$/packages/models/src/**"
+      ],
+      "outputs": []
+    },
+    "test:gauntlet:unreal": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "package.json",
+        "tsconfig.json",
+        "vitest.config.ts",
+        "src/Unreal.test.ts",
+        "src/harnesses/unreal.ts",
         "src/assert.ts",
         "src/command.ts",
         "src/context.ts",

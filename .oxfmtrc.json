@@ -1,7 +1,3 @@
 {
-  "ignorePatterns": [
-    "site/nebiusrelay.js",
-    "site/src/routeTree.gen.ts",
-    "site/convex/_generated/**"
-  ]
+  "ignorePatterns": ["site/nconnect.js", "site/src/routeTree.gen.ts", "site/convex/_generated/**"]
 }

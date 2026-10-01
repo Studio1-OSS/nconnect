@@ -47,9 +47,9 @@ export default defineHarness({
     const configJson = buildOpencodeConfigJson({ modelId });
     const env = buildOpencodeEnv({ apiKey, configJson });
 
-    if (process.env.NEBIUSRELAY_DEBUG === "1") {
-      process.stderr.write(`[nebiusrelay opencode] custom model: ${modelId}\n`);
-      process.stderr.write(`[nebiusrelay opencode] config: ${JSON.stringify(configJson)}\n`);
+    if (process.env.NCONNECT_DEBUG === "1") {
+      process.stderr.write(`[nconnect opencode] custom model: ${modelId}\n`);
+      process.stderr.write(`[nconnect opencode] config: ${JSON.stringify(configJson)}\n`);
     }
 
     // Force our model via the CLI flag (highest precedence). Relying on the

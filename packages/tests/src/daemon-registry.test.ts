@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
-import type { ModelDefinition } from "@nebiusrelay/models";
+import type { ModelDefinition } from "@nconnect/models";
 import {
   SessionRegistry,
   buildSession,
   type AgentId,
   type RegisterSessionRequest,
-} from "@nebiusrelay/cli/dist/lib/daemon/state.js";
+} from "@nconnect/cli/dist/lib/daemon/state.js";
 
 /**
  * Unit tests for the now-exported SessionRegistry (#5: the interface is the test

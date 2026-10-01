@@ -7,7 +7,7 @@ This folder tracks the Claude Code compatibility work for the local Nebius proxy
 Claude Code sends two broad kinds of tools to the model:
 
 - Client tools: Claude Code executes these locally, then sends `tool_result` back.
-- Native/server tools: Anthropic normally executes these inside the Anthropic Messages API backend. Because `nebiusrelay` replaces Anthropic with a local proxy, we must emulate these ourselves or explicitly mark them unsupported.
+- Native/server tools: Anthropic normally executes these inside the Anthropic Messages API backend. Because `nconnect` replaces Anthropic with a local proxy, we must emulate these ourselves or explicitly mark them unsupported.
 
 Client tools are already mostly supported by converting Anthropic tool schemas to Nebius/OpenAI function tools, then converting Nebius `tool_calls` back to Anthropic `tool_use` blocks.
 
@@ -87,7 +87,7 @@ How it works now (in `proxy.ts` + `vision.ts`):
   - Fallback: `Qwen/Qwen2.5-VL-72B-Instruct`, used if Kimi errors.
 - Reasoning is disabled on the vision sub-call (`reasoning: { enabled: false }`, `temperature: 0.6`) because image description is a perception task.
 - Descriptions are cached by image hash (per-process), so the same image recurring in conversation history across turns is described once and not re-billed.
-- Debug logs (`NEBIUSRELAY_DEBUG=1`): `image blocks detected`, `vision describe start/done` with model, length, and a preview.
+- Debug logs (`NCONNECT_DEBUG=1`): `image blocks detected`, `vision describe start/done` with model, length, and a preview.
 - Verified end-to-end: GLM-5.2 correctly identified a screenshot as "The Blind Test (theblindtest.io)" and quoted a headline that exists only in the image pixels - proof the description reached the model.
 
 Known limitation / future work:
@@ -214,7 +214,7 @@ Keep future refactors mechanical and separate from behavior changes.
 
 ## Future Additions
 
-### Custom `/nebiusrelay-feedback` command
+### Custom `/nconnect-feedback` command
 
 Why:
 
@@ -224,10 +224,10 @@ Why:
 
 Proposed:
 
-- Ship a custom slash command - e.g. `.claude/commands/nebiusrelay-feedback.md` (or a user-level command) - so users can type `/nebiusrelay-feedback <text>` inside a nebiusrelay session.
+- Ship a custom slash command - e.g. `.claude/commands/nconnect-feedback.md` (or a user-level command) - so users can type `/nconnect-feedback <text>` inside a nconnect session.
 - Unlike the built-in `/feedback`, a custom command is fully ours: its body is plain prompt text, so the feedback travels as a normal `/v1/messages` request through our proxy, where it IS interceptable.
 - Capture options to decide between:
-  - **Local file** (simplest): append the feedback to a `~/.nebiusrelay/feedback.log` the user can review/share manually. No network, no service.
+  - **Local file** (simplest): append the feedback to a `~/.nconnect/feedback.log` the user can review/share manually. No network, no service.
   - **Nebius-hosted endpoint** (later): POST to an endpoint we control. Requires a backend + auth; defer until there's a real reason.
 - Start with the local-file sink - it's the same scope as the existing `readGlobalConfig`/`writeGlobalConfig` plumbing already used for the Tavily key.
 

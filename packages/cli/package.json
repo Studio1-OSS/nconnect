@@ -1,26 +1,26 @@
 {
-  "name": "@nebiusrelay/cli",
-  "version": "0.15.4",
+  "name": "@nconnect/cli",
+  "version": "0.16.1",
   "description": "CLI for routing Claude Code, OpenCode, Codex, and Pi Code through Nebius Token Factory",
   "license": "MIT",
   "bin": {
-    "nebiusrelay": "./dist/bin/nebiusrelay.js"
+    "nconnect": "./dist/bin/nconnect.js"
   },
   "files": [
     "dist"
   ],
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json && node -e \"require('node:fs').chmodSync('dist/bin/nebiusrelay.js', 0o755)\"",
+    "build": "tsc -p tsconfig.json && node -e \"require('node:fs').chmodSync('dist/bin/nconnect.js', 0o755)\"",
     "dev": "pnpm build && sh -c 'node scripts/watch-bin-mode.mjs & tsc -p tsconfig.json --watch --preserveWatchOutput'",
     "watch": "pnpm dev",
-    "typecheck": "pnpm --filter @nebiusrelay/models build && tsc -p tsconfig.json --noEmit",
+    "typecheck": "pnpm --filter @nconnect/models build && tsc -p tsconfig.json --noEmit",
     "prepack": "pnpm build",
     "test": "pnpm typecheck"
   },
   "dependencies": {
     "@clack/prompts": "^0.8.2",
-    "@nebiusrelay/models": "workspace:*",
+    "@nconnect/models": "workspace:*",
     "yaml": "^2.9.0"
   },
   "engines": {

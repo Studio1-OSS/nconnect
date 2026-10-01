@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { ModelDefinition } from "@nebiusrelay/models";
+import type { ModelDefinition } from "@nconnect/models";
 import { stableHash } from "../stable-hash.js";
 import { getClaudeSupportedModels } from "./defaults.js";
 import { APPROX_CHARS_PER_TOKEN, jsonByteLength, safeClaudeInputLimit } from "./context-budget.js";
@@ -20,12 +20,12 @@ type ClaudeModelOptions = {
   modelDefinition: ModelDefinition;
 };
 
-type OpenAIChatResponseWithNebiusrelayMeta = OpenAIChatResponse & {
-  _nebiusrelayRequestedMaxTokens?: number;
+type OpenAIChatResponseWithNConnectMeta = OpenAIChatResponse & {
+  _nconnectRequestedMaxTokens?: number;
 };
 
 export function thinkingSignature(reasoning: string): string {
-  return `nebiusrelay:${stableHash(reasoning)}`;
+  return `nconnect:${stableHash(reasoning)}`;
 }
 
 function asOpenAIMessageRecord(value: unknown): OpenAIMessage | undefined {
@@ -113,9 +113,9 @@ export function toAnthropicMessage(
 ): Record<string, unknown> {
   const choice = response.choices?.[0];
   const message = choice?.message ?? {};
-  const requestedMaxTokens = (response as OpenAIChatResponseWithNebiusrelayMeta)
-    ._nebiusrelayRequestedMaxTokens;
-  const nativeWebSearches = response._nebiusrelayNativeWebSearches ?? [];
+  const requestedMaxTokens = (response as OpenAIChatResponseWithNConnectMeta)
+    ._nconnectRequestedMaxTokens;
+  const nativeWebSearches = response._nconnectNativeWebSearches ?? [];
   const content: Array<Record<string, unknown>> = [];
   const reasoning = message.reasoning ?? message.reasoning_content;
   if (reasoning) {

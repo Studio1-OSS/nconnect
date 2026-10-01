@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { GLM_5_2, NEBIUS_BASE_URL } from "@nebiusrelay/models";
-import { fetchNebius } from "@nebiusrelay/cli/dist/lib/claude/nebius-call.js";
+import { GLM_5_2, NEBIUS_BASE_URL } from "@nconnect/models";
+import { fetchNebius } from "@nconnect/cli/dist/lib/claude/nebius-call.js";
 
 /**
  * Characterization tests for the Nebius HTTP retry loop (#1 prep). These lock

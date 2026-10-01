@@ -26,7 +26,7 @@ type LiveModelCase = {
   name: string;
 };
 
-const maybeDescribe = process.env.NEBIUSRELAY_LIVE_MODELS_CHECK === "1" ? describe : describe.skip;
+const maybeDescribe = process.env.NCONNECT_LIVE_MODELS_CHECK === "1" ? describe : describe.skip;
 
 maybeDescribe("live models check for Claude and Codex", () => {
   let context: TestContext;

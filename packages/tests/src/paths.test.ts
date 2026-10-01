@@ -1,26 +1,26 @@
 import { describe, expect, test } from "vitest";
-import { nebiusrelayHome, isProcessAlive } from "@nebiusrelay/cli/dist/lib/paths.js";
+import { nconnectHome, isProcessAlive } from "@nconnect/cli/dist/lib/paths.js";
 
 describe("paths.ts - single source of truth for home + liveness (#7)", () => {
-  test("nebiusrelayHome honors NEBIUSRELAY_HOME env", () => {
-    const original = process.env.NEBIUSRELAY_HOME;
-    process.env.NEBIUSRELAY_HOME = "/tmp/nebiusrelay-test-home-xyz";
+  test("nconnectHome honors NCONNECT_HOME env", () => {
+    const original = process.env.NCONNECT_HOME;
+    process.env.NCONNECT_HOME = "/tmp/nconnect-test-home-xyz";
     try {
-      expect(nebiusrelayHome()).toBe("/tmp/nebiusrelay-test-home-xyz");
+      expect(nconnectHome()).toBe("/tmp/nconnect-test-home-xyz");
     } finally {
-      if (original === undefined) delete process.env.NEBIUSRELAY_HOME;
-      else process.env.NEBIUSRELAY_HOME = original;
+      if (original === undefined) delete process.env.NCONNECT_HOME;
+      else process.env.NCONNECT_HOME = original;
     }
   });
 
-  test("nebiusrelayHome falls back to ~/.nebiusrelay when env unset", () => {
-    const original = process.env.NEBIUSRELAY_HOME;
-    delete process.env.NEBIUSRELAY_HOME;
+  test("nconnectHome falls back to ~/.nconnect when env unset", () => {
+    const original = process.env.NCONNECT_HOME;
+    delete process.env.NCONNECT_HOME;
     try {
-      const home = nebiusrelayHome();
-      expect(home.endsWith("/.nebiusrelay")).toBe(true);
+      const home = nconnectHome();
+      expect(home.endsWith("/.nconnect")).toBe(true);
     } finally {
-      if (original !== undefined) process.env.NEBIUSRELAY_HOME = original;
+      if (original !== undefined) process.env.NCONNECT_HOME = original;
     }
   });
 

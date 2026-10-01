@@ -1,5 +1,5 @@
 import { CostTracker } from "../cost.js";
-import type { ModelDefinition } from "@nebiusrelay/models";
+import type { ModelDefinition } from "@nconnect/models";
 import { NEBIUS_BASE_URL } from "../nebius-core.js";
 import type { ClaudeProxyOptions } from "../claude/proxy.js";
 import type { CodexProxyOptions } from "../codex/proxy.js";
@@ -17,23 +17,23 @@ const DEFAULT_NO_PID_SESSION_IDLE_TTL_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_MAX_NO_PID_SESSIONS = 50;
 const DEFAULT_LAST_SEEN_PERSIST_INTERVAL_MS = 5 * 60 * 1000;
 const NO_PID_SESSION_IDLE_TTL_MS = envInt(
-  "NEBIUSRELAY_DAEMON_NO_PID_SESSION_IDLE_TTL_MS",
+  "NCONNECT_DAEMON_NO_PID_SESSION_IDLE_TTL_MS",
   DEFAULT_NO_PID_SESSION_IDLE_TTL_MS,
 );
 const MAX_NO_PID_SESSIONS = envInt(
-  "NEBIUSRELAY_DAEMON_MAX_NO_PID_SESSIONS",
+  "NCONNECT_DAEMON_MAX_NO_PID_SESSIONS",
   DEFAULT_MAX_NO_PID_SESSIONS,
 );
 const LAST_SEEN_PERSIST_INTERVAL_MS = envInt(
-  "NEBIUSRELAY_DAEMON_LAST_SEEN_PERSIST_INTERVAL_MS",
+  "NCONNECT_DAEMON_LAST_SEEN_PERSIST_INTERVAL_MS",
   DEFAULT_LAST_SEEN_PERSIST_INTERVAL_MS,
 );
 
 /** How often a live session's accumulated cost is written to the store. */
-const USAGE_PERSIST_INTERVAL_MS = envInt("NEBIUSRELAY_DAEMON_USAGE_PERSIST_INTERVAL_MS", 10_000);
+const USAGE_PERSIST_INTERVAL_MS = envInt("NCONNECT_DAEMON_USAGE_PERSIST_INTERVAL_MS", 10_000);
 
 /** Fallback when a closed-out session has no recorded spend at all. */
-const ZERO_COST_SUMMARY = "[nebiusrelay cost] session total: $0.0000 (0 in, 0 out)";
+const ZERO_COST_SUMMARY = "[nconnect cost] session total: $0.0000 (0 in, 0 out)";
 
 /**
  * Which coding agent a session belongs to. This selects how cost is tracked:
@@ -48,6 +48,8 @@ const ZERO_COST_SUMMARY = "[nebiusrelay cost] session total: $0.0000 (0 in, 0 ou
  *   translates it to Nebius chat completions.
  * - `codex-app`: same proxy path as `codex`, but registered by the persistent
  *   ChatGPT Desktop app integration so telemetry can distinguish it.
+ * - `unreal`: Unreal Agent's runner also speaks OpenAI Responses, so it rides
+ *   the same proxy path as `codex`.
  */
 export type AgentId =
   | "claude"
@@ -58,7 +60,8 @@ export type AgentId =
   | "prime"
   | "hermes"
   | "deepseek"
-  | "grok";
+  | "grok"
+  | "unreal";
 
 /**
  * One live coding-agent session, keyed by the random auth token the launcher
@@ -237,7 +240,7 @@ export class SessionRegistry {
       if (session.pid !== undefined && !isProcessAlive(session.pid)) {
         // Close it out with whatever was persisted, not zeros: the launcher
         // died, but the tokens it spent were still billed. Writing $0.0000
-        // over a real total erased spend from `nebiusrelay usage` for good.
+        // over a real total erased spend from `nconnect usage` for good.
         this.store.markSessionEnded(
           session.token,
           now,
@@ -408,10 +411,17 @@ export class SessionRegistry {
 export const sessions = new SessionRegistry();
 
 /** Agents whose traffic the daemon proxies (vs. self-reporting cost). */
-const PROXIED_AGENTS = new Set<AgentId>(["claude", "codex", "codex-app"]);
+const PROXIED_AGENTS = new Set<AgentId>(["claude", "codex", "codex-app", "unreal"]);
 
 export function isProxiedAgent(agent: AgentId): boolean {
   return PROXIED_AGENTS.has(agent);
+}
+
+/** Proxied agents that speak OpenAI Responses (vs. Anthropic Messages). */
+const RESPONSES_AGENTS = new Set<AgentId>(["codex", "codex-app", "unreal"]);
+
+export function speaksResponsesApi(agent: string | undefined): boolean {
+  return agent !== undefined && RESPONSES_AGENTS.has(agent as AgentId);
 }
 
 /**
@@ -455,7 +465,7 @@ export function buildSession(req: RegisterSessionRequest): SessionState {
         : {}),
       ...(req.debug !== undefined ? { debug: req.debug } : {}),
       costTracker,
-      ...(process.env.NEBIUSRELAY_PERF === "1"
+      ...(process.env.NCONNECT_PERF === "1"
         ? { perfSink: (payload: ProxyPerfPayload) => recordSessionProxyPerf(state, payload) }
         : {}),
     };
@@ -534,7 +544,7 @@ export function toPersistedSession(state: SessionState): PersistedSession {
   };
   if (state.options === undefined) {
     // Spawned harnesses (pi, prime, hermes, deepseek, grok) have no proxy
-    // options, so these stayed NULL and `nebiusrelay usage` filed every one of
+    // options, so these stayed NULL and `nconnect usage` filed every one of
     // their sessions under model "unknown". The session's own definition is
     // the right source for them.
     base.modelId = state.modelDefinition.id;
@@ -575,8 +585,7 @@ function storedSessionToPersistInput(session: StoredSession): SessionPersistInpu
   return {
     ...session,
     lastSeenAt: session.lastSeenAt ?? session.startedAt,
-    costSummary:
-      session.externalSummary ?? "[nebiusrelay cost] session total: $0.0000 (0 in, 0 out)",
+    costSummary: session.externalSummary ?? "[nconnect cost] session total: $0.0000 (0 in, 0 out)",
     costTotals: {
       promptTokens: session.promptTokens ?? 0,
       cachedTokens: session.cachedTokens ?? 0,

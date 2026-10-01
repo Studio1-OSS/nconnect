@@ -8,7 +8,7 @@ import { cleanupTmpDir, createTestContext, resetTmpDir } from "./context.js";
 import { asRecord, jsonLines } from "./json-lines.js";
 import type { CommandResult, TestContext } from "./types.js";
 
-const maybeDescribe = process.env.NEBIUSRELAY_LIVE_CODEX_RESUME === "1" ? describe : describe.skip;
+const maybeDescribe = process.env.NCONNECT_LIVE_CODEX_RESUME === "1" ? describe : describe.skip;
 
 maybeDescribe("live Codex cross-provider resume", () => {
   let context: TestContext;
@@ -139,7 +139,7 @@ maybeDescribe("live Codex cross-provider resume", () => {
   });
 
   test.todo(
-    "normal Codex resume picker lists Nebius TF Relay provider sessions (blocked by openai/codex#19318)",
+    "normal Codex resume picker lists NConnect provider sessions (blocked by openai/codex#19318)",
   );
 });
 

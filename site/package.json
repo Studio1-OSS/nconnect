@@ -1,5 +1,5 @@
 {
-  "name": "@nebiusrelay/site",
+  "name": "@nconnect/site",
   "private": true,
   "type": "module",
   "scripts": {

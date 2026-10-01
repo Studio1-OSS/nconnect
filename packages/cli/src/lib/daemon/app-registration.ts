@@ -2,27 +2,27 @@ import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { RegisterSessionRequest } from "./state.js";
-import { nebiusrelayHome } from "../paths.js";
+import { nconnectHome } from "../paths.js";
 
 const REGISTRATION_FILE = "registration.json";
 
 /**
  * Persisted daemon registration for the codex-app integration.
  *
- * `nebiusrelay codex-app` configures the Codex desktop app once and exits, so
+ * `nconnect codex-app` configures the Codex desktop app once and exits, so
  * unlike the CLI launchers there is no long-lived process to re-register the
  * session when the daemon loses it (restart, idle reap, kill -9). The Codex
  * app keeps sending its stable token and gets 401s until the user re-runs
- * `nebiusrelay codex-app`. Persisting the full register body lets the daemon
+ * `nconnect codex-app`. Persisting the full register body lets the daemon
  * rebuild the session on demand instead.
  */
-export function appRegistrationPath(home = nebiusrelayHome()): string {
+export function appRegistrationPath(home = nconnectHome()): string {
   return path.join(home, "codex-app", REGISTRATION_FILE);
 }
 
 export async function writeAppRegistration(
   registration: RegisterSessionRequest,
-  home = nebiusrelayHome(),
+  home = nconnectHome(),
 ): Promise<void> {
   const file = appRegistrationPath(home);
   await mkdir(path.dirname(file), { recursive: true });
@@ -35,7 +35,7 @@ export async function writeAppRegistration(
   await rename(tmp, file);
 }
 
-export async function clearAppRegistration(home = nebiusrelayHome()): Promise<void> {
+export async function clearAppRegistration(home = nconnectHome()): Promise<void> {
   await rm(appRegistrationPath(home), { force: true });
 }
 
@@ -43,10 +43,10 @@ export async function clearAppRegistration(home = nebiusrelayHome()): Promise<vo
  * Read the persisted registration, validating the same fields the daemon's
  * register endpoint requires for a proxied agent so `buildSession` never sees
  * a half-formed body. A missing or malformed file resolves to undefined; the
- * next `nebiusrelay codex-app` run rewrites it.
+ * next `nconnect codex-app` run rewrites it.
  */
 export async function readAppRegistration(
-  home = nebiusrelayHome(),
+  home = nconnectHome(),
 ): Promise<RegisterSessionRequest | undefined> {
   let raw: string;
   try {

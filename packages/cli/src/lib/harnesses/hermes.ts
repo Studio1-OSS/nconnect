@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { rmSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { getSelectableModels } from "@nebiusrelay/models";
+import { getSelectableModels } from "@nconnect/models";
 import { resolveCodexModel } from "../codex/defaults.js";
 import { HARNESS } from "../harness.js";
 import { defineHarness, type HarnessContext, type HarnessResult } from "../harness-types.js";
@@ -60,22 +60,22 @@ export default defineHarness({
         passthrough,
       });
 
-      if (process.env.NEBIUSRELAY_DEBUG === "1") {
-        process.stderr.write(`[nebiusrelay hermes] mode: ${mode}\n`);
-        process.stderr.write(`[nebiusrelay hermes] model: ${selectedModel.id}\n`);
-        process.stderr.write(`[nebiusrelay hermes] base URL: ${baseUrl}\n`);
-        process.stderr.write(`[nebiusrelay hermes] home overlay: ${overlay}\n`);
+      if (process.env.NCONNECT_DEBUG === "1") {
+        process.stderr.write(`[nconnect hermes] mode: ${mode}\n`);
+        process.stderr.write(`[nconnect hermes] model: ${selectedModel.id}\n`);
+        process.stderr.write(`[nconnect hermes] base URL: ${baseUrl}\n`);
+        process.stderr.write(`[nconnect hermes] home overlay: ${overlay}\n`);
       }
 
       process.stderr.write(
-        `Nebius TF Relay ▸ Launching Hermes Agent${mode === "desktop" ? " Desktop" : ""} ` +
+        `NConnect ▸ Launching Hermes Agent${mode === "desktop" ? " Desktop" : ""} ` +
           `with Nebius Token Factory (${selectedModel.definition.name}).\n`,
       );
       const child = spawn(launch.binary, launch.args, { env: launch.env, stdio: "inherit" });
       const result = await new Promise<{ status: number | null; signal: NodeJS.Signals | null }>(
         (resolve) => {
           child.on("error", (err) => {
-            process.stderr.write(`Nebius TF Relay ▸ Failed to launch hermes: ${err.message}.\n`);
+            process.stderr.write(`NConnect ▸ Failed to launch hermes: ${err.message}.\n`);
             resolve({ status: 1, signal: null });
           });
           child.on("exit", (status, signal) => resolve({ status, signal }));

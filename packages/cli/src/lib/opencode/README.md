@@ -39,7 +39,7 @@ Nebius models, both suppressed by the emitted config:
 - Nebius's full serverless catalog: OpenCode merges a provider's declared
   `models` block on top of its full [models.dev](https://models.dev) catalog.
   The config sets a `whitelist` (added in OpenCode [PR #3416][oc-3416])
-  restricting the Nebius provider to only the current flagships nebiusrelay
+  restricting the Nebius provider to only the current flagships nconnect
   ships.
 - Other providers (Anthropic, OpenAI, Gemini, Bedrock, Zen): the config sets
   `enabled_providers: ["nebius"]` so OpenCode ignores every other provider
@@ -69,7 +69,7 @@ past the picker's truncation width.
 | `deepseek-ai/DeepSeek-V4-Pro` | No     | long-context reasoning (512K)           |
 
 That's all users see in `/models`. The curated set lives in
-[`@nebiusrelay/models`](../../../../models/src/index.ts) (`SELECTABLE_MODELS`).
+[`@nconnect/models`](../../../../models/src/index.ts) (`SELECTABLE_MODELS`).
 
 [oc-25553]: https://github.com/sst/opencode/issues/25553
 [oc-32302]: https://github.com/sst/opencode/pull/32302

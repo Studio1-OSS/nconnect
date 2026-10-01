@@ -25,7 +25,7 @@ export type TestContext = {
   cliBin: string;
   artifactsDir: string;
   tmpDir: string;
-  nebiusrelayHome?: string;
+  nconnectHome?: string;
   daemonPort?: number;
   results: TestResult[];
 };

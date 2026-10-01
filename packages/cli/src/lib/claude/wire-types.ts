@@ -1,4 +1,4 @@
-import type { ModelDefinition } from "@nebiusrelay/models";
+import type { ModelDefinition } from "@nconnect/models";
 
 export type AnthropicContentBlock =
   | { type: "text"; text: string }
@@ -106,7 +106,7 @@ export type OpenAIChatResponse = {
       cached_tokens?: number;
     };
   };
-  _nebiusrelayNativeWebSearches?: ClaudeNativeWebSearchRecord[];
+  _nconnectNativeWebSearches?: ClaudeNativeWebSearchRecord[];
 };
 
 export type ResolvedClaudeModel = {

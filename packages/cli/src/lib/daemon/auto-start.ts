@@ -2,7 +2,7 @@ import os from "node:os";
 import path from "node:path";
 import { execFile } from "node:child_process";
 import { mkdir, unlink, writeFile, access } from "node:fs/promises";
-import { nebiusrelayHome } from "../paths.js";
+import { nconnectHome } from "../paths.js";
 
 /**
  * Daemon auto-start at login: launchd on macOS, systemd --user on Linux.
@@ -16,8 +16,8 @@ import { nebiusrelayHome } from "../paths.js";
  * stable path to point a service file at.
  */
 
-const LAUNCHD_LABEL = "com.nebiusrelay.daemon";
-const SYSTEMD_UNIT = "nebiusrelay-daemon.service";
+const LAUNCHD_LABEL = "com.nconnect.daemon";
+const SYSTEMD_UNIT = "nconnect-daemon.service";
 
 export type AutoStartPlatform = "launchd" | "systemd";
 
@@ -41,7 +41,7 @@ export function autoStartPlatform(): AutoStartPlatform | undefined {
 }
 
 function bundlePath(): string {
-  return path.join(nebiusrelayHome(), "bin", "nebiusrelay.js");
+  return path.join(nconnectHome(), "bin", "nconnect.js");
 }
 
 async function bundleInstalled(): Promise<boolean> {
@@ -103,7 +103,7 @@ function servicePath(): string {
 }
 
 function plistBody(): string {
-  const home = nebiusrelayHome();
+  const home = nconnectHome();
   const logDir = path.join(home, "logs");
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -130,9 +130,9 @@ function plistBody(): string {
     `  <string>${path.join(logDir, "daemon.err.log")}</string>`,
     "  <key>EnvironmentVariables</key>",
     "  <dict>",
-    "    <key>NEBIUSRELAY_HOME</key>",
+    "    <key>NCONNECT_HOME</key>",
     `    <string>${home}</string>`,
-    "    <key>NEBIUSRELAY_SUPERVISED</key>",
+    "    <key>NCONNECT_SUPERVISED</key>",
     "    <string>1</string>",
     "    <key>PATH</key>",
     `    <string>${servicePath()}</string>`,
@@ -144,17 +144,17 @@ function plistBody(): string {
 }
 
 function systemdUnitBody(): string {
-  const home = nebiusrelayHome();
+  const home = nconnectHome();
   return [
     "[Unit]",
-    "Description=Nebius TF Relay daemon",
+    "Description=NConnect daemon",
     "After=network-online.target",
     "",
     "[Service]",
     "Type=simple",
     `ExecStart=/bin/sh -lc 'exec bun "${bundlePath()}" daemon serve'`,
-    `Environment=NEBIUSRELAY_HOME=${home}`,
-    "Environment=NEBIUSRELAY_SUPERVISED=1",
+    `Environment=NCONNECT_HOME=${home}`,
+    "Environment=NCONNECT_SUPERVISED=1",
     `Environment=PATH=${servicePath()}`,
     "Restart=always",
     "RestartSec=10",
@@ -175,10 +175,10 @@ export async function installAutoStart(): Promise<string> {
   if (!(await bundleInstalled())) {
     throw new Error(
       "Auto-start needs the installed bundle (this looks like a dev/source run).\n" +
-        "Install first: curl -fsSL https://nebius-tf-relay.vercel.app/install.sh | sh",
+        "Install first: curl -fsSL https://nconnect.sh/install.sh | sh",
     );
   }
-  await mkdir(path.join(nebiusrelayHome(), "logs"), { recursive: true });
+  await mkdir(path.join(nconnectHome(), "logs"), { recursive: true });
   // Hand the fixed proxy port over from any daemon started the old way (a
   // detached process from a plain launch). Without this the supervised service
   // starts, finds the port taken, and exits - repeatedly - so auto-start would
@@ -272,7 +272,7 @@ export async function autoStartStatus(): Promise<AutoStartStatus> {
         ? running
           ? "Auto-start is installed and the service is running (launchd)."
           : "Auto-start is installed but the service is not currently running (launchd)."
-        : "Auto-start is not installed. Run `nebiusrelay daemon install`.",
+        : "Auto-start is not installed. Run `nconnect daemon install`.",
     };
   }
 
@@ -288,7 +288,7 @@ export async function autoStartStatus(): Promise<AutoStartStatus> {
       ? running
         ? "Auto-start is installed and the service is running (systemd)."
         : "Auto-start is installed but the service is not currently running (systemd)."
-      : "Auto-start is not installed. Run `nebiusrelay daemon install`.",
+      : "Auto-start is not installed. Run `nconnect daemon install`.",
   };
 }
 

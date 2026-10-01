@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { findModelById, type ModelDefinition } from "@nebiusrelay/models";
+import { findModelById, type ModelDefinition } from "@nconnect/models";
 import { postChatCompletion, postChatCompletionStream } from "../nebius-client.js";
 import { readJsonBodyWithSize } from "../http-util.js";
 import type { SessionState } from "./state.js";

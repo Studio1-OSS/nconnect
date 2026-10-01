@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
-import { getSelectableModels, getVisionPrimary } from "@nebiusrelay/models";
-import type { ModelDefinition } from "@nebiusrelay/models";
+import { getSelectableModels, getVisionPrimary } from "@nconnect/models";
+import type { ModelDefinition } from "@nconnect/models";
 import { NEBIUS_BASE_URL } from "../nebius-core.js";
 
 /**
@@ -30,7 +30,7 @@ const GROK_MAX_COMPLETION_TOKENS = 8192;
 export function buildGrokIdentityRule(model: ModelDefinition): string {
   return (
     `Grok Build is only the terminal harness. You are ${model.name} (${model.id}), ` +
-    `served by Nebius Token Factory via Nebius TF Relay. You are not Grok or an xAI ` +
+    `served by Nebius Token Factory via NConnect. You are not Grok or an xAI ` +
     `model. For identity questions, name this backend and Nebius Token Factory; ` +
     `never claim xAI built or serves you.`
   );
@@ -172,7 +172,7 @@ export function buildGrokLaunchEnvironment({
   return env;
 }
 
-export function grokArgsWithoutNebiusrelayOverrides(args: string[]): string[] {
+export function grokArgsWithoutNConnectOverrides(args: string[]): string[] {
   const sanitized: string[] = [];
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -197,7 +197,7 @@ export function grokArgsWithoutNebiusrelayOverrides(args: string[]): string[] {
  * A user-supplied --rules value is preserved alongside ours.
  */
 export function grokArgsWithNebiusIdentity(args: string[], identityRule: string): string[] {
-  const sanitized = grokArgsWithoutNebiusrelayOverrides(args);
+  const sanitized = grokArgsWithoutNConnectOverrides(args);
   const passthrough: string[] = [];
   const userRules: string[] = [];
 

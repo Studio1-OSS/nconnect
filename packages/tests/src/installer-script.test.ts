@@ -24,7 +24,7 @@ describe("public installer", () => {
       writeFileSync(path.join(tools, "bun"), '#!/bin/sh\nprintf "%s\\n" "$@"\n', { mode: 0o755 });
       writeFileSync(
         path.join(tools, "curl"),
-        '#!/bin/sh\n[ "$1" = "-fsSL" ] || exit 2\n[ "$2" = "https://installer.test/nebiusrelay.js" ] || exit 3\nprintf "// test bundle\\n" > "$4"\n',
+        '#!/bin/sh\n[ "$1" = "-fsSL" ] || exit 2\n[ "$2" = "https://installer.test/nconnect.js" ] || exit 3\nprintf "// test bundle\\n" > "$4"\n',
         { mode: 0o755 },
       );
       const env = {
@@ -32,18 +32,18 @@ describe("public installer", () => {
         HOME: home,
         SHELL: "/bin/sh",
         PATH: `${tools}:/usr/bin:/bin`,
-        NEBIUSRELAY_HOME: path.join(home, "relay with spaces"),
-        NEBIUSRELAY_ORIGIN: "https://installer.test",
+        NCONNECT_HOME: path.join(home, "relay with spaces"),
+        NCONNECT_ORIGIN: "https://installer.test",
       };
       const run = () =>
         execFileSync(shell, [], { input: readFileSync(installer), env, encoding: "utf8" });
       expect(run()).toContain("Verified:");
       expect(run()).toContain("PATH already configured");
-      expect(
-        readFileSync(path.join(home, ".profile"), "utf8").match(/# nebiusrelay/g),
-      ).toHaveLength(1);
+      expect(readFileSync(path.join(home, ".profile"), "utf8").match(/# nconnect/g)).toHaveLength(
+        1,
+      );
       for (const [wrapper, harness] of Object.entries({
-        nebiusrelay: "",
+        nconnect: "",
         nclaude: "claude",
         ncodex: "codex",
         nopencode: "opencode",
@@ -52,6 +52,7 @@ describe("public installer", () => {
         nhermes: "hermes",
         ndeepseek: "deepseek",
         ngrok: "grok",
+        nunreal: "unreal",
       })) {
         const output = execFileSync(
           path.join(tools, wrapper),
@@ -61,7 +62,7 @@ describe("public installer", () => {
           .trim()
           .split("\n");
         expect(output).toEqual([
-          path.join(env.NEBIUSRELAY_HOME, "bin/nebiusrelay.js"),
+          path.join(env.NCONNECT_HOME, "bin/nconnect.js"),
           ...(harness ? [harness] : []),
           "--image",
           "/tmp/image with spaces.png",

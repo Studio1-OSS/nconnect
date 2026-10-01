@@ -49,6 +49,6 @@ export function missingHarnessMessage(harness: HarnessId): string {
     `${HARNESS_LABEL[harness]} is not installed or "${HARNESS_BIN[harness]}" is not on PATH.`,
     `Install it with: ${install.command}`,
     `Docs: ${install.url}`,
-    `Then re-run: nebiusrelay ${harness}`,
+    `Then re-run: nconnect ${harness}`,
   ].join("\n");
 }

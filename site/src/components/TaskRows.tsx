@@ -19,38 +19,64 @@ function useTick(intervals: number[]) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
     if (tick >= intervals.length) return;
-    
+
     if (tick === intervals.length - 1) {
       const t = setTimeout(() => setTick(0), 4000);
       return () => clearTimeout(t);
     }
-    
+
     const t = setTimeout(() => setTick((x) => x + 1), intervals[tick]);
     return () => clearTimeout(t);
   }, [tick, intervals]);
   return tick;
 }
 
-export function SpinnerRing({ active, children }: { active?: boolean; children?: React.ReactNode }) {
-  const size = 28, stroke = 2.5;
+export function SpinnerRing({
+  active,
+  children,
+}: {
+  active?: boolean;
+  children?: React.ReactNode;
+}) {
+  const size = 28,
+    stroke = 2.5;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   return (
-    <span className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
+    <span
+      className="relative inline-flex shrink-0 items-center justify-center"
+      style={{ width: size, height: size }}
+    >
       <svg
-        width={size} height={size} className="absolute inset-0"
+        width={size}
+        height={size}
+        className="absolute inset-0"
         style={active ? { animation: "spin 1.1s linear infinite" } : undefined}
       >
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--relay-line)" strokeWidth={stroke} />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke="var(--relay-line)"
+          strokeWidth={stroke}
+        />
         {active && (
           <circle
-            cx={size / 2} cy={size / 2} r={r} fill="none"
-            stroke="var(--relay-ink)" strokeWidth={stroke} strokeLinecap="round"
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            stroke="var(--relay-ink)"
+            strokeWidth={stroke}
+            strokeLinecap="round"
             strokeDasharray={`${c * 0.28} ${c * 0.72}`}
           />
         )}
       </svg>
-      <span className="relative text-[12px] font-semibold tabular-nums text-[var(--relay-ink)]">{children}</span>
+      <span className="relative text-[12px] font-semibold tabular-nums text-[var(--relay-ink)]">
+        {children}
+      </span>
     </span>
   );
 }
@@ -69,13 +95,45 @@ export function Badge({ tone, children }: { tone: "red" | "green"; children: Rea
 }
 
 const XIcon = (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="3.5"
+    strokeLinecap="round"
+  >
+    <path d="M18 6L6 18M6 6l12 12" />
+  </svg>
 );
 export const CheckIcon = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+  <svg
+    width="13"
+    height="13"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="3.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M20 6L9 17l-5-5" />
+  </svg>
 );
 const RetryIcon = (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" /></svg>
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="3"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
+  </svg>
 );
 
 /* One detail line shown when a task row is expanded. */
@@ -175,11 +233,20 @@ export function TaskRows({
       );
     if (row.status === "running") return null;
     return row2 === "failed" ? (
-      <span className="inline-flex h-5.5 items-center gap-1.5 rounded-full bg-[#fee2e2] px-2 text-[11.5px] font-medium text-[#991b1b]" style={{ animation: "fade-in 200ms ease-out both" }}>
-        {copy.failed} <span style={{ animation: "spin 1.2s linear infinite" }} className="flex">{RetryIcon}</span>
+      <span
+        className="inline-flex h-5.5 items-center gap-1.5 rounded-full bg-[#fee2e2] px-2 text-[11.5px] font-medium text-[#991b1b]"
+        style={{ animation: "fade-in 200ms ease-out both" }}
+      >
+        {copy.failed}{" "}
+        <span style={{ animation: "spin 1.2s linear infinite" }} className="flex">
+          {RetryIcon}
+        </span>
       </span>
     ) : row2 === "done" ? (
-      <span className="inline-flex h-5.5 items-center gap-1.5 rounded-full bg-[#dcfce7] px-2 text-[11.5px] font-medium text-[#166534]" style={{ animation: "fade-in 200ms ease-out both" }}>
+      <span
+        className="inline-flex h-5.5 items-center gap-1.5 rounded-full bg-[#dcfce7] px-2 text-[11.5px] font-medium text-[#166534]"
+        style={{ animation: "fade-in 200ms ease-out both" }}
+      >
         {copy.completed}
       </span>
     ) : null;
@@ -220,14 +287,23 @@ export function TaskRows({
               <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-[var(--relay-ink)]">
                 {row.label}
               </span>
-              <span className="text-[13px] text-[var(--relay-muted)] tabular-nums">{row.amount}</span>
+              <span className="text-[13px] text-[var(--relay-muted)] tabular-nums">
+                {row.amount}
+              </span>
               {pillFor(row)}
               <span
                 aria-hidden="true"
                 className="-ml-1 flex w-8 h-8 shrink-0 items-center justify-center rounded-full text-gray-500"
               >
                 <svg
-                  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   className="transition-transform duration-300"
                   style={{ transform: open ? "rotate(180deg)" : "rotate(0)" }}
                 >
@@ -238,36 +314,38 @@ export function TaskRows({
 
             <div
               className="grid transition-[grid-template-rows,opacity] duration-300"
-                style={{
-                  gridTemplateRows: open ? "1fr" : "0fr",
-                  opacity: open ? 1 : 0,
-                  transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
-                }}
-              >
-                <div className="overflow-hidden">
-                  <div className="mb-4 grid grid-cols-[28px_1fr] gap-3 px-3">
-                    <span aria-hidden className="mx-auto h-full w-px bg-[var(--relay-line)]" />
-                    <div className="flex flex-col gap-2.5">
-                      {row.details.map((d, j) => (
-                        <div
-                          key={d.label}
-                          className="flex items-center justify-between"
-                          style={
-                            open
-                              ? { animation: `fade-up 300ms cubic-bezier(0.23,1,0.32,1) ${120 + j * 100}ms both` }
-                              : undefined
-                          }
-                        >
-                          <span className="text-[14px] text-[var(--relay-muted)]">{d.label}</span>
-                          <span className="font-mono text-[13px] text-gray-500 tabular-nums">
-                            {d.meta}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+              style={{
+                gridTemplateRows: open ? "1fr" : "0fr",
+                opacity: open ? 1 : 0,
+                transitionTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
+              }}
+            >
+              <div className="overflow-hidden">
+                <div className="mb-4 grid grid-cols-[28px_1fr] gap-3 px-3">
+                  <span aria-hidden className="mx-auto h-full w-px bg-[var(--relay-line)]" />
+                  <div className="flex flex-col gap-2.5">
+                    {row.details.map((d, j) => (
+                      <div
+                        key={d.label}
+                        className="flex items-center justify-between"
+                        style={
+                          open
+                            ? {
+                                animation: `fade-up 300ms cubic-bezier(0.23,1,0.32,1) ${120 + j * 100}ms both`,
+                              }
+                            : undefined
+                        }
+                      >
+                        <span className="text-[14px] text-[var(--relay-muted)]">{d.label}</span>
+                        <span className="font-mono text-[13px] text-gray-500 tabular-nums">
+                          {d.meta}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
+            </div>
           </div>
         );
       })}

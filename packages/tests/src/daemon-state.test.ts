@@ -29,7 +29,7 @@ describe("daemon session state", () => {
     expect(disabledSession.options?.perfSink).toBeUndefined();
     expect(toPublicSessionView(disabledSession).proxyPerf).toBeUndefined();
 
-    vi.stubEnv("NEBIUSRELAY_PERF", "1");
+    vi.stubEnv("NCONNECT_PERF", "1");
     const enabledSession = buildSession(registerBody("enabled"));
 
     enabledSession.options?.perfSink?.({
@@ -78,7 +78,7 @@ function registerBody(token: string): RegisterSessionRequest {
 }
 
 /**
- * `nebiusrelay usage` groups by model. Model ids used to be persisted only when
+ * `nconnect usage` groups by model. Model ids used to be persisted only when
  * a session had proxy options, which spawned harnesses never have - so every
  * Pi/Prime/Hermes/DeepSeek/Grok session was filed under model "unknown",
  * blanking the by-model breakdown for exactly the tools metering was added for.
