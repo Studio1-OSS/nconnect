@@ -1,36 +1,23 @@
-const providers = [
-  {
-    role: "Inference by",
-    name: "Nebius Token Factory",
-    href: "https://tokenfactory.nebius.com",
-    mark: "/nebius-token-factory-mark.png",
-  },
-  {
-    role: "Web search by",
-    name: "Tavily",
-    href: "https://tavily.com",
-    mark: "/tavily-icon.png",
-  },
-] as const;
-
-/**
- * One quiet line crediting the providers behind NConnect. Marks are small and
- * grayscale at rest (colour on hover) so they read as attribution, not ads.
- * Styles live in landing.css (.provider-credits).
- */
-export function ProviderCredits({ className = "" }: { className?: string }) {
+export function ProviderBrand({ provider }: { provider: "nebius" | "tavily" }) {
+  const nebius = provider === "nebius";
   return (
-    <p className={`provider-credits ${className}`}>
-      {providers.map((provider) => (
-        <span className="provider-credit" key={provider.name}>
-          <span className="provider-credit-role">{provider.role}</span>
-          <a href={provider.href} target="_blank" rel="noopener noreferrer">
-            <img src={provider.mark} width="16" height="16" alt="" />
-            {provider.name}
-          </a>
-        </span>
-      ))}
-    </p>
+    <a
+      className="provider-brand"
+      href={nebius ? "https://tokenfactory.nebius.com" : "https://tavily.com"}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <img
+        src={nebius ? "/nebius-token-factory-mark.png" : "/tavily-icon.png"}
+        width="36"
+        height="36"
+        alt=""
+      />
+      <span>
+        <small>{nebius ? "Models powered by" : "Web search powered by"}</small>
+        <strong>{nebius ? "Nebius Token Factory" : "Tavily"}</strong>
+      </span>
+    </a>
   );
 }
 

@@ -1,8 +1,77 @@
 /*
  * Docs styles. Layered on top of landing.css (nav, buttons, copy-button, grid
- * lines) and coloured only through the palette tokens in app.css, so the docs
- * stay in step with the landing page.
+ * lines). The palette below is scoped to .docs-page so the docs match the
+ * landing page's colours without changing any global token.
  */
+
+/* ---------- palette (docs only) ---------- */
+.docs-page {
+  --color-ink: #171917;
+  --color-muted: #626760;
+  --color-faint: #8e9489;
+  --color-line: #dfe3da;
+  --color-line-strong: #cdd3c6;
+  --color-code: #f4f5f1;
+  --color-canvas: #fffcf5;
+  --color-canvas-line: #f3ece3;
+  --color-brand: #47720b;
+  --color-brand-hover: #587c08;
+  --color-brand-soft: #eef4e0;
+  --color-amber-ink: #87622e;
+}
+.docs-page ::selection {
+  background: #c6f135;
+  color: var(--color-ink);
+}
+
+/* ---------- provider credits (overview header) ---------- */
+.provider-credits {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 0;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-faint);
+}
+.provider-credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.provider-credit + .provider-credit::before {
+  content: "";
+  width: 1px;
+  height: 12px;
+  margin: 0 20px;
+  background: var(--color-line-strong);
+}
+.provider-credit a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+.provider-credit a:hover {
+  color: var(--color-ink);
+}
+.provider-credit img {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  object-fit: contain;
+  filter: grayscale(1);
+  opacity: 0.75;
+  transition:
+    filter 160ms,
+    opacity 160ms;
+}
+.provider-credit a:hover img {
+  filter: none;
+  opacity: 1;
+}
 
 /* ---------- layout ---------- */
 .docs-layout {
@@ -870,4 +939,37 @@ h2:hover > .section-anchor,
   color: var(--color-ink);
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* ---------- numbered list ---------- */
+.docs-prose ol.docs-numbered {
+  counter-reset: docs-num;
+  list-style: none;
+  max-width: 680px;
+  margin: 16px 0 0;
+  padding: 0;
+}
+.docs-numbered > li {
+  counter-increment: docs-num;
+  position: relative;
+  padding-left: 32px;
+}
+.docs-numbered > li + li {
+  margin-top: 10px;
+}
+.docs-numbered > li::before {
+  content: counter(docs-num);
+  position: absolute;
+  left: 0;
+  top: 0.2em;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--color-line-strong);
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1;
+  color: var(--color-muted);
 }

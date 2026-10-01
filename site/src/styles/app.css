@@ -8,34 +8,27 @@
   font-display: swap;
 }
 
-@theme static {
+@theme {
   --font-sans:
     "CustomInter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, Helvetica, Arial, sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
 
-  /* NConnect palette - the single source of truth for every route. The landing
-     page's --relay-* variables and the docs styles both read from these. */
-  --color-ink: #171917; /* warm near-black - primary text */
-  --color-muted: #626760; /* secondary text */
-  --color-faint: #8e9489; /* tertiary text, disabled marks */
-  --color-line: #dfe3da; /* hairlines */
-  --color-line-strong: #cdd3c6; /* card and input borders */
-  --color-code: #f4f5f1; /* light fill: inline code, hovers, table heads */
-  --color-canvas: #fffcf5; /* warm cream band (agents, features, callouts) */
-  --color-canvas-line: #f3ece3; /* border on the cream band */
+  /* NConnect palette */
+  --color-ink: #0b1120; /* near-black navy - primary text */
+  --color-muted: #55607a; /* secondary text */
+  --color-faint: #8b95ad; /* tertiary text */
+  --color-line: #eaecf2; /* hairlines */
+  --color-line-strong: #dde1eb; /* card borders */
+  --color-code: #f6f7fb; /* light fill */
+  --color-canvas: #f4f5f9; /* page tint */
 
-  --color-brand: #47720b; /* NConnect green - wordmark, links, active state */
-  --color-brand-hover: #587c08;
-  --color-brand-soft: #eef4e0; /* tinted fill behind brand-coloured text */
-  --color-mint: #38b889; /* live dot, skip link, light CTA */
-  --color-mint-hover: #67d6ae;
-  --color-lime: #c6f135; /* signature green on dark surfaces */
+  --color-lime: #c6f135; /* NConnect signature green (on dark) */
   --color-lime-ink: #4d6b00; /* lime, darkened for text on light */
-  --color-amber-ink: #87622e; /* alpha / experimental status */
-  --color-surface: #171917; /* dark feature surface */
-  --color-surface-2: #22261f; /* dark surface gradient stop */
-  --color-focus: #4e84d8; /* focus ring */
+  --color-violet: #6a5cf3; /* primary CTA / accents */
+  --color-violet-soft: #efedff;
+  --color-surface: #0a0f1e; /* dark feature surface */
+  --color-surface-2: #111a30; /* dark surface gradient stop */
 }
 
 @layer base {
@@ -59,7 +52,7 @@
   }
 
   ::selection {
-    background: var(--color-lime);
-    color: var(--color-ink);
+    background: var(--color-violet);
+    color: #ffffff;
   }
 }

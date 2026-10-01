@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { ProviderCredits } from "../../components/ProviderBrand";
+import { ProviderCredits } from "../../docs/ProviderCredits";
 import { PageCards, TutorialCards } from "../../docs/cards";
 import { installCommand } from "../../docs/data";
 import { DocArticle, docHead } from "../../docs/layout";

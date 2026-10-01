@@ -21,7 +21,7 @@ import {
   CircleHelp,
 } from "lucide-react";
 import "../styles/landing.css";
-import { ProviderCredits } from "../components/ProviderBrand";
+import { ProviderBrand } from "../components/ProviderBrand";
 import { ThinkingState, useSequence } from "../components/ThinkingState";
 import { TaskRows, SpinnerRing, Badge, CheckIcon, TaskRow } from "../components/TaskRows";
 import { pageHead, siteUrl, structuredData } from "../lib/seo";
@@ -313,7 +313,20 @@ function Home() {
         <section className="relay-hero" aria-labelledby="hero-heading">
           <div className="wrap relay-hero-split">
             <div className="hero-split-left">
-              <p className="eyebrow hero-eyebrow">YOUR AGENTS. OPEN MODELS.</p>
+              <div className="hero-eyebrow-container">
+                <div className="hero-eyebrow-logos">
+                  <div className="eyebrow-logo">
+                    <ClaudeMark />
+                  </div>
+                  <div className="eyebrow-logo">
+                    <CodexMark />
+                  </div>
+                  <div className="eyebrow-logo">
+                    <PiMark />
+                  </div>
+                </div>
+                <p className="eyebrow">YOUR AGENTS. OPEN MODELS.</p>
+              </div>
               <h1 id="hero-heading">
                 Use open models
                 <br />
@@ -336,17 +349,39 @@ function Home() {
                 Run the coding agents you love on Nebius. One local relay. Eight agents. Your setup
                 stays yours.
               </p>
-              <ul className="hero-meta">
-                <li>
-                  <Check size={14} aria-hidden="true" /> Open source, MIT
-                </li>
-                <li>
-                  <Check size={14} aria-hidden="true" /> macOS &amp; Linux
-                </li>
-                <li>
-                  <Check size={14} aria-hidden="true" /> Config-free
-                </li>
-              </ul>
+              <div className="hero-meta">
+                <span>
+                  <img
+                    src="/logos/opensource.png"
+                    alt=""
+                    style={{ width: "14px", height: "14px", objectFit: "contain" }}
+                  />{" "}
+                  Open source
+                </span>
+                <span>
+                  <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                    <img
+                      src="/logos/mac.png"
+                      alt=""
+                      style={{ width: "14px", height: "14px", objectFit: "contain" }}
+                    />
+                    <img
+                      src="/logos/linux.png"
+                      alt=""
+                      style={{ width: "14px", height: "14px", objectFit: "contain" }}
+                    />
+                  </div>
+                  macOS & Linux
+                </span>
+                <span>
+                  <img
+                    src="/logos/config.png"
+                    alt=""
+                    style={{ width: "14px", height: "14px", objectFit: "contain" }}
+                  />{" "}
+                  Config-free
+                </span>
+              </div>
             </div>
           </div>
           <div className="relay-hero-banner">
@@ -389,7 +424,9 @@ function Home() {
           </div>
         </section>
         <div className="provider-strip wrap">
-          <ProviderCredits />
+          <ProviderBrand provider="nebius" />
+          <span className="provider-divider" />
+          <ProviderBrand provider="tavily" />
         </div>
         <section className="agent-strip wrap" aria-label="Compatible agents">
           <span className="eyebrow">
@@ -491,7 +528,7 @@ function Home() {
                   models in ordinary ChatGPT web chats.
                 </p>
               </div>
-              <a className="text-link" href="/docs/desktop">
+              <a className="text-link" href="/docs#desktop">
                 Desktop setup <ArrowUpRight size={16} />
               </a>
             </div>
