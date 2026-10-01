@@ -230,6 +230,7 @@
   min-height: 44px;
   padding: 12px 24px;
   border-radius: 99px;
+  white-space: nowrap;
   font-size: 14px;
   font-weight: 500;
   transition: all 0.15s linear;
@@ -260,6 +261,7 @@
   margin: 32px auto 0;
 }
 .relay-hero-banner img {
+  display: block;
   width: 100%;
   max-width: none;
   margin-inline: 0;
@@ -272,6 +274,11 @@
   pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
+}
+/* The inner div wrapping img+terminal must clip the card */
+.relay-hero-banner > div {
+  position: relative;
+  overflow: hidden;
 }
 .relay-hero-split {
   display: flex;
@@ -1233,6 +1240,9 @@
     gap: 24px;
     text-align: center;
   }
+  .install-terminal {
+    width: 80%;
+  }
 }
 @media (max-width: 640px) {
   .relay-home .wrap {
@@ -1302,17 +1312,39 @@
     font-size: 10px;
   }
   .agent-strip {
-    display: block;
-    padding-block: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    margin-inline: 0;
+    gap: 28px;
   }
   .agent-strip > .eyebrow {
-    margin-bottom: 16px;
+    margin-bottom: 0;
+    padding-inline: 0;
+    flex: none;
+    background: transparent;
+    text-align: center;
   }
   .agent-strip > .eyebrow br {
     display: none;
   }
-  .agent-strip > div {
-    gap: 16px 22px;
+  .agent-strip-divider {
+    display: none;
+  }
+  .agent-marquee {
+    width: 100%;
+    flex: none;
+    mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  }
+  .agent-marquee-group {
+    gap: 40px;
+    padding-right: 40px;
+  }
+  .agent-marquee-logo svg,
+  .agent-marquee-logo img {
+    height: 28px !important;
   }
   .agent-strip a {
     font-size: 10px;
@@ -1502,17 +1534,39 @@
     font-size: 10px;
   }
   .agent-strip {
-    display: block;
-    padding-block: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    margin-inline: 0;
+    gap: 28px;
   }
   .agent-strip > .eyebrow {
-    margin-bottom: 16px;
+    margin-bottom: 0;
+    padding-inline: 0;
+    flex: none;
+    background: transparent;
+    text-align: center;
   }
   .agent-strip > .eyebrow br {
     display: none;
   }
-  .agent-strip > div {
-    gap: 16px 22px;
+  .agent-strip-divider {
+    display: none;
+  }
+  .agent-marquee {
+    width: 100%;
+    flex: none;
+    mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  }
+  .agent-marquee-group {
+    gap: 40px;
+    padding-right: 40px;
+  }
+  .agent-marquee-logo svg,
+  .agent-marquee-logo img {
+    height: 28px !important;
   }
   .agent-strip a {
     font-size: 10px;
@@ -1797,10 +1851,7 @@
   min-height: 260px !important;
 }
 .feature-card-0 .feature-graphic-container {
-  overflow: visible !important;
-}
-.feature-grid > article.feature-card-0 {
-  overflow: visible !important;
+  min-height: 260px !important;
 }
 
 /* Horizontal card: text left, nested grey animation card right */

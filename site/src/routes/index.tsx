@@ -430,7 +430,7 @@ function Home() {
         </div>
         <section className="agent-strip wrap" aria-label="Compatible agents">
           <span className="eyebrow">
-            SAME TOOLS.
+            SAME TOOLS.{" "}
             <br />
             MORE POSSIBILITIES.
           </span>
