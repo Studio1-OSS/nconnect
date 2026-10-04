@@ -11,6 +11,21 @@ User-visible changes to NConnect, newest first. This changelog starts at
   `ncodex`, ... aliases are unchanged), env vars use the `NCONNECT_` prefix and
   local state lives in `~/.nconnect`.
 
+## 0.16.2 - 2026-10-04
+
+### Fixed
+
+- Existing `nebiusrelay` installs now migrate to NConnect automatically. The
+  first run after the rebrand carries `~/.nebiusrelay` (API keys, preferences,
+  usage history, harness state) over to `~/.nconnect`, installs the bundle at
+  its new location, rewrites the old `nebiusrelay`/`n*` wrappers to run it,
+  stops the old daemon and removes the old login service. Before this, an
+  updated install lost its configuration and stopped updating.
+- `NEBIUSRELAY_*` environment variables keep working as their `NCONNECT_*`
+  equivalents when the new name is unset.
+- `nebius-tf-relay.vercel.app` redirects to `nconnect.sh`, and the old bundle
+  URL `/nebiusrelay.js` serves the current bundle again.
+
 ## 0.16.1 - 2026-09-23
 
 ### Fixed
