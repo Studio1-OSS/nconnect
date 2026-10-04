@@ -52,7 +52,7 @@
   ],
   "redirects": [
     {
-      "source": "/(.*)",
+      "source": "/((?!latest\\.json$|nconnect\\.js$|nebiusrelay\\.js$|install\\.sh$|llms\\.txt$).*)",
       "has": [
         {
           "type": "host",
