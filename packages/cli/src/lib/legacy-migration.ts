@@ -134,9 +134,7 @@ export async function migrateLegacyInstall(
     return undefined;
   }
   const marker = path.join(newHome, MARKER);
-  if (existsSync(marker)) {
-    return undefined;
-  }
+  const firstRun = !existsSync(marker);
   mkdirSync(newHome, { recursive: true });
 
   const result: LegacyMigrationResult = {
@@ -147,28 +145,30 @@ export async function migrateLegacyInstall(
     removedService: false,
   };
 
-  // 1. State: copy only what the new home does not already have.
-  for (const name of STATE_FILES) {
-    const from = path.join(legacyHome, name);
-    const to = path.join(newHome, name);
-    if (existsSync(from) && !existsSync(to)) {
-      cpSync(from, to);
-      result.copied.push(name);
+  // 1. State: copy only what the new home does not already have. Once.
+  if (firstRun) {
+    for (const name of STATE_FILES) {
+      const from = path.join(legacyHome, name);
+      const to = path.join(newHome, name);
+      if (existsSync(from) && !existsSync(to)) {
+        cpSync(from, to);
+        result.copied.push(name);
+      }
     }
-  }
-  for (const name of STATE_DIRS) {
-    const from = path.join(legacyHome, name);
-    const to = path.join(newHome, name);
-    if (existsSync(from) && !existsSync(to)) {
-      cpSync(from, to, { recursive: true });
-      result.copied.push(`${name}/`);
+    for (const name of STATE_DIRS) {
+      const from = path.join(legacyHome, name);
+      const to = path.join(newHome, name);
+      if (existsSync(from) && !existsSync(to)) {
+        cpSync(from, to, { recursive: true });
+        result.copied.push(`${name}/`);
+      }
     }
   }
 
   // 2. The legacy daemon: it serves old code from the old home. Stop it so the
-  //    next launch starts a daemon from the migrated install.
+  //    next launch starts a daemon from the migrated install. Once.
   const pidFile = path.join(legacyHome, "daemon.pid");
-  if (existsSync(pidFile)) {
+  if (firstRun && existsSync(pidFile)) {
     const pid = Number.parseInt(readFileSync(pidFile, "utf8").trim(), 10);
     if (Number.isFinite(pid) && isProcessAlive(pid)) {
       try {
@@ -180,10 +180,12 @@ export async function migrateLegacyInstall(
     }
   }
 
-  // 3. The install: when this process IS the old bundle (the updater wrote
-  //    new code over `~/.nebiusrelay/bin/nebiusrelay.js`), lay down a proper
-  //    `~/.nconnect/bin` install from it and point the old wrappers at it, so
-  //    existing PATH links keep working and future updates land in one place.
+  // 3. The install. Checked on EVERY start, not just the first: the marker may
+  //    have been written by a run that was not the legacy bundle (a dev build,
+  //    a fresh nconnect install alongside), in which case this step could not
+  //    run then. Until the old wrappers exec the new bundle, a legacy install
+  //    runs new code from the old path, which the updater does not recognise,
+  //    so it would never update again. Cheap: a few stats and tiny file reads.
   const legacyBin = path.join(legacyHome, "bin");
   const newBin = path.join(newHome, "bin");
   const newBundle = path.join(newBin, "nconnect.js");
@@ -207,11 +209,13 @@ export async function migrateLegacyInstall(
       }
     }
     // Old wrappers (`nebiusrelay`, `nclaude`, …) are rewritten only if they are
-    // ours - a customized script is left alone.
-    for (const [name, harness] of [
-      ["nebiusrelay", undefined] as [string, undefined],
+    // ours and still point at the legacy bundle - a customized script, or one
+    // already rewritten, is left alone.
+    const legacyWrappers: Array<[string, string | undefined]> = [
+      ["nebiusrelay", undefined],
       ...wrappers.slice(1),
-    ]) {
+    ];
+    for (const [name, harness] of legacyWrappers) {
       const legacyWrapper = path.join(legacyBin, name);
       if (!existsSync(legacyWrapper)) {
         continue;
@@ -222,7 +226,7 @@ export async function migrateLegacyInstall(
       } catch {
         continue;
       }
-      if (!current.includes(LEGACY_BUNDLE) && !current.includes("nconnect.js")) {
+      if (!current.includes(LEGACY_BUNDLE)) {
         continue;
       }
       writeFileSync(legacyWrapper, wrapperBody(newBundle, harness), {
@@ -233,16 +237,22 @@ export async function migrateLegacyInstall(
     }
   }
 
-  // 4. The old login service would keep starting the old daemon.
-  const stopService = options.stopLegacyService ?? stopLegacyServiceReal;
-  try {
-    result.removedService = await stopService(process.platform, home);
-  } catch {
-    // best-effort
+  // 4. The old login service would keep starting the old daemon. Once.
+  if (firstRun) {
+    const stopService = options.stopLegacyService ?? stopLegacyServiceReal;
+    try {
+      result.removedService = await stopService(process.platform, home);
+    } catch {
+      // best-effort
+    }
   }
 
-  writeFileSync(marker, `${new Date().toISOString()}\n`, "utf8");
-  return result;
+  if (firstRun) {
+    writeFileSync(marker, `${new Date().toISOString()}\n`, "utf8");
+    return result;
+  }
+  // A later run only reports when it actually finished the install step.
+  return result.installedBundle || result.rewroteWrappers.length > 0 ? result : undefined;
 }
 
 /** One stderr notice so the user knows what just happened and what to type now. */

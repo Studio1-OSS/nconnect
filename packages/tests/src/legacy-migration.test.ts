@@ -114,4 +114,42 @@ describe("legacy install migration", () => {
     expect(result!.copied).not.toContain("config.json");
     expect(readFileSync(path.join(newHome, "config.json"), "utf8")).toBe('{"apiKey":"newer"}');
   });
+
+  test("finishes the install on a later run when the marker was written by a non-legacy process", async () => {
+    const home = makeHome();
+    const { legacy, bundle } = legacyInstall(home);
+    const newHome = path.join(home, ".nconnect");
+    // First run from a dev build: state copied, marker written, but no
+    // install/rewrite possible because the process is not the legacy bundle.
+    const first = await migrateLegacyInstall({
+      home,
+      env: { NCONNECT_HOME: newHome },
+      argv1: "/repo/packages/cli/dist/bin/nconnect.js",
+      stopLegacyService: async () => false,
+    });
+    expect(first!.copied).toContain("config.json");
+    expect(first!.installedBundle).toBe(false);
+    expect(first!.rewroteWrappers).toEqual([]);
+    expect(readFileSync(path.join(legacy, "bin", "nclaude"), "utf8")).toContain("nebiusrelay.js");
+
+    // Later run from the (updated) legacy bundle: install + rewrite happen now.
+    const later = await migrateLegacyInstall({
+      home,
+      env: { NCONNECT_HOME: newHome },
+      argv1: bundle,
+      stopLegacyService: async () => {
+        throw new Error("must not run again");
+      },
+    });
+    expect(later!.installedBundle).toBe(true);
+    expect(later!.rewroteWrappers).toEqual(["nebiusrelay", "nclaude"]);
+    expect(later!.copied).toEqual([]);
+    expect(readFileSync(path.join(legacy, "bin", "nclaude"), "utf8")).toContain(
+      path.join(newHome, "bin", "nconnect.js"),
+    );
+    // And after that, silence.
+    expect(
+      await migrateLegacyInstall({ home, env: { NCONNECT_HOME: newHome }, argv1: bundle }),
+    ).toBeUndefined();
+  });
 });
