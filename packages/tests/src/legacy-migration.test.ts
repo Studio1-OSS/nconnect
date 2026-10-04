@@ -1,4 +1,13 @@
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readlinkSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
@@ -151,5 +160,40 @@ describe("legacy install migration", () => {
     expect(
       await migrateLegacyInstall({ home, env: { NCONNECT_HOME: newHome }, argv1: bundle }),
     ).toBeUndefined();
+  });
+
+  test("repoints PATH links that still target an older install's bin dir", async () => {
+    const home = makeHome();
+    const { bundle } = legacyInstall(home);
+    const newHome = path.join(home, ".nconnect");
+    // A previous generation (nebiuslink) linked into a dir that is first on PATH.
+    const oldBin = path.join(home, ".nebiuslink", "bin");
+    mkdirSync(oldBin, { recursive: true });
+    writeFileSync(path.join(oldBin, "nclaude"), "#!/bin/sh\nexec bun old.js claude\n");
+    const pathDir = path.join(home, "pathdir");
+    mkdirSync(pathDir);
+    symlinkSync(path.join(oldBin, "nclaude"), path.join(pathDir, "nclaude"));
+    symlinkSync(
+      path.join(home, ".nebiusrelay", "bin", "nebiusrelay"),
+      path.join(pathDir, "nebiusrelay"),
+    );
+    symlinkSync("/usr/bin/true", path.join(pathDir, "npi")); // not ours: untouched
+
+    const result = await migrateLegacyInstall({
+      home,
+      env: { NCONNECT_HOME: newHome },
+      argv1: bundle,
+      pathDirs: [pathDir],
+      stopLegacyService: async () => false,
+    });
+    expect(result!.repointedLinks.sort()).toEqual(
+      [path.join(pathDir, "nclaude"), path.join(pathDir, "nebiusrelay")].sort(),
+    );
+    expect(readlinkSync(path.join(pathDir, "nclaude"))).toBe(path.join(newHome, "bin", "nclaude"));
+    expect(readlinkSync(path.join(pathDir, "nebiusrelay"))).toBe(
+      path.join(newHome, "bin", "nconnect"),
+    );
+    expect(readlinkSync(path.join(pathDir, "npi"))).toBe("/usr/bin/true");
+    expect(legacyMigrationNotice(result!)).toContain("Repointed 2 command link(s)");
   });
 });

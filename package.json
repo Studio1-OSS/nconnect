@@ -1,6 +1,6 @@
 {
   "name": "nconnect",
-  "version": "0.16.3",
+  "version": "0.16.4",
   "private": true,
   "description": "Use Nebius Token Factory models in Claude Code, Codex, OpenCode, Pi, Prime Agent, Hermes, DeepSeek Harness, and Grok Build",
   "license": "MIT",

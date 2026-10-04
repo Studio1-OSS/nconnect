@@ -11,6 +11,18 @@ User-visible changes to NConnect, newest first. This changelog starts at
   `ncodex`, ... aliases are unchanged), env vars use the `NCONNECT_` prefix and
   local state lives in `~/.nconnect`.
 
+## 0.16.4 - 2026-10-04
+
+### Fixed
+
+- Stale command links from older installs no longer shadow the new commands.
+  The installer used to skip an existing `nclaude` (etc.) it did not create,
+  so a link into an old `~/.nebiuslink/bin` or `~/.nebiusrelay/bin` ahead on
+  PATH kept running an old bundle forever. The installer now replaces links
+  and wrappers left by any previous generation of this tool, and the
+  migration repoints such PATH links on start for auto-update users who
+  never re-run the installer.
+
 ## 0.16.3 - 2026-10-04
 
 ### Fixed

@@ -188,19 +188,27 @@ if LINK_DIR="$(find_writable_path_dir)"; then
     dest="$LINK_DIR/$name"
 
     if [ -e "$dest" ] || [ -L "$dest" ]; then
+      # Replace anything a previous install of this tool left behind: a link
+      # into our bin dir (any generation - nebiuslink, nebiusrelay, nconnect)
+      # or one of our own wrapper scripts. A stale link that still resolves
+      # into an old bundle would otherwise silently shadow the new commands
+      # forever, because an old wrapper on PATH keeps "working".
       current="$(readlink "$dest" 2>/dev/null || true)"
       case "$current" in
-        "$BIN_DIR"/*)
+        "$BIN_DIR"/*|*/.nconnect/bin/*|*/.nebiusrelay/bin/*|*/.nebiuslink/bin/*)
           ln -sf "$target" "$dest"
           links_changed=$((links_changed + 1))
           return 0
           ;;
-        *)
-          links_skipped=$((links_skipped + 1))
-          info "Skipped $dest (already exists; remove it or put $BIN_DIR earlier on PATH to use nconnect here)"
-          return 0
-          ;;
       esac
+      if [ ! -L "$dest" ] && grep -Eqs 'exec bun "[^"]*/(nconnect|nebiusrelay|nebiuslink)\.js"' "$dest" 2>/dev/null; then
+        rm -f "$dest" && ln -s "$target" "$dest"
+        links_changed=$((links_changed + 1))
+        return 0
+      fi
+      links_skipped=$((links_skipped + 1))
+      info "Skipped $dest (already exists; remove it or put $BIN_DIR earlier on PATH to use nconnect here)"
+      return 0
     fi
 
     ln -s "$target" "$dest"
