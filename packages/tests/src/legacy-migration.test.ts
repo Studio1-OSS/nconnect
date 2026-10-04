@@ -1,0 +1,117 @@
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { afterEach, describe, expect, test } from "vitest";
+import {
+  applyLegacyEnv,
+  legacyMigrationNotice,
+  migrateLegacyInstall,
+} from "../../cli/src/lib/legacy-migration.js";
+
+describe("legacy env fallback", () => {
+  test("maps NEBIUSRELAY_* to NCONNECT_* only when the new name is unset", () => {
+    const env: NodeJS.ProcessEnv = {
+      NEBIUSRELAY_PORT: "7999",
+      NEBIUSRELAY_DEBUG: "1",
+      NCONNECT_DEBUG: "0",
+      PATH: "/usr/bin",
+    };
+    expect(applyLegacyEnv(env)).toEqual(["NCONNECT_PORT"]);
+    expect(env.NCONNECT_PORT).toBe("7999");
+    expect(env.NCONNECT_DEBUG).toBe("0");
+  });
+});
+
+describe("legacy install migration", () => {
+  const dirs: string[] = [];
+  const makeHome = () => {
+    const home = mkdtempSync(path.join(tmpdir(), "nconnect-migrate-"));
+    dirs.push(home);
+    return home;
+  };
+  afterEach(() => {
+    for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+  });
+
+  function legacyInstall(home: string) {
+    const legacy = path.join(home, ".nebiusrelay");
+    mkdirSync(path.join(legacy, "bin"), { recursive: true });
+    mkdirSync(path.join(legacy, "prime-agent"), { recursive: true });
+    writeFileSync(path.join(legacy, "config.json"), '{"apiKey":"k"}');
+    writeFileSync(path.join(legacy, "preferences.json"), "{}");
+    writeFileSync(path.join(legacy, "prime-agent", "models.json"), "[]");
+    const bundle = path.join(legacy, "bin", "nebiusrelay.js");
+    writeFileSync(bundle, "// new code, downloaded over the old bundle\n");
+    writeFileSync(
+      path.join(legacy, "bin", "nebiusrelay"),
+      `#!/usr/bin/env sh\nexec bun "${bundle}" "$@"\n`,
+    );
+    writeFileSync(
+      path.join(legacy, "bin", "nclaude"),
+      `#!/usr/bin/env sh\nexec bun "${bundle}" claude "$@"\n`,
+    );
+    writeFileSync(path.join(legacy, "bin", "ncodex"), "#!/bin/sh\necho custom\n");
+    return { legacy, bundle };
+  }
+
+  test("does nothing without a legacy install", async () => {
+    const home = makeHome();
+    const env = { NCONNECT_HOME: path.join(home, ".nconnect") };
+    expect(await migrateLegacyInstall({ home, env, argv1: undefined })).toBeUndefined();
+  });
+
+  test("copies state, installs the bundle, rewrites our wrappers, runs once", async () => {
+    const home = makeHome();
+    const { legacy, bundle } = legacyInstall(home);
+    const newHome = path.join(home, ".nconnect");
+    const env = { NCONNECT_HOME: newHome };
+    let serviceCalls = 0;
+    const result = await migrateLegacyInstall({
+      home,
+      env,
+      argv1: bundle,
+      stopLegacyService: async () => {
+        serviceCalls += 1;
+        return true;
+      },
+    });
+    expect(result).toBeDefined();
+    expect(result!.copied).toEqual(["config.json", "preferences.json", "prime-agent/"]);
+    expect(readFileSync(path.join(newHome, "config.json"), "utf8")).toBe('{"apiKey":"k"}');
+    expect(result!.installedBundle).toBe(true);
+    const newBundle = path.join(newHome, "bin", "nconnect.js");
+    expect(existsSync(newBundle)).toBe(true);
+    expect(existsSync(path.join(newHome, "bin", "nconnect"))).toBe(true);
+    expect(existsSync(path.join(newHome, "bin", "nunreal"))).toBe(true);
+    // Our old wrappers now exec the new bundle; the customized one is untouched.
+    expect(result!.rewroteWrappers).toEqual(["nebiusrelay", "nclaude"]);
+    expect(readFileSync(path.join(legacy, "bin", "nclaude"), "utf8")).toContain(
+      `exec bun "${newBundle}" claude`,
+    );
+    expect(readFileSync(path.join(legacy, "bin", "ncodex"), "utf8")).toBe(
+      "#!/bin/sh\necho custom\n",
+    );
+    expect(result!.removedService).toBe(true);
+    expect(serviceCalls).toBe(1);
+    expect(legacyMigrationNotice(result!)).toContain("nebiusrelay is now NConnect");
+
+    // Second run is a no-op.
+    expect(await migrateLegacyInstall({ home, env, argv1: bundle })).toBeUndefined();
+  });
+
+  test("never overwrites state the new home already has", async () => {
+    const home = makeHome();
+    const { bundle } = legacyInstall(home);
+    const newHome = path.join(home, ".nconnect");
+    mkdirSync(newHome, { recursive: true });
+    writeFileSync(path.join(newHome, "config.json"), '{"apiKey":"newer"}');
+    const result = await migrateLegacyInstall({
+      home,
+      env: { NCONNECT_HOME: newHome },
+      argv1: bundle,
+      stopLegacyService: async () => false,
+    });
+    expect(result!.copied).not.toContain("config.json");
+    expect(readFileSync(path.join(newHome, "config.json"), "utf8")).toBe('{"apiKey":"newer"}');
+  });
+});

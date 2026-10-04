@@ -13,6 +13,11 @@ import {
   resolveStoredApiKey,
 } from "../lib/global-config.js";
 import { maybeSelfUpdate } from "../lib/autoupdate.js";
+import {
+  applyLegacyEnv,
+  legacyMigrationNotice,
+  migrateLegacyInstall,
+} from "../lib/legacy-migration.js";
 import { getInstallId, sendTelemetryEvent } from "../lib/telemetry.js";
 import { VERSION } from "../lib/version.js";
 
@@ -145,6 +150,20 @@ function isInteractive(): boolean {
 }
 
 async function main() {
+  // `NEBIUSRELAY_*` env vars from before the rebrand keep working.
+  applyLegacyEnv(process.env);
+  // An install that just self-updated from nebiusrelay runs from the old
+  // location with none of the new state; carry it over before anything reads
+  // the home directory (including the updater, which keys off the new path).
+  try {
+    const migrated = await migrateLegacyInstall();
+    if (migrated) {
+      process.stderr.write(legacyMigrationNotice(migrated));
+    }
+  } catch {
+    // Best-effort; a failed migration must never block the CLI.
+  }
+
   // Self-update first (throttled, bounded, never throws). Placed before arg
   // parsing so even `nconnect help` keeps an install current, but it's a
   // no-op unless this is the installed bundle and the throttle window passed.

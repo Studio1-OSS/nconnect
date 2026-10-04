@@ -240,6 +240,10 @@ pnpm build:site        # builds the CLI bundle + latest.json + the site
 - [Changelog](CHANGELOG.md)
 - [Nebius Builder Program](https://dub.sh/AIStudio) and [awesome-ai-apps](https://github.com/Arindam200/awesome-ai-apps) (100+ projects built on open models)
 
+## Upgrading from nebiusrelay
+
+NConnect was previously published as Nebius TF Relay (`nebiusrelay`). Existing installs update themselves: the first run after the update moves your settings and usage history from `~/.nebiusrelay` to `~/.nconnect`, keeps the old `nebiusrelay` and `n*` commands working, and prints a one-line notice. `NEBIUSRELAY_*` environment variables are still honoured. If you had `nebiusrelay daemon install` set up, run `nconnect daemon install` once to re-enable auto-start under the new name.
+
 ## License
 
 [MIT](LICENSE)
