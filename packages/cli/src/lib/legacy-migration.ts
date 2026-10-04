@@ -1,5 +1,14 @@
 import { execFile } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readlinkSync,
+  symlinkSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { ALL_HARNESSES } from "./harness.js";
@@ -30,6 +39,8 @@ const NEW_PREFIX = "NCONNECT_";
 const MARKER = "migrated-from-nebiusrelay";
 const LEGACY_LAUNCHD_LABEL = "com.nebiusrelay.daemon";
 const LEGACY_SYSTEMD_UNIT = "nebiusrelay-daemon.service";
+/** Bin dirs of every previous generation of this tool, as PATH links point at them. */
+const LEGACY_BIN_DIRS = [".nebiusrelay/bin", ".nebiuslink/bin"];
 
 /** State worth carrying over. `bin`, logs and the pid file are deliberately not. */
 const STATE_FILES = [
@@ -70,6 +81,8 @@ export type LegacyMigrationOptions = {
   env?: NodeJS.ProcessEnv;
   /** Injected for tests; the real one calls launchctl / systemctl. */
   stopLegacyService?: (platform: NodeJS.Platform, home: string) => Promise<boolean>;
+  /** PATH to scan for stale links; defaults to the process PATH. */
+  pathDirs?: string[];
 };
 
 export type LegacyMigrationResult = {
@@ -78,6 +91,8 @@ export type LegacyMigrationResult = {
   installedBundle: boolean;
   stoppedDaemon: boolean;
   removedService: boolean;
+  /** PATH links that pointed into an older install and now point at ~/.nconnect/bin. */
+  repointedLinks: string[];
 };
 
 function wrapperBody(bundle: string, harness?: string): string {
@@ -143,6 +158,7 @@ export async function migrateLegacyInstall(
     installedBundle: false,
     stoppedDaemon: false,
     removedService: false,
+    repointedLinks: [],
   };
 
   // 1. State: copy only what the new home does not already have. Once.
@@ -237,6 +253,50 @@ export async function migrateLegacyInstall(
     }
   }
 
+  // 3b. PATH links. The installer links our commands into the first writable
+  //     PATH dir, and earlier generations did the same, so a machine can carry
+  //     `nclaude -> ~/.nebiuslink/bin/nclaude` ahead of everything else on
+  //     PATH. Auto-update users never re-run the installer, so repoint those
+  //     here. Only links into one of our old bin dirs are touched. Every start.
+  if (existsSync(newBundle)) {
+    const names = ["nconnect", "nebiusrelay", "nebiuslink", ...ALL_HARNESSES.map((h) => `n${h}`)];
+    const legacyBins = LEGACY_BIN_DIRS.map((d) => path.join(home, d));
+    const pathDirs = options.pathDirs ?? (env.PATH ?? "").split(path.delimiter).filter(Boolean);
+    for (const dir of new Set(pathDirs)) {
+      if (path.resolve(dir) === path.resolve(newBin)) {
+        continue;
+      }
+      for (const name of names) {
+        const link = path.join(dir, name);
+        let current: string;
+        try {
+          current = readlinkSync(link);
+        } catch {
+          continue; // not a symlink, or absent
+        }
+        const resolved = path.resolve(dir, current);
+        if (!legacyBins.some((bin) => resolved.startsWith(bin + path.sep))) {
+          continue;
+        }
+        // `nebiusrelay`/`nebiuslink` links become `nconnect`.
+        const replacement = path.join(
+          newBin,
+          name.startsWith("n") && !existsSync(path.join(newBin, name)) ? "nconnect" : name,
+        );
+        if (!existsSync(replacement)) {
+          continue;
+        }
+        try {
+          unlinkSync(link);
+          symlinkSync(replacement, link);
+          result.repointedLinks.push(link);
+        } catch {
+          // read-only dir: leave it
+        }
+      }
+    }
+  }
+
   // 4. The old login service would keep starting the old daemon. Once.
   if (firstRun) {
     const stopService = options.stopLegacyService ?? stopLegacyServiceReal;
@@ -252,7 +312,11 @@ export async function migrateLegacyInstall(
     return result;
   }
   // A later run only reports when it actually finished the install step.
-  return result.installedBundle || result.rewroteWrappers.length > 0 ? result : undefined;
+  return result.installedBundle ||
+    result.rewroteWrappers.length > 0 ||
+    result.repointedLinks.length > 0
+    ? result
+    : undefined;
 }
 
 /** One stderr notice so the user knows what just happened and what to type now. */
@@ -263,6 +327,11 @@ export function legacyMigrationNotice(result: LegacyMigrationResult): string {
   }
   if (result.rewroteWrappers.length > 0) {
     parts.push(`Your existing nebiusrelay/n* commands keep working; \`nconnect\` is the new name.`);
+  }
+  if (result.repointedLinks.length > 0) {
+    parts.push(
+      `Repointed ${result.repointedLinks.length} command link(s) on your PATH that still ran an older install.`,
+    );
   }
   if (result.removedService) {
     parts.push(

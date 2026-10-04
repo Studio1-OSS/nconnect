@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -35,6 +35,14 @@ describe("public installer", () => {
         NCONNECT_HOME: path.join(home, "relay with spaces"),
         NCONNECT_ORIGIN: "https://installer.test",
       };
+      // A link left by an older generation, first on PATH, must be replaced -
+      // not skipped - or it keeps shadowing the new commands forever.
+      const staleBin = path.join(home, ".nebiuslink", "bin");
+      mkdirSync(staleBin, { recursive: true });
+      writeFileSync(path.join(staleBin, "nclaude"), "#!/bin/sh\nexec bun old.js claude\n", {
+        mode: 0o755,
+      });
+      symlinkSync(path.join(staleBin, "nclaude"), path.join(tools, "nclaude"));
       const run = () =>
         execFileSync(shell, [], { input: readFileSync(installer), env, encoding: "utf8" });
       expect(run()).toContain("Verified:");
