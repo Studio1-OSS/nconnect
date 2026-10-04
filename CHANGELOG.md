@@ -11,6 +11,16 @@ User-visible changes to NConnect, newest first. This changelog starts at
   `ncodex`, ... aliases are unchanged), env vars use the `NCONNECT_` prefix and
   local state lives in `~/.nconnect`.
 
+## 0.16.3 - 2026-10-04
+
+### Fixed
+
+- The nebiusrelay → NConnect migration finishes its install step on a later
+  run too. If something else (a dev build, a fresh `nconnect` alongside) had
+  already marked the migration done, an updated legacy install kept running
+  from `~/.nebiusrelay/bin` with its old wrappers and never updated again.
+  The bundle install and wrapper rewrite are now checked on every start.
+
 ## 0.16.2 - 2026-10-04
 
 ### Fixed
