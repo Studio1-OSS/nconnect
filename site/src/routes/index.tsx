@@ -1111,7 +1111,7 @@ function Step3Graphic() {
 function FeatureGraphic0() {
   return (
     <div className="absolute inset-0 flex items-center justify-center">
-      <div className="w-[115%] max-w-[420px] opacity-90 flex justify-center">
+      <div className="w-[115%] max-w-[420px] aspect-square opacity-90 flex items-center justify-center">
         <CofounderGraphic />
       </div>
     </div>
