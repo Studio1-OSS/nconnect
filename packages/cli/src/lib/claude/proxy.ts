@@ -1,3 +1,4 @@
+import { isUserModelChoice } from "./request-routing.js";
 import { type IncomingMessage, type ServerResponse } from "node:http";
 import { CLAUDE_HAIKU_MODEL, getClaudeSupportedModels } from "./defaults.js";
 import { recordAgentModel } from "../model-preferences.js";
@@ -178,8 +179,9 @@ export async function handleProxyRequest(
   }));
   // Remember the user's model across launches. Record the requested model,
   // unless it's the Haiku-tier backend Claude Code uses for its built-in
-  // subagents (that's a fixed role, not the user's main pick). Fire-and-forget.
-  if (body.model) {
+  // subagents, or one of Claude Code's background calls (classifier, title):
+  // those are fixed roles, not the user's pick. Fire-and-forget.
+  if (body.model && isUserModelChoice(body)) {
     const requested = getClaudeSupportedModels().find(
       (m) => m.alias === body.model || m.definition.id === body.model,
     );

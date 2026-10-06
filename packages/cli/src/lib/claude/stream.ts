@@ -1,3 +1,4 @@
+import { resolveClaudeRequestRoute } from "./request-routing.js";
 import { randomUUID } from "node:crypto";
 import { type ServerResponse } from "node:http";
 import { type ModelDefinition } from "@nconnect/models";
@@ -31,7 +32,7 @@ import {
   nebiusReasoningEffort,
   withClaudeNativeToolSystemPrompt,
 } from "./translate-request.js";
-import { resolveTargetModel, thinkingSignature } from "./translate-response.js";
+import { thinkingSignature } from "./translate-response.js";
 import { mapNebiusError, writeAnthropicError } from "./nebius-call.js";
 import type {
   AnthropicMessagesRequest,
@@ -74,7 +75,7 @@ export async function streamAnthropicFromNebius(
   // rather than duplicating the whole translation body across the spanSync and
   // fallback branches. Behavior is unchanged.
   const run = () => {
-    const targetModel = resolveTargetModel(body.model, options);
+    const targetModel = resolveClaudeRequestRoute(body, options).targetModel;
     const messages = toOpenAIMessages(body, targetModel.definition);
     const nativeTools = nativeServerTools(body.tools);
     const upstreamMessages =
