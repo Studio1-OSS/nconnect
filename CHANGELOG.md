@@ -3,6 +3,17 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
+## Unreleased
+
+### Fixed
+
+- Docs now say GLM 5.3 Flash and Kimi K3 accept images. A probe image sent to
+  Nebius was read correctly by both, matching Nebius's live modality, while the
+  README, llms.txt and the docs site still called them text-only. The docs
+  also now describe image handling accurately: Codex sends images to the
+  selected model, while the Claude Code proxy always has Kimi K2.6 (then
+  Qwen2.5-VL) describe them as text first.
+
 ## 0.18.0 - 2026-10-06
 
 ### Added

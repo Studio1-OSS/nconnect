@@ -12,9 +12,10 @@ export const vision: DocPage = {
     return (
       <>
         <P>
-          Select a vision-capable model explicitly when launching Codex. The default GLM model is
-          text-only. Image options belong to Codex, not every harness; other agents keep their
-          native attachment controls.
+          Codex sends images to the selected model, so it must accept images. The default GLM 5.3
+          Flash, Kimi K3 and Kimi K2.6 do; GLM 5.3 and most other models are text-only. Image
+          options belong to Codex, not every harness; other agents keep their native attachment
+          controls.
         </P>
         <CopyBox text="ncodex --model moonshotai/Kimi-K2.6" />
         <P>

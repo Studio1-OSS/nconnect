@@ -130,10 +130,10 @@ The long form above works across harnesses. Since Relay 0.15.3, Codex also suppo
 
 Featured flagship models (any live Nebius id also works with `--model`):
 
-- `zai-org/GLM-5.3-Flash` - GLM 5.3 Flash. The default coding model, text-only, 1M context.
+- `zai-org/GLM-5.3-Flash` - GLM 5.3 Flash. The default coding model, accepts images, 1M context.
 - `zai-org/GLM-5.3` - GLM 5.3. Text-only, coding and tool use, 1,024,000 context. Bundled since 0.15.4; Claude alias: `nebius-glm-5-3`.
 - `deepseek-ai/DeepSeek-V4-Pro-0813` - DeepSeek V4 Pro 0813. Text-only, reasoning and agentic coding, 979,000 context. Bundled since 0.15.4; Claude alias: `nebius-deepseek-v4-pro-0813`.
-- `moonshotai/Kimi-K3` - Kimi K3. Text-only, reasoning + agentic coding.
+- `moonshotai/Kimi-K3` - Kimi K3. Accepts images, reasoning + agentic coding, 1M context.
 - `moonshotai/Kimi-K2.6` - Kimi K2.6. Vision + reasoning, 262K context. The vision flagship.
 - `moonshotai/Kimi-K2.7-Code` - Kimi K2.7 Code. Text-only coding model, 262K context.
 - `MiniMaxAI/MiniMax-M3` - MiniMax M3. Text-only, 196K context, fast and cheap.
@@ -143,7 +143,7 @@ Featured flagship models (any live Nebius id also works with `--model`):
 
 Note: `zai-org/GLM-5.2` was the previous default but Nebius removed it from the live catalog (2026-07-27); `zai-org/GLM-5.1` is available in its place.
 
-Vision-capable models (those whose API modality includes image input, e.g. Kimi K2.6 and Qwen2.5-VL) accept image attachments directly; text-only models route images to a vision-capable model automatically (Claude/Codex proxy) or to the `@vision` subagent (OpenCode).
+Vision-capable models (those whose API modality includes image input, e.g. GLM 5.3 Flash, Kimi K3, Kimi K2.6 and Qwen2.5-VL) accept image attachments directly in Codex. The Claude Code proxy always replaces images with a text description from a vision model (Kimi K2.6, then Qwen2.5-VL), whatever model is selected. OpenCode routes images for text-only models to the `@vision` subagent.
 
 ## Headless & agentic usage
 
