@@ -443,6 +443,20 @@ describe("Claude proxy compatibility API", () => {
       expect(env.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe(EXPECTED_HAIKU_MODEL_ID);
       expect(env.ANTHROPIC_DEFAULT_HAIKU_MODEL).not.toBe(GLM_5_2.anthropicAlias);
       expect(env.CLAUDE_CODE_MAX_OUTPUT_TOKENS).toBe("32000");
+
+      // The Fable tier (Claude Code 2.1.289+) must be a Nebius model, not
+      // Anthropic's own, and distinct from the other three tiers.
+      const fable = env.ANTHROPIC_DEFAULT_FABLE_MODEL;
+      expect(fable).toBeTruthy();
+      expect(fable).not.toMatch(/^claude-/);
+      expect(env.ANTHROPIC_DEFAULT_FABLE_MODEL_DESCRIPTION).toContain("not Anthropic");
+      const tiers = [
+        env.ANTHROPIC_DEFAULT_OPUS_MODEL,
+        env.ANTHROPIC_DEFAULT_SONNET_MODEL,
+        env.ANTHROPIC_DEFAULT_HAIKU_MODEL,
+        fable,
+      ];
+      expect(new Set(tiers).size).toBe(4);
     } finally {
       if (previous === undefined) {
         delete process.env.CLAUDE_CODE_MAX_OUTPUT_TOKENS;
