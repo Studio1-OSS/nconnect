@@ -33,6 +33,12 @@ export type ModelRow = {
   background: boolean;
   /** Listed in the harness model pickers (false: reachable via --model only). */
   inPicker: boolean;
+  /**
+   * In the live catalog. False only for a model a Claude tier still points at
+   * (the bundled Haiku-tier backend) while Nebius's live list omits it - the
+   * row exists so the report shows every tier Claude Code's menu offers.
+   */
+  inCatalog: boolean;
 };
 
 const TIER_LABEL: Record<ClaudeTier, string> = {
@@ -54,7 +60,7 @@ export function buildModelRows(options: { all?: boolean } = {}): ModelRow[] {
     const id = tiers[tier].definition.id;
     tiersById.set(id, [...(tiersById.get(id) ?? []), TIER_LABEL[tier]]);
   }
-  const row = (m: ModelDefinition, inPicker: boolean): ModelRow => ({
+  const row = (m: ModelDefinition, inPicker: boolean, inCatalog = true): ModelRow => ({
     id: m.id,
     name: m.name,
     contextTokens: m.limit.context,
@@ -68,8 +74,20 @@ export function buildModelRows(options: { all?: boolean } = {}): ModelRow[] {
     claudeTiers: tiersById.get(m.id) ?? [],
     background: m.id === backgroundId,
     inPicker,
+    inCatalog,
   });
-  return [...picker.map((m) => row(m, true)), ...hidden.map((m) => row(m, false))];
+  const rows = [...picker.map((m) => row(m, true)), ...hidden.map((m) => row(m, false))];
+  // Every model a Claude tier points at gets a row, even if it is not in the
+  // listed set (e.g. the Haiku-tier backend absent from the live catalog), so
+  // the report cannot drift from the menu Claude Code is launched with.
+  const catalogIds = new Set(getAllModels().map((m) => m.id));
+  for (const tier of ["OPUS", "SONNET", "HAIKU", "FABLE"] as const) {
+    const definition = tiers[tier].definition;
+    if (!rows.some((r) => r.id === definition.id)) {
+      rows.push(row(definition, false, catalogIds.has(definition.id)));
+    }
+  }
+  return rows;
 }
 
 /**
@@ -104,7 +122,10 @@ function notes(row: ModelRow): string {
   if (row.vision) parts.push("vision");
   if (!row.reasoning) parts.push("no reasoning");
   if (!row.toolCall) parts.push("no tools");
-  if (row.inputPrice <= 0 && row.outputPrice <= 0) parts.push("price not published by Nebius");
+  if (!row.inCatalog) parts.push("not in Nebius's live catalog");
+  if (row.inCatalog && row.inputPrice <= 0 && row.outputPrice <= 0) {
+    parts.push("price not published by Nebius");
+  }
   return parts.join(", ");
 }
 
@@ -114,7 +135,8 @@ export function formatModelsReport(
   options: { all?: boolean } = {},
 ): string {
   const picker = rows.filter((r) => r.inPicker);
-  const hidden = rows.filter((r) => !r.inPicker);
+  const hidden = rows.filter((r) => !r.inPicker && r.inCatalog);
+  const tierOnly = rows.filter((r) => !r.inCatalog);
   const idWidth = Math.max(8, ...rows.map((r) => r.id.length));
   const header =
     `  ${"Model ID".padEnd(idWidth)}  ${"Context".padStart(7)}  ${"$/M in".padStart(7)}  ` +
@@ -128,6 +150,11 @@ export function formatModelsReport(
   out.push("");
   out.push(header);
   out.push(...picker.map(line));
+  if (tierOnly.length > 0) {
+    out.push("");
+    out.push("Used by a Claude Code tier but missing from Nebius's live catalog:");
+    out.push(...tierOnly.map(line));
+  }
   if (options.all) {
     out.push("");
     out.push(

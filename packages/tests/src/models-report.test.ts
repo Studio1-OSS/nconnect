@@ -58,8 +58,21 @@ describe("nconnect models", () => {
       ["FABLE", "Fable"],
     ] as const) {
       const r = rows.find((x) => x.id === tiers[tier].definition.id);
-      if (r) expect(r.claudeTiers).toContain(label);
+      expect(r, `${tier} tier model must have a row`).toBeDefined();
+      expect(r!.claudeTiers).toContain(label);
     }
+  });
+
+  test("a tier model missing from the live catalog still gets a row, flagged", () => {
+    // The live list omits the bundled Haiku-tier backend (Kimi K2.7 Code).
+    applyCatalog(buildCatalog([row("zai-org/GLM-5.3-Flash"), row("lab/other")]) as never);
+    const haiku = claudeTierModels().HAIKU.definition.id;
+    const rows = buildModelRows();
+    const r = rows.find((x) => x.id === haiku);
+    expect(r).toBeDefined();
+    expect(r!.claudeTiers).toContain("Haiku");
+    expect(r!.inCatalog).toBe(false);
+    expect(formatModelsReport(rows)).toContain("missing from Nebius's live catalog");
   });
 
   test("--all adds models kept out of the picker, flagged as not in it", () => {
