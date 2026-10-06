@@ -1,3 +1,4 @@
+import { resolveClaudeRequestRoute } from "./request-routing.js";
 import { randomUUID } from "node:crypto";
 import { type ModelDefinition } from "@nconnect/models";
 import type { WebSearchOutcome } from "../tavily-search.js";
@@ -22,7 +23,6 @@ import {
   nebiusReasoningEffort,
   withClaudeNativeToolSystemPrompt,
 } from "./translate-request.js";
-import { resolveTargetModel } from "./translate-response.js";
 import { fetchNebius } from "./nebius-call.js";
 import type {
   AnthropicMessagesRequest,
@@ -54,14 +54,14 @@ export async function callNebiusChatCompletions(
 ): Promise<OpenAIChatResponse> {
   const translated =
     perf?.spanSync("translate_request", () => {
-      const targetModel = resolveTargetModel(body.model, options);
+      const targetModel = resolveClaudeRequestRoute(body, options).targetModel;
       const nativeTools = nativeServerTools(body.tools);
       const messages = toOpenAIMessages(body, targetModel.definition);
       const tools = toOpenAITools(body.tools, options);
       return { targetModel, nativeTools, messages, tools };
     }) ??
     (() => {
-      const targetModel = resolveTargetModel(body.model, options);
+      const targetModel = resolveClaudeRequestRoute(body, options).targetModel;
       const nativeTools = nativeServerTools(body.tools);
       const messages = toOpenAIMessages(body, targetModel.definition);
       const tools = toOpenAITools(body.tools, options);
