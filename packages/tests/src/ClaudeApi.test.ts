@@ -2,6 +2,7 @@ import { EventEmitter } from "node:events";
 import { Readable } from "node:stream";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { GLM_5_2, NEBIUS_BASE_URL, type ModelDefinition } from "../../models/src/index.js";
+import { getDefaultModel } from "@nconnect/models";
 import {
   buildClaudeEnv,
   buildClaudeLaunchArgs,
@@ -1039,6 +1040,85 @@ describe("Claude proxy compatibility API", () => {
     expect(upstreamBodies[0]).toMatchObject({
       model: CLAUDE_HAIKU_MODEL.id,
       stream: true,
+    });
+  });
+
+  // Background-call routing, end to end through the proxy: assert the model
+  // actually sent upstream on both transports, using the prompts Claude Code
+  // 2.1.289 really sends. (The resolver has its own unit tests; these guard the
+  // two call sites in stream.ts and chat-completions.ts.)
+  describe.each([
+    ["default", undefined, (): string => getDefaultModel().id, (): string => getDefaultModel().id],
+    ["off", "off", (): string => CLAUDE_HAIKU_MODEL.id, (): string => "moonshotai/Kimi-K3"],
+  ])("background routing (%s)", (_label, setting, titleModel, classifierModel) => {
+    test("streamed session-title request goes to the expected model", async () => {
+      if (setting) vi.stubEnv("NCONNECT_BACKGROUND_MODEL", setting);
+      const upstreamBodies: Array<Record<string, unknown>> = [];
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async (_url: string, init?: RequestInit) => {
+          upstreamBodies.push(JSON.parse(String(init?.body)) as Record<string, unknown>);
+          return sseResponse([
+            {
+              choices: [{ delta: { content: "Fix calc bug" }, finish_reason: "stop" }],
+              usage: { prompt_tokens: 60, completion_tokens: 4, total_tokens: 64 },
+            },
+          ]);
+        }),
+      );
+      const response = await callClaudeProxyRaw({
+        method: "POST",
+        url: "/v1/messages",
+        body: JSON.stringify({
+          model: EXPECTED_HAIKU_MODEL_ID,
+          stream: true,
+          max_tokens: 32_000,
+          system:
+            "You are Claude Code, Anthropic's official CLI for Claude. You are naming a coding session so the user can pick it out of a long list of sessions.",
+          messages: [
+            { role: "user", content: "<session>Look at calc.py and fix the bug.</session>" },
+          ],
+        }),
+      });
+      expect(response.status).toBe(200);
+      expect(upstreamBodies).toHaveLength(1);
+      expect(upstreamBodies[0]).toMatchObject({ model: titleModel(), stream: true });
+    });
+
+    test("non-streamed auto-mode safety classifier goes to the expected model", async () => {
+      if (setting) vi.stubEnv("NCONNECT_BACKGROUND_MODEL", setting);
+      const upstreamBodies: Array<Record<string, unknown>> = [];
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async (_url: string, init?: RequestInit) => {
+          upstreamBodies.push(JSON.parse(String(init?.body)) as Record<string, unknown>);
+          return new Response(
+            JSON.stringify({
+              id: "chatcmpl_classifier",
+              choices: [{ message: { content: "<block>no</block>" }, finish_reason: "stop" }],
+              usage: { prompt_tokens: 900, completion_tokens: 5, total_tokens: 905 },
+            }),
+            { status: 200, headers: { "content-type": "application/json" } },
+          );
+        }),
+      );
+      const response = await callClaudeProxy({
+        method: "POST",
+        url: "/v1/messages",
+        body: JSON.stringify({
+          model: "nebius-kimi-k3",
+          max_tokens: 2112,
+          system:
+            "You are a security monitor for autonomous AI coding agents.\n\nRespond with <block>yes</block> or <block>no</block>.",
+          messages: [
+            { role: "user", content: "<transcript>python3 -c 'import calc'</transcript>" },
+          ],
+        }),
+      });
+      expect(response.status).toBe(200);
+      expect(response.body.content).toEqual([{ type: "text", text: "<block>no</block>" }]);
+      expect(upstreamBodies).toHaveLength(1);
+      expect(upstreamBodies[0]).toMatchObject({ model: classifierModel(), stream: false });
     });
   });
 
