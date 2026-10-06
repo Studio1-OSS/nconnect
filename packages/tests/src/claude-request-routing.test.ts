@@ -3,6 +3,7 @@ import { GLM_5_2, getDefaultModel } from "../../models/src/index.js";
 import {
   backgroundModel,
   classifyClaudeRequest,
+  isUserModelChoice,
   resolveClaudeRequestRoute,
 } from "../../cli/src/lib/claude/request-routing.js";
 import type { AnthropicMessagesRequest } from "../../cli/src/lib/claude/wire-types.js";
@@ -76,5 +77,17 @@ describe("Claude background-call routing", () => {
     expect(off.targetModel.definition.id).not.toBe(getDefaultModel().id);
     // An unknown id falls back to Claude Code's own choice rather than failing.
     expect(backgroundModel({ NCONNECT_BACKGROUND_MODEL: "nope/not-a-model" })).toBeUndefined();
+  });
+
+  test("background calls never become the remembered model", () => {
+    // The classifier asks for the Sonnet tier (Kimi K3) on every shell
+    // command; recording it would make the next launch start on Kimi K3.
+    expect(isUserModelChoice(classifier)).toBe(false);
+    expect(isUserModelChoice(title)).toBe(false);
+    expect(isUserModelChoice(mainTurn)).toBe(true);
+  });
+
+  test("unconfigured, the background model is the live catalog default", () => {
+    expect(backgroundModel({})?.definition.id).toBe(getDefaultModel().id);
   });
 });

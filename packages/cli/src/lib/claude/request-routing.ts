@@ -1,4 +1,4 @@
-import { DEFAULT_MODEL_ID, findModelById } from "@nconnect/models";
+import { findModelById, getDefaultModel } from "@nconnect/models";
 import { resolveTargetModel } from "./translate-response.js";
 import type { AnthropicMessagesRequest, ResolvedClaudeModel } from "./wire-types.js";
 
@@ -77,8 +77,21 @@ export function backgroundModel(
   if (configured && ["off", "false", "0", "none"].includes(configured.toLowerCase())) {
     return undefined;
   }
-  const definition = findModelById(configured || DEFAULT_MODEL_ID);
+  // Unconfigured: the live catalog's default (which may differ from the pinned
+  // DEFAULT_MODEL_ID when that model is absent), not a fixed id.
+  const definition = configured ? findModelById(configured) : getDefaultModel();
   return definition ? { alias: definition.anthropicAlias ?? definition.id, definition } : undefined;
+}
+
+/**
+ * Whether a request reflects the user's model choice, and so should be
+ * remembered for the next launch. Background calls carry a fixed tier Claude
+ * Code picked itself (the classifier asks for the Sonnet tier on every shell
+ * command), so recording them would overwrite the user's pick - with the most
+ * expensive model in the menu. True whether or not offloading is enabled.
+ */
+export function isUserModelChoice(body: AnthropicMessagesRequest): boolean {
+  return classifyClaudeRequest(body) === "standard";
 }
 
 export function resolveClaudeRequestRoute(
