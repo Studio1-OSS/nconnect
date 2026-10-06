@@ -64,9 +64,13 @@ export function parseModelsDevIndex(document: unknown): Record<string, ModelsDev
   return index;
 }
 
-/** A model's release time in ms, or 0 when unknown. */
+/**
+ * A model's release time in ms, or 0 when unknown. Only `release_date`:
+ * `last_updated` moves on any metadata edit, so an old model with a recent
+ * correction would otherwise outrank genuinely new releases.
+ */
 export function modelsDevReleaseTime(model: ModelsDevModel | undefined): number {
-  const raw = model?.release_date ?? model?.last_updated;
+  const raw = model?.release_date;
   const parsed = raw ? Date.parse(raw) : Number.NaN;
   return Number.isFinite(parsed) ? parsed : 0;
 }

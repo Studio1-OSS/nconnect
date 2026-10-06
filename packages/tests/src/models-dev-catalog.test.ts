@@ -1,5 +1,13 @@
-import { describe, expect, test } from "vitest";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { buildCatalog, parseModelsDevIndex, type NebiusApiModel } from "../../models/src/index.js";
+// The CLI modules read the built package; mutate the same catalog instance.
+import { applyCatalog, getSelectableModels } from "@nconnect/models";
+import { resolveClaudeModel } from "../../cli/src/lib/claude/defaults.js";
+import { resolveCodexModel } from "../../cli/src/lib/codex/defaults.js";
+import { initModelCatalog } from "../../cli/src/lib/model-catalog-init.js";
 
 const row = (id: string, extra: Partial<NebiusApiModel> = {}): NebiusApiModel => ({
   id,
@@ -96,5 +104,69 @@ describe("catalog enrichment", () => {
     expect(buildCatalog(rows, {}).selectable.map((m) => m.id)).toEqual(
       buildCatalog(rows).selectable.map((m) => m.id),
     );
+  });
+});
+
+describe("review follow-ups", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  test("curated models that cannot call tools are filtered too", () => {
+    const catalog = buildCatalog([row("zai-org/GLM-5.3-Flash", { supported_features: [] })]);
+    expect(catalog.selectable.map((m) => m.id)).not.toContain("zai-org/GLM-5.3-Flash");
+    expect(catalog.byId.has("zai-org/GLM-5.3-Flash")).toBe(true);
+  });
+
+  test("ordering ignores last_updated: a model with only a metadata edit date is undated", () => {
+    const catalog = buildCatalog([row("lab/released"), row("lab/edited-only")], {
+      "lab/released": { release_date: "2026-01-01" },
+      "lab/edited-only": { last_updated: "2026-10-05" },
+    });
+    const ids = catalog.selectable.map((m) => m.id).filter((id) => id.startsWith("lab/"));
+    expect(ids).toEqual(["lab/released", "lab/edited-only"]);
+  });
+
+  test("an explicit --model for a model hidden from the picker still resolves", () => {
+    const hidden = "lab/no-tools";
+    applyCatalog(
+      buildCatalog([row("lab/agentic"), row(hidden, { supported_features: [] })]) as never,
+    );
+    try {
+      expect(getSelectableModels().map((m) => m.id)).not.toContain(hidden);
+      expect(resolveClaudeModel(hidden).definition.id).toBe(hidden);
+      expect(resolveCodexModel(hidden).definition.id).toBe(hidden);
+      expect(() => resolveCodexModel("lab/does-not-exist")).toThrow(/Unsupported/);
+    } finally {
+      applyCatalog(buildCatalog([]) as never);
+    }
+  });
+
+  test("a corrupt models.dev cache neither blocks the live catalog nor waits on the network", async () => {
+    const home = mkdtempSync(path.join(tmpdir(), "nconnect-mdcache-"));
+    try {
+      const dir = path.join(home, ".nconnect");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(path.join(dir, "models-dev.json"), "{ not json");
+      writeFileSync(
+        path.join(dir, "model-catalog.json"),
+        JSON.stringify({
+          fetchedAt: Date.now(),
+          baseUrl: "https://api.tokenfactory.nebius.com/v1",
+          models: [row("lab/fresh-from-cache", { supported_features: ["tools"] })],
+        }),
+      );
+      // A network that never answers: the launch must not wait for it.
+      const fetchSpy = vi.fn(() => new Promise<Response>(() => {}));
+      vi.stubGlobal("fetch", fetchSpy);
+      const started = Date.now();
+      await initModelCatalog({ home, force: false });
+      expect(Date.now() - started).toBeLessThan(1000);
+      expect(getSelectableModels().map((m) => m.id)).toContain("lab/fresh-from-cache");
+      expect(fetchSpy).toHaveBeenCalled(); // refresh kicked off in the background
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
   });
 });
