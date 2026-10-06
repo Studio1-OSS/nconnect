@@ -19,6 +19,14 @@ User-visible changes to NConnect, newest first. This changelog starts at
   Models that cannot call tools are kept out of the picker. models.dev is
   cached for a day and never blocks a launch; `NCONNECT_MODELS_DEV=off`
   disables it.
+- Claude Code's background calls now run on a cheap model. In
+  `--permission-mode auto`, Claude Code judges every shell command with a
+  safety-classifier call that carries the session transcript and goes to the
+  Sonnet tier - Kimi K3, the most expensive model in the menu - whatever
+  model the session uses. That classifier and the session-title call now go to
+  `NCONNECT_BACKGROUND_MODEL` (default: GLM 5.3 Flash, keeping its reasoning
+  floor so verdicts stay clean). In a measured auto-mode session this cut the
+  cost about 3x. `NCONNECT_BACKGROUND_MODEL=off` restores the old behaviour.
 
 ## 0.16.5 - 2026-10-06
 
@@ -29,19 +37,6 @@ User-visible changes to NConnect, newest first. This changelog starts at
   that NConnect did not fill, so the row advertised a model you were not
   getting - choosing it silently fell back to your session model. The Fable
   tier now maps to a distinct Nebius model (GLM 5.3 with the current catalog).
-
-## Unreleased
-
-### Changed
-
-- Claude Code's background calls now run on a cheap model. In
-  `--permission-mode auto`, Claude Code judges every shell command with a
-  safety-classifier call that carries the session transcript and goes to the
-  Sonnet tier - Kimi K3, the most expensive model in the menu - whatever
-  model the session uses. That classifier and the session-title call now go to
-  `NCONNECT_BACKGROUND_MODEL` (default: GLM 5.3 Flash, keeping its reasoning
-  floor so verdicts stay clean). In a measured auto-mode session this cut the
-  cost about 3x. `NCONNECT_BACKGROUND_MODEL=off` restores the old behaviour.
 
 ## 0.16.4 - 2026-10-04
 
