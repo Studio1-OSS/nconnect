@@ -6,6 +6,10 @@ const commands: Array<[string, string]> = [
   ["nconnect <harness> [args...]", "Launch a harness directly. Args pass through to the agent."],
   ["nconnect --model <id> <harness>", "Launch a harness on a specific Nebius model."],
   ["nconnect configure", "Set your API keys."],
+  [
+    "nconnect models",
+    "The live model lineup: ids for --model, context, prices, and which Claude Code tier each fills. --all adds models kept out of the picker; --json for scripts.",
+  ],
   ["nconnect usage --last 7d", "Local spend by model and tool. Never uploaded."],
   ["nconnect update", "Update to the latest release now."],
   ["nconnect daemon install", "Start the daemon at login (launchd / systemd)."],

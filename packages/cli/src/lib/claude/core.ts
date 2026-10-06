@@ -120,7 +120,14 @@ export function buildClaudeEnv({
   return env;
 }
 
-function applyClaudeModelMenuEnv(env: NodeJS.ProcessEnv, selectedAlias: string): void {
+export type ClaudeTier = "OPUS" | "SONNET" | "HAIKU" | "FABLE";
+
+/**
+ * Which Nebius model fills each of Claude Code's `/model` tiers. The single
+ * source of truth for both the env NConnect launches Claude Code with and
+ * `nconnect models`, so the two cannot disagree.
+ */
+export function claudeTierModels(selectedAlias?: string): Record<ClaudeTier, ClaudeModelSelection> {
   const selected = resolveClaudeModel(selectedAlias);
   const supported = getClaudeSupportedModels();
   const defaultModel = supported[0] ?? selected;
@@ -137,11 +144,20 @@ function applyClaudeModelMenuEnv(env: NodeJS.ProcessEnv, selectedAlias: string):
     CLAUDE_HAIKU_MODEL_SELECTION.alias,
   ]);
   const fableModel = supported.find((model) => !used.has(model.alias)) ?? secondaryModel;
+  return {
+    OPUS: defaultModel,
+    SONNET: secondaryModel,
+    HAIKU: CLAUDE_HAIKU_MODEL_SELECTION,
+    FABLE: fableModel,
+  };
+}
 
-  setTierModelEnv(env, "OPUS", defaultModel);
-  setTierModelEnv(env, "SONNET", secondaryModel);
-  setTierModelEnv(env, "HAIKU", CLAUDE_HAIKU_MODEL_SELECTION);
-  setTierModelEnv(env, "FABLE", fableModel);
+function applyClaudeModelMenuEnv(env: NodeJS.ProcessEnv, selectedAlias: string): void {
+  const selected = resolveClaudeModel(selectedAlias);
+  const tiers = claudeTierModels(selectedAlias);
+  for (const tier of ["OPUS", "SONNET", "HAIKU", "FABLE"] as const) {
+    setTierModelEnv(env, tier, tiers[tier]);
+  }
 
   // Claude Code currently exposes a single generic custom-model slot in
   // addition to the three tier slots. Point that at the selected backend so a
@@ -154,7 +170,7 @@ function applyClaudeModelMenuEnv(env: NodeJS.ProcessEnv, selectedAlias: string):
 
 function setTierModelEnv(
   env: NodeJS.ProcessEnv,
-  tier: "OPUS" | "SONNET" | "HAIKU" | "FABLE",
+  tier: ClaudeTier,
   model: ClaudeModelSelection,
 ): void {
   const prefix = `ANTHROPIC_DEFAULT_${tier}_MODEL`;

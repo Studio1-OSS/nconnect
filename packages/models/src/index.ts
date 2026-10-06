@@ -556,6 +556,11 @@ export async function refreshCatalog(opts: {
   return catalog;
 }
 
+/** Every chat model in the live catalog, including ones kept out of the picker. */
+export function getAllModels(): readonly ModelDefinition[] {
+  return activeCatalog.all;
+}
+
 /** Selectable models from the live catalog (falls back to snapshot). */
 export function getSelectableModels(): readonly ModelDefinition[] {
   return activeCatalog.selectable;

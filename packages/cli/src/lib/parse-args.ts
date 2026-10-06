@@ -10,11 +10,12 @@ const FLAG_ALIASES = {
   "--slot": "slot",
 } as const satisfies Record<string, keyof HarnessContext>;
 
-const BOOLEAN_FLAGS = new Set(["--json", "--restore"]);
-type BooleanFlag = "json" | "restore";
+const BOOLEAN_FLAGS = new Set(["--json", "--restore", "--all"]);
+type BooleanFlag = "json" | "restore" | "all";
 const BOOLEAN_FLAG_KEYS = {
   "--json": "json",
   "--restore": "restore",
+  "--all": "all",
 } as const satisfies Record<string, BooleanFlag>;
 
 export type ParsedArgs = {
@@ -29,7 +30,7 @@ export type ParsedArgs = {
  */
 export function parseArgs(argv: string[]): ParsedArgs {
   const positional = [];
-  const flags: ParsedArgs["flags"] = { json: false, restore: false };
+  const flags: ParsedArgs["flags"] = { json: false, restore: false, all: false };
 
   for (let i = 0; i < argv.length; i += 1) {
     const token = argv[i];

@@ -79,6 +79,7 @@ nconnect hermes [...]       # alias: nhermes  (Hermes Agent, Nous Research; `her
 nconnect deepseek [...]     # alias: ndeepseek (DeepSeek Harness, alpha)
 nconnect grok [...]         # alias: ngrok    (Grok Build UI on Nebius models)
 
+nconnect models [--all] [--json]  # live model lineup: ids, context, $/M prices, default, Claude Code tier per model
 nconnect usage [--last 7d]  # local spend report by model and tool
 nconnect update             # update to the latest release
 nconnect daemon install|uninstall|status   # daemon auto-start at login
