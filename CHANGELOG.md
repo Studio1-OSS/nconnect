@@ -10,11 +10,6 @@ User-visible changes to NConnect, newest first. This changelog starts at
 - Renamed the project to NConnect. The CLI is now `nconnect` (the `nclaude`,
   `ncodex`, ... aliases are unchanged), env vars use the `NCONNECT_` prefix and
   local state lives in `~/.nconnect`.
-
-## Unreleased
-
-### Changed
-
 - The model picker now lists new Nebius models newest-first (by models.dev
   release date) right after the curated flagships, instead of alphabetically at
   the end. Capability flags the Nebius API does not publish - whether a model
@@ -24,6 +19,7 @@ User-visible changes to NConnect, newest first. This changelog starts at
   Models that cannot call tools are kept out of the picker. models.dev is
   cached for a day and never blocks a launch; `NCONNECT_MODELS_DEV=off`
   disables it.
+
 ## 0.16.5 - 2026-10-06
 
 ### Fixed
