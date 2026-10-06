@@ -27,9 +27,17 @@ import { isProcessAlive, nconnectHome } from "./paths.js";
  * - because the updater only recognises `~/.nconnect/bin/nconnect.js` as the
  * installed bundle - would never update again.
  *
- * Runs once (a marker file in the new home records it), is best-effort, and
- * never touches the legacy state except to rewrite its wrappers so existing
- * PATH links keep working.
+ * Two phases, both best-effort:
+ * - **Once** (a marker file in the new home records it): copy the legacy
+ *   state and stop the legacy daemon.
+ * - **Every start, until done**: install the bundle at the new path, rewrite
+ *   our generated legacy wrappers to run it, repoint stale PATH links, and
+ *   remove the legacy login service. Each step is idempotent and cheap, and
+ *   is repeated because an earlier run may not have been able to do it (a dev
+ *   build ran first, a service command failed). Stale-link repair also runs
+ *   with no `~/.nebiusrelay` at all, for installs that skipped that era.
+ *
+ * The legacy state is never modified, apart from its generated wrappers.
  */
 
 const LEGACY_DIR = ".nebiusrelay";
@@ -95,24 +103,51 @@ export type LegacyMigrationResult = {
   repointedLinks: string[];
 };
 
+/**
+ * A wrapper we generated: exactly `#!/usr/bin/env sh` plus one
+ * `exec bun "<…>/<bundle>" [harness] "$@"` line. Anything else - extra env,
+ * setup, a different interpreter - is the user's and is left alone.
+ */
+export function isGeneratedWrapper(content: string, bundleName: string): boolean {
+  const bundle = bundleName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(
+    `^#!/usr/bin/env sh\\nexec bun "[^"\\n]*/${bundle}"(?: [a-z][a-z-]*)? "\\$@"\\n?$`,
+  ).test(content);
+}
+
 function wrapperBody(bundle: string, harness?: string): string {
   return `#!/usr/bin/env sh\nexec bun "${bundle}"${harness ? ` ${harness}` : ""} "$@"\n`;
 }
 
+/**
+ * Remove the legacy login service. Returns true only once it is actually gone:
+ * the service file is deleted after the service manager confirms it is no
+ * longer loaded, so a failed `launchctl`/`systemctl` leaves the file in place
+ * and the next start tries again.
+ */
 async function stopLegacyServiceReal(platform: NodeJS.Platform, home: string): Promise<boolean> {
   const run = (file: string, args: string[]) =>
-    new Promise<void>((resolve) => execFile(file, args, { timeout: 15_000 }, () => resolve()));
+    new Promise<number>((resolve) =>
+      execFile(file, args, { timeout: 15_000 }, (err) => {
+        const code = (err as { code?: unknown } | null)?.code;
+        resolve(err ? (typeof code === "number" ? code : 1) : 0);
+      }),
+    );
   if (platform === "darwin") {
     const plist = path.join(home, "Library", "LaunchAgents", `${LEGACY_LAUNCHD_LABEL}.plist`);
     if (!existsSync(plist)) {
       return false;
     }
-    const domain = `gui/${process.getuid?.() ?? os.userInfo().uid}`;
-    await run("launchctl", ["bootout", `${domain}/${LEGACY_LAUNCHD_LABEL}`]);
+    const service = `gui/${process.getuid?.() ?? os.userInfo().uid}/${LEGACY_LAUNCHD_LABEL}`;
+    await run("launchctl", ["bootout", service]);
+    // `print` succeeds only while the service is still loaded.
+    if ((await run("launchctl", ["print", service])) === 0) {
+      return false;
+    }
     try {
-      (await import("node:fs/promises")).unlink(plist);
+      await (await import("node:fs/promises")).unlink(plist);
     } catch {
-      // best-effort
+      return false;
     }
     return true;
   }
@@ -123,10 +158,14 @@ async function stopLegacyServiceReal(platform: NodeJS.Platform, home: string): P
       return false;
     }
     await run("systemctl", ["--user", "disable", "--now", LEGACY_SYSTEMD_UNIT]);
+    // `is-active` exits 0 only while the unit is still running.
+    if ((await run("systemctl", ["--user", "is-active", "--quiet", LEGACY_SYSTEMD_UNIT])) === 0) {
+      return false;
+    }
     try {
-      (await import("node:fs/promises")).unlink(unit);
+      await (await import("node:fs/promises")).unlink(unit);
     } catch {
-      // best-effort
+      return false;
     }
     await run("systemctl", ["--user", "daemon-reload"]);
     return true;
@@ -135,8 +174,9 @@ async function stopLegacyServiceReal(platform: NodeJS.Platform, home: string): P
 }
 
 /**
- * Migrate once. Returns undefined when there is nothing to do (no legacy
- * install, or already migrated); otherwise what was done, for the notice.
+ * Run the migration (see the module comment for its two phases). Returns
+ * undefined when this start changed nothing; otherwise what was done, for
+ * the one-line notice.
  */
 export async function migrateLegacyInstall(
   options: LegacyMigrationOptions = {},
@@ -145,12 +185,13 @@ export async function migrateLegacyInstall(
   const env = options.env ?? process.env;
   const legacyHome = env.NEBIUSRELAY_HOME || path.join(home, LEGACY_DIR);
   const newHome = env.NCONNECT_HOME || nconnectHome();
-  if (!existsSync(legacyHome) || path.resolve(legacyHome) === path.resolve(newHome)) {
-    return undefined;
-  }
+  const hasLegacyHome =
+    existsSync(legacyHome) && path.resolve(legacyHome) !== path.resolve(newHome);
   const marker = path.join(newHome, MARKER);
-  const firstRun = !existsSync(marker);
-  mkdirSync(newHome, { recursive: true });
+  const firstRun = hasLegacyHome && !existsSync(marker);
+  if (hasLegacyHome) {
+    mkdirSync(newHome, { recursive: true });
+  }
 
   const result: LegacyMigrationResult = {
     copied: [],
@@ -208,12 +249,12 @@ export async function migrateLegacyInstall(
   const argv1 = options.argv1 ?? process.argv[1];
   const runningLegacyBundle =
     typeof argv1 === "string" && path.resolve(argv1) === path.join(legacyBin, LEGACY_BUNDLE);
-  if (runningLegacyBundle && !existsSync(newBundle)) {
+  if (hasLegacyHome && runningLegacyBundle && !existsSync(newBundle)) {
     mkdirSync(newBin, { recursive: true });
     cpSync(argv1, newBundle);
     result.installedBundle = true;
   }
-  if (existsSync(newBundle)) {
+  if (hasLegacyHome && existsSync(newBundle)) {
     const wrappers: Array<[string, string | undefined]> = [
       ["nconnect", undefined],
       ...ALL_HARNESSES.map((h): [string, string] => [`n${h}`, h]),
@@ -242,8 +283,8 @@ export async function migrateLegacyInstall(
       } catch {
         continue;
       }
-      if (!current.includes(LEGACY_BUNDLE)) {
-        continue;
+      if (!isGeneratedWrapper(current, LEGACY_BUNDLE)) {
+        continue; // customized, or already rewritten
       }
       writeFileSync(legacyWrapper, wrapperBody(newBundle, harness), {
         encoding: "utf8",
@@ -297,8 +338,10 @@ export async function migrateLegacyInstall(
     }
   }
 
-  // 4. The old login service would keep starting the old daemon. Once.
-  if (firstRun) {
+  // 4. The old login service would keep starting the old daemon. Every start
+  //    until it is confirmed gone (the real stopper is a no-op once its
+  //    service file has been removed).
+  if (hasLegacyHome) {
     const stopService = options.stopLegacyService ?? stopLegacyServiceReal;
     try {
       result.removedService = await stopService(process.platform, home);
@@ -311,10 +354,11 @@ export async function migrateLegacyInstall(
     writeFileSync(marker, `${new Date().toISOString()}\n`, "utf8");
     return result;
   }
-  // A later run only reports when it actually finished the install step.
+  // A later run only reports when it actually changed something.
   return result.installedBundle ||
     result.rewroteWrappers.length > 0 ||
-    result.repointedLinks.length > 0
+    result.repointedLinks.length > 0 ||
+    result.removedService
     ? result
     : undefined;
 }

@@ -43,6 +43,10 @@ describe("public installer", () => {
         mode: 0o755,
       });
       symlinkSync(path.join(staleBin, "nclaude"), path.join(tools, "nclaude"));
+      // Someone else's wrapper that happens to run a file named nconnect.js
+      // must be skipped, not replaced.
+      const foreign = '#!/usr/bin/env sh\nexec bun "/opt/acme/nconnect.js" grok "$@"\n';
+      writeFileSync(path.join(tools, "ngrok"), foreign, { mode: 0o755 });
       const run = () =>
         execFileSync(shell, [], { input: readFileSync(installer), env, encoding: "utf8" });
       expect(run()).toContain("Verified:");
@@ -59,7 +63,6 @@ describe("public installer", () => {
         nprime: "prime",
         nhermes: "hermes",
         ndeepseek: "deepseek",
-        ngrok: "grok",
         nunreal: "unreal",
       })) {
         const output = execFileSync(
@@ -77,6 +80,7 @@ describe("public installer", () => {
           "describe this",
         ]);
       }
+      expect(readFileSync(path.join(tools, "ngrok"), "utf8")).toBe(foreign);
     } finally {
       rmSync(home, { recursive: true, force: true });
     }

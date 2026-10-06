@@ -201,10 +201,17 @@ if LINK_DIR="$(find_writable_path_dir)"; then
           return 0
           ;;
       esac
-      if [ ! -L "$dest" ] && grep -Eqs 'exec bun "[^"]*/(nconnect|nebiusrelay|nebiuslink)\.js"' "$dest" 2>/dev/null; then
-        rm -f "$dest" && ln -s "$target" "$dest"
-        links_changed=$((links_changed + 1))
-        return 0
+      # A wrapper script counts as ours only if it runs a bundle from one of
+      # our own install dirs - never just any "nconnect.js" on disk.
+      if [ ! -L "$dest" ]; then
+        bundle="$(sed -n 's/^exec bun "\([^"]*\)".*/\1/p' "$dest" 2>/dev/null | head -n 1)"
+        case "$bundle" in
+          "$BIN_DIR/nconnect.js"|"$HOME/.nconnect/bin/nconnect.js"|"$HOME/.nebiusrelay/bin/nebiusrelay.js"|"$HOME/.nebiuslink/bin/nebiuslink.js")
+            rm -f "$dest" && ln -s "$target" "$dest"
+            links_changed=$((links_changed + 1))
+            return 0
+            ;;
+        esac
       fi
       links_skipped=$((links_skipped + 1))
       info "Skipped $dest (already exists; remove it or put $BIN_DIR earlier on PATH to use nconnect here)"
