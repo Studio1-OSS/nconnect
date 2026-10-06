@@ -49,7 +49,11 @@ const MARKER = "migrated-from-nebiusrelay";
 const SERVICE_ATTEMPT_FILE = "legacy-service-cleanup-attempt";
 /** Retry a failed service cleanup at most this often, so it can never stall every start. */
 const SERVICE_RETRY_INTERVAL_MS = 24 * 60 * 60 * 1000;
-/** Per launchctl/systemctl call. Two calls per attempt bound one attempt to ~10s. */
+/**
+ * Per launchctl/systemctl call. An attempt makes two calls on macOS (bootout,
+ * print) and up to three on Linux (disable, is-active, daemon-reload), so one
+ * attempt is bounded by ~10s and ~15s respectively - once a day at most.
+ */
 const SERVICE_COMMAND_TIMEOUT_MS = 5_000;
 const LEGACY_LAUNCHD_LABEL = "com.nebiusrelay.daemon";
 const LEGACY_SYSTEMD_UNIT = "nebiusrelay-daemon.service";
