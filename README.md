@@ -130,8 +130,8 @@ The default coding model is **GLM 5.3 Flash** (Z.ai): a 1M-context hybrid reason
 
 | Model                         | Best for                     | Context | Vision |
 | ----------------------------- | ---------------------------- | ------- | ------ |
-| **GLM 5.3 Flash** _(default)_ | Fast, very low cost, agentic | 1M      | No     |
-| Kimi K3                       | Frontier coding + agentic    | 1M      | No     |
+| **GLM 5.3 Flash** _(default)_ | Fast, very low cost, agentic | 1M      | Yes    |
+| Kimi K3                       | Frontier coding + agentic    | 1M      | Yes    |
 | Kimi K2.6                     | Vision flagship              | 262K    | Yes    |
 | Kimi K2.7 Code                | Coding                       | 262K    | No     |
 | MiniMax M3                    | Fast, cheap                  | 196K    | No     |
@@ -140,7 +140,7 @@ The default coding model is **GLM 5.3 Flash** (Z.ai): a 1M-context hybrid reason
 | DeepSeek V4 Pro               | Long-context reasoning       | 1M      | No     |
 | Qwen2.5-VL 72B                | Vision fallback              | 32K     | Yes    |
 
-Claude Code and Codex are text-native, so image blocks are auto-routed to a vision-capable model (Kimi K2.6, then Qwen2.5-VL). OpenCode uses a dedicated `@vision` subagent pinned to the vision flagship. Run `scripts/list-nebius-models.mjs` (with `NEBIUS_API_KEY` set) to print the raw catalog.
+Codex sends images straight to the selected model, so vision-capable models such as the default GLM 5.3 Flash and Kimi K3 see them directly. Claude Code's proxy always has a vision model (Kimi K2.6, then Qwen2.5-VL) describe each image as text first, whatever model is selected. OpenCode uses a dedicated `@vision` subagent pinned to the vision flagship. Run `scripts/list-nebius-models.mjs` (with `NEBIUS_API_KEY` set) to print the raw catalog.
 
 ## Web search
 

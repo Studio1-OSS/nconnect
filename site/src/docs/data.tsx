@@ -128,7 +128,7 @@ export const models: Array<{
     id: "zai-org/GLM-5.3-Flash",
     bestFor: "Fast, very low cost, agentic",
     context: "1M",
-    vision: false,
+    vision: true,
     isDefault: true,
     logo: "/zai-logo.svg",
   },
@@ -153,7 +153,7 @@ export const models: Array<{
     id: "moonshotai/Kimi-K3",
     bestFor: "Frontier coding + agentic",
     context: "1M",
-    vision: false,
+    vision: true,
     logo: "/logos/kimi.png",
   },
   {
