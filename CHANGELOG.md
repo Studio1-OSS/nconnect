@@ -11,6 +11,16 @@ User-visible changes to NConnect, newest first. This changelog starts at
   `ncodex`, ... aliases are unchanged), env vars use the `NCONNECT_` prefix and
   local state lives in `~/.nconnect`.
 
+## 0.16.5 - 2026-10-06
+
+### Fixed
+
+- Claude Code's `/model` menu no longer shows Anthropic's "Fable 5.1".
+  Claude Code 2.1.289 added a fourth tier (`ANTHROPIC_DEFAULT_FABLE_MODEL`)
+  that NConnect did not fill, so the row advertised a model you were not
+  getting - choosing it silently fell back to your session model. The Fable
+  tier now maps to a distinct Nebius model (GLM 5.3 with the current catalog).
+
 ## 0.16.4 - 2026-10-04
 
 ### Fixed

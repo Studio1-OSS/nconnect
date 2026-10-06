@@ -22,6 +22,9 @@ const CONFLICTING_ENV_KEYS = [
   "ANTHROPIC_DEFAULT_HAIKU_MODEL",
   "ANTHROPIC_DEFAULT_HAIKU_MODEL_NAME",
   "ANTHROPIC_DEFAULT_HAIKU_MODEL_DESCRIPTION",
+  "ANTHROPIC_DEFAULT_FABLE_MODEL",
+  "ANTHROPIC_DEFAULT_FABLE_MODEL_NAME",
+  "ANTHROPIC_DEFAULT_FABLE_MODEL_DESCRIPTION",
   "ANTHROPIC_CUSTOM_MODEL_OPTION",
   "ANTHROPIC_CUSTOM_MODEL_OPTION_NAME",
   "ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION",
@@ -123,9 +126,22 @@ function applyClaudeModelMenuEnv(env: NodeJS.ProcessEnv, selectedAlias: string):
   const defaultModel = supported[0] ?? selected;
   const secondaryModel = supported.find((model) => model.alias !== defaultModel.alias) ?? selected;
 
+  // Claude Code 2.1.289+ added a fourth tier, Fable. Left unset, its `/model`
+  // row shows Anthropic's real "Fable 5.1", and choosing it sends
+  // `claude-fable-5-1`, which matches no Nebius model and silently falls back
+  // to the session model - so the menu would advertise a model the user is
+  // not getting. Fill it with the next distinct Nebius model instead.
+  const used = new Set([
+    defaultModel.alias,
+    secondaryModel.alias,
+    CLAUDE_HAIKU_MODEL_SELECTION.alias,
+  ]);
+  const fableModel = supported.find((model) => !used.has(model.alias)) ?? secondaryModel;
+
   setTierModelEnv(env, "OPUS", defaultModel);
   setTierModelEnv(env, "SONNET", secondaryModel);
   setTierModelEnv(env, "HAIKU", CLAUDE_HAIKU_MODEL_SELECTION);
+  setTierModelEnv(env, "FABLE", fableModel);
 
   // Claude Code currently exposes a single generic custom-model slot in
   // addition to the three tier slots. Point that at the selected backend so a
@@ -138,7 +154,7 @@ function applyClaudeModelMenuEnv(env: NodeJS.ProcessEnv, selectedAlias: string):
 
 function setTierModelEnv(
   env: NodeJS.ProcessEnv,
-  tier: "OPUS" | "SONNET" | "HAIKU",
+  tier: "OPUS" | "SONNET" | "HAIKU" | "FABLE",
   model: ClaudeModelSelection,
 ): void {
   const prefix = `ANTHROPIC_DEFAULT_${tier}_MODEL`;
