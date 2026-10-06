@@ -5,10 +5,15 @@ import { isProxiedAgent, speaksResponsesApi } from "../../cli/src/lib/daemon/sta
 import {
   buildUnrealEnv,
   needsTaskPrompt,
+  normalizeRunnerArgs,
   UNREAL_BIN,
   UNREAL_ENV,
 } from "../../cli/src/lib/unreal/core.js";
 import { renderUnrealLine } from "../../cli/src/lib/unreal/render.js";
+
+/** Interactive on both ends, as in a terminal. */
+const needsTaskPromptTTY = (args: readonly string[], tty: boolean) =>
+  needsTaskPrompt(args, tty, tty);
 
 describe("unreal agent harness", () => {
   test("is registered as a proxied, Responses-speaking harness", () => {
@@ -40,14 +45,14 @@ describe("unreal agent harness", () => {
   });
 
   test("asks for a task only when launched interactively with nothing to run", () => {
-    expect(needsTaskPrompt([], true)).toBe(true);
-    expect(needsTaskPrompt([], false)).toBe(false); // piped JSON request
-    expect(needsTaskPrompt(["-p", "do it"], true)).toBe(false);
-    expect(needsTaskPrompt(['{"prompt":"x"}'], true)).toBe(false);
+    expect(needsTaskPromptTTY([], true)).toBe(true);
+    expect(needsTaskPromptTTY([], false)).toBe(false); // piped JSON request
+    expect(needsTaskPromptTTY(["-p", "do it"], true)).toBe(false);
+    expect(needsTaskPromptTTY(['{"prompt":"x"}'], true)).toBe(false);
     // Flags alone are not a task: the runner would still block on stdin.
-    expect(needsTaskPrompt(["-workspace", "/tmp/ws"], true)).toBe(true);
-    expect(needsTaskPrompt(["-workspace", "/tmp/ws", "-p", "do it"], true)).toBe(false);
-    expect(needsTaskPrompt(["-workspace", "/tmp/ws", '{"prompt":"x"}'], true)).toBe(false);
+    expect(needsTaskPromptTTY(["-workspace", "/tmp/ws"], true)).toBe(true);
+    expect(needsTaskPromptTTY(["-workspace", "/tmp/ws", "-p", "do it"], true)).toBe(false);
+    expect(needsTaskPromptTTY(["-workspace", "/tmp/ws", '{"prompt":"x"}'], true)).toBe(false);
   });
 
   test("renders runner records as readable text and drops bookkeeping", () => {
@@ -73,5 +78,24 @@ describe("unreal agent harness", () => {
     ).toBe("✗ boom\n");
     expect(renderUnrealLine("plain text from the runner")).toBe("plain text from the runner\n");
     expect(renderUnrealLine("")).toBeUndefined();
+  });
+
+  test("never prompts when output is redirected, even with a terminal on stdin", () => {
+    expect(needsTaskPrompt([], true, false)).toBe(false); // nunreal > out.jsonl
+    expect(needsTaskPrompt([], false, true)).toBe(false); // piped request
+    expect(needsTaskPrompt([], true, true)).toBe(true);
+  });
+
+  test("plain text in the request position becomes the prompt; JSON stays a request", () => {
+    expect(normalizeRunnerArgs(["fix the tests"])).toEqual(["-p", "fix the tests"]);
+    expect(normalizeRunnerArgs(["-workspace", "/w", "fix it"])).toEqual([
+      "-workspace",
+      "/w",
+      "-p",
+      "fix it",
+    ]);
+    expect(normalizeRunnerArgs(['{"prompt":"x"}'])).toEqual(['{"prompt":"x"}']);
+    expect(normalizeRunnerArgs(["-p", "already"])).toEqual(["-p", "already"]);
+    expect(normalizeRunnerArgs(["-workspace", "/w"])).toEqual(["-workspace", "/w"]);
   });
 });

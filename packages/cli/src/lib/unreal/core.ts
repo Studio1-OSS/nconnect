@@ -60,11 +60,16 @@ export function buildUnrealEnv(
 /**
  * With no request on the command line the runner blocks reading a JSON
  * request from stdin, which in a terminal looks like a hang. When that is the
- * situation (nothing to run, interactive stdin) we ask for the task instead
- * and hand it over as `-p`. Piped input and explicit requests are untouched.
+ * situation (nothing to run, and a person at both ends - the same stdin+stdout
+ * TTY rule the launcher uses) we ask for the task and hand it over as `-p`.
+ * Piped or redirected runs (`nunreal > out.jsonl`) are never prompted.
  */
-export function needsTaskPrompt(args: readonly string[], stdinIsTTY: boolean): boolean {
-  return stdinIsTTY && !hasRunnerRequest(args);
+export function needsTaskPrompt(
+  args: readonly string[],
+  stdinIsTTY: boolean,
+  stdoutIsTTY: boolean,
+): boolean {
+  return stdinIsTTY && stdoutIsTTY && !hasRunnerRequest(args);
 }
 
 /** Runner flags that take a value, so the value is not a positional request. */
@@ -79,7 +84,45 @@ const RUNNER_VALUE_FLAGS = new Set([
   "--tool-heartbeat-interval",
 ]);
 
-/** True when the args already carry a task: `-p <prompt>` or a positional JSON request. */
+/** Index of the positional request argument, or -1. */
+function positionalIndex(args: readonly string[]): number {
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i]!;
+    if (RUNNER_VALUE_FLAGS.has(arg) || arg === "-p" || arg === "--p") {
+      i += 1;
+      continue;
+    }
+    if (!arg.startsWith("-")) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function isJsonRequest(value: string): boolean {
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The runner only accepts a JSON object as its positional argument, so
+ * `nunreal -- "fix the tests"` would fail as invalid JSON. Plain text in that
+ * position is clearly a prompt: pass it as `-p` instead. A JSON request is
+ * left exactly as given.
+ */
+export function normalizeRunnerArgs(args: readonly string[]): string[] {
+  const index = positionalIndex(args);
+  if (index < 0 || isJsonRequest(args[index]!)) {
+    return [...args];
+  }
+  return [...args.slice(0, index), "-p", args[index]!, ...args.slice(index + 1)];
+}
+
+/** True when the args already carry a task: `-p <prompt>` or a positional request. */
 export function hasRunnerRequest(args: readonly string[]): boolean {
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i]!;
@@ -96,7 +139,7 @@ export function hasRunnerRequest(args: readonly string[]): boolean {
     if (arg.startsWith("-")) {
       continue;
     }
-    return true; // positional JSON request
+    return true; // positional request (normalizeRunnerArgs makes plain text a -p)
   }
   return false;
 }
@@ -120,8 +163,12 @@ export async function runUnrealNebius(options: UnrealLaunchOptions): Promise<Pro
   // else is passed to `unreal-agent-runner` untouched (-p, -workspace, JSON).
   const invocation = extractCodexModelArg(options.args ?? []);
   const selectedModel = resolveCodexModel(options.modelId ?? invocation.modelId);
-  if (needsTaskPrompt(invocation.args, Boolean(process.stdin.isTTY))) {
-    invocation.args = await askForTask();
+  invocation.args = normalizeRunnerArgs(invocation.args);
+  if (
+    needsTaskPrompt(invocation.args, Boolean(process.stdin.isTTY), Boolean(process.stdout.isTTY))
+  ) {
+    // Append: keep any flags given alongside (e.g. -workspace).
+    invocation.args = [...invocation.args, ...(await askForTask())];
   }
   return runProxiedSession({
     agent: "unreal",

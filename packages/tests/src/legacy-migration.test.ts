@@ -13,6 +13,7 @@ import path from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
 import {
   applyLegacyEnv,
+  isGeneratedWrapper,
   legacyMigrationNotice,
   migrateLegacyInstall,
 } from "../../cli/src/lib/legacy-migration.js";
@@ -146,9 +147,8 @@ describe("legacy install migration", () => {
       home,
       env: { NCONNECT_HOME: newHome },
       argv1: bundle,
-      stopLegacyService: async () => {
-        throw new Error("must not run again");
-      },
+      // The service step repeats until it succeeds; here there is nothing to do.
+      stopLegacyService: async () => false,
     });
     expect(later!.installedBundle).toBe(true);
     expect(later!.rewroteWrappers).toEqual(["nebiusrelay", "nclaude"]);
@@ -195,5 +195,91 @@ describe("legacy install migration", () => {
     );
     expect(readlinkSync(path.join(pathDir, "npi"))).toBe("/usr/bin/true");
     expect(legacyMigrationNotice(result!)).toContain("Repointed 2 command link(s)");
+  });
+
+  test("only exact generated wrappers count as ours", () => {
+    const b = "/home/u/.nebiusrelay/bin/nebiusrelay.js";
+    expect(isGeneratedWrapper(`#!/usr/bin/env sh\nexec bun "${b}" "$@"\n`, b)).toBe(true);
+    expect(
+      isGeneratedWrapper(`#!/usr/bin/env sh\nexec bun "${b}" claude "$@"\n`, b, "claude"),
+    ).toBe(true);
+    // Another bundle that merely shares the file name.
+    expect(
+      isGeneratedWrapper(`#!/usr/bin/env sh\nexec bun "/opt/custom/nebiusrelay.js" "$@"\n`, b),
+    ).toBe(false);
+    // Right bundle, wrong harness for this wrapper.
+    expect(isGeneratedWrapper(`#!/usr/bin/env sh\nexec bun "${b}" codex "$@"\n`, b, "claude")).toBe(
+      false,
+    );
+    // Extra setup before the exec.
+    expect(
+      isGeneratedWrapper(
+        `#!/usr/bin/env sh\nexport FOO=1\nexec bun "${b}" claude "$@"\n`,
+        b,
+        "claude",
+      ),
+    ).toBe(false);
+  });
+
+  test("a customized wrapper that still runs the legacy bundle is left alone", async () => {
+    const home = makeHome();
+    const { legacy, bundle } = legacyInstall(home);
+    const custom = `#!/usr/bin/env sh\nexport FOO=1\nexec bun "${bundle}" claude "$@"\n`;
+    writeFileSync(path.join(legacy, "bin", "nclaude"), custom);
+    const result = await migrateLegacyInstall({
+      home,
+      env: { NCONNECT_HOME: path.join(home, ".nconnect") },
+      argv1: bundle,
+      stopLegacyService: async () => false,
+    });
+    expect(result!.rewroteWrappers).toEqual(["nebiusrelay"]);
+    expect(readFileSync(path.join(legacy, "bin", "nclaude"), "utf8")).toBe(custom);
+  });
+
+  test("stale links are repaired even when there is no ~/.nebiusrelay at all", async () => {
+    const home = makeHome();
+    const newBin = path.join(home, ".nconnect", "bin");
+    mkdirSync(newBin, { recursive: true });
+    writeFileSync(path.join(newBin, "nconnect.js"), "// current bundle\n");
+    writeFileSync(path.join(newBin, "nclaude"), "#!/bin/sh\n");
+    const oldBin = path.join(home, ".nebiuslink", "bin");
+    mkdirSync(oldBin, { recursive: true });
+    writeFileSync(path.join(oldBin, "nclaude"), "#!/bin/sh\nexec bun old.js claude\n");
+    const pathDir = path.join(home, "pathdir");
+    mkdirSync(pathDir);
+    symlinkSync(path.join(oldBin, "nclaude"), path.join(pathDir, "nclaude"));
+
+    const result = await migrateLegacyInstall({
+      home,
+      env: { NCONNECT_HOME: path.join(home, ".nconnect") },
+      argv1: path.join(newBin, "nconnect.js"),
+      pathDirs: [pathDir],
+      stopLegacyService: async () => {
+        throw new Error("no legacy home: the service step must not run");
+      },
+    });
+    expect(result!.repointedLinks).toEqual([path.join(pathDir, "nclaude")]);
+    expect(readlinkSync(path.join(pathDir, "nclaude"))).toBe(path.join(newBin, "nclaude"));
+    expect(existsSync(path.join(home, ".nebiusrelay"))).toBe(false);
+  });
+
+  test("a failed service removal is retried on the next start", async () => {
+    const home = makeHome();
+    const { bundle } = legacyInstall(home);
+    const env = { NCONNECT_HOME: path.join(home, ".nconnect") };
+    const first = await migrateLegacyInstall({
+      home,
+      env,
+      argv1: bundle,
+      stopLegacyService: async () => false, // launchctl failed
+    });
+    expect(first!.removedService).toBe(false);
+    const later = await migrateLegacyInstall({
+      home,
+      env,
+      argv1: bundle,
+      stopLegacyService: async () => true, // succeeded this time
+    });
+    expect(later?.removedService).toBe(true);
   });
 });

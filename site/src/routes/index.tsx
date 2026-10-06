@@ -183,7 +183,7 @@ const steps = [
 
 const features = [
   {
-    title: "One relay, eight harnesses",
+    title: "One relay, nine harnesses",
     body: "Claude Code, Codex, OpenCode, Pi Code, Prime Agent, Hermes, DeepSeek Harness, Grok Build, and Unreal Agent all run on Nebius open models through a single local install.",
   },
   {
@@ -215,7 +215,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     ...pageHead(
       "NConnect | Open Models for Claude Code, Codex & More",
-      "Run eight coding agents on Nebius Token Factory with a local, open-source relay. Install on macOS or Linux, configure API keys, and add Tavily web search.",
+      "Run nine coding agents on Nebius Token Factory with a local, open-source relay. Install on macOS or Linux, configure API keys, and add Tavily web search.",
       "/",
     ),
     scripts: [
@@ -224,8 +224,7 @@ export const Route = createFileRoute("/")({
         "@type": "SoftwareApplication",
         name: "NConnect",
         url: `${siteUrl}/`,
-        description:
-          "A local open-source relay connecting eight coding agents to models on Nebius.",
+        description: "A local open-source relay connecting nine coding agents to models on Nebius.",
         applicationCategory: "DeveloperApplication",
         operatingSystem: "macOS, Linux",
         license: "https://opensource.org/license/mit",
@@ -346,7 +345,7 @@ function Home() {
             </div>
             <div className="hero-split-right">
               <p className="hero-description">
-                Run the coding agents you love on Nebius. One local relay. Eight agents. Your setup
+                Run the coding agents you love on Nebius. One local relay. Nine agents. Your setup
                 stays yours.
               </p>
               <div className="hero-meta">
