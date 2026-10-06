@@ -12,8 +12,9 @@ User-visible changes to NConnect, newest first. This changelog starts at
   and where each model is used - the default, the Claude Code `/model` tier it
   fills, the model for Claude Code's background calls, vision support.
   `--all` adds models kept out of the picker (no tool calling) and `--json`
-  prints machine-readable rows. Reads the catalog already loaded; no extra
-  network calls.
+  prints machine-readable rows. It loads the catalog the same way a launch
+  does (cached for hours) and flags bundled fallback models that Nebius's live
+  list does not include.
 
 ## 0.17.0 - 2026-10-06
 

@@ -2,6 +2,7 @@ import {
   getAllModels,
   getDefaultModel,
   getSelectableModels,
+  isInSourceCatalog,
   type ModelDefinition,
 } from "@nconnect/models";
 import { claudeTierModels, type ClaudeTier } from "./claude/core.js";
@@ -12,7 +13,8 @@ import { backgroundModel } from "./claude/request-routing.js";
  * model costs, how much context it takes, and where it shows up (the default,
  * the Claude Code `/model` tier it fills, the background model). Reads the
  * catalog the CLI already loaded from Nebius (plus models.dev metadata); no
- * extra network calls.
+ * a separate network path: it loads the catalog exactly as a launch does
+ * (cached for hours, so usually no request at all).
  */
 
 export type ModelRow = {
@@ -34,9 +36,10 @@ export type ModelRow = {
   /** Listed in the harness model pickers (false: reachable via --model only). */
   inPicker: boolean;
   /**
-   * In the live catalog. False only for a model a Claude tier still points at
-   * (the bundled Haiku-tier backend) while Nebius's live list omits it - the
-   * row exists so the report shows every tier Claude Code's menu offers.
+   * In Nebius's own model list. False for bundled fallbacks NConnect adds when
+   * the list omits them (they may not be served), and for a model a Claude tier
+   * points at that the list lacks - shown so every tier in Claude Code's menu
+   * has a row.
    */
   inCatalog: boolean;
 };
@@ -60,7 +63,7 @@ export function buildModelRows(options: { all?: boolean } = {}): ModelRow[] {
     const id = tiers[tier].definition.id;
     tiersById.set(id, [...(tiersById.get(id) ?? []), TIER_LABEL[tier]]);
   }
-  const row = (m: ModelDefinition, inPicker: boolean, inCatalog = true): ModelRow => ({
+  const row = (m: ModelDefinition, inPicker: boolean): ModelRow => ({
     id: m.id,
     name: m.name,
     contextTokens: m.limit.context,
@@ -74,17 +77,16 @@ export function buildModelRows(options: { all?: boolean } = {}): ModelRow[] {
     claudeTiers: tiersById.get(m.id) ?? [],
     background: m.id === backgroundId,
     inPicker,
-    inCatalog,
+    inCatalog: isInSourceCatalog(m.id),
   });
   const rows = [...picker.map((m) => row(m, true)), ...hidden.map((m) => row(m, false))];
   // Every model a Claude tier points at gets a row, even if it is not in the
   // listed set (e.g. the Haiku-tier backend absent from the live catalog), so
   // the report cannot drift from the menu Claude Code is launched with.
-  const catalogIds = new Set(getAllModels().map((m) => m.id));
   for (const tier of ["OPUS", "SONNET", "HAIKU", "FABLE"] as const) {
     const definition = tiers[tier].definition;
     if (!rows.some((r) => r.id === definition.id)) {
-      rows.push(row(definition, false, catalogIds.has(definition.id)));
+      rows.push(row(definition, false));
     }
   }
   return rows;
@@ -123,7 +125,7 @@ function notes(row: ModelRow): string {
   if (!row.reasoning) parts.push("no reasoning");
   if (!row.toolCall) parts.push("no tools");
   if (!row.inCatalog) parts.push("not in Nebius's live catalog");
-  if (row.inCatalog && row.inputPrice <= 0 && row.outputPrice <= 0) {
+  else if (row.inputPrice <= 0 && row.outputPrice <= 0) {
     parts.push("price not published by Nebius");
   }
   return parts.join(", ");
@@ -136,7 +138,9 @@ export function formatModelsReport(
 ): string {
   const picker = rows.filter((r) => r.inPicker);
   const hidden = rows.filter((r) => !r.inPicker && r.inCatalog);
-  const tierOnly = rows.filter((r) => !r.inCatalog);
+  // Picker rows stay in the picker list (flagged in Notes); only tier models
+  // that are neither listed nor in Nebius's list get their own section.
+  const tierOnly = rows.filter((r) => !r.inPicker && !r.inCatalog);
   const idWidth = Math.max(8, ...rows.map((r) => r.id.length));
   const header =
     `  ${"Model ID".padEnd(idWidth)}  ${"Context".padStart(7)}  ${"$/M in".padStart(7)}  ` +

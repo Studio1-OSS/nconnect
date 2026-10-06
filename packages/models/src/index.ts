@@ -384,6 +384,11 @@ export type NebiusCatalog = {
   vision: readonly ModelDefinition[];
   byId: ReadonlyMap<string, ModelDefinition>;
   defaultModel: ModelDefinition;
+  /**
+   * Ids present in the source list itself (the live Nebius response, or the
+   * snapshot when offline) - i.e. NOT bundled fallbacks merged in afterwards.
+   */
+  sourceIds: ReadonlySet<string>;
 };
 
 /**
@@ -443,7 +448,7 @@ export function buildCatalog(
     throw new Error("Nebius catalog is empty: no chat models available.");
   }
 
-  return { all: defs, selectable, vision, byId, defaultModel };
+  return { all: defs, selectable, vision, byId, defaultModel, sourceIds: seenIds };
 }
 
 export class NebiusCatalogError extends Error {
@@ -554,6 +559,14 @@ export async function refreshCatalog(opts: {
   const catalog = await fetchNebiusCatalog(opts);
   applyCatalog(catalog);
   return catalog;
+}
+
+/**
+ * Whether Nebius's own list (live, or the snapshot when offline) includes this
+ * model - false for a bundled fallback merged in because the list omitted it.
+ */
+export function isInSourceCatalog(id: string): boolean {
+  return activeCatalog.sourceIds.has(id);
 }
 
 /** Every chat model in the live catalog, including ones kept out of the picker. */
