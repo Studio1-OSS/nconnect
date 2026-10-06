@@ -27,6 +27,7 @@
  */
 
 import { CATALOG_SNAPSHOT } from "./catalog-snapshot.js";
+import { modelsDevReleaseTime, type ModelsDevIndex, type ModelsDevModel } from "./models-dev.js";
 
 export const NEBIUS_BASE_URL = "https://api.tokenfactory.nebius.com/v1";
 
@@ -100,6 +101,13 @@ export type NebiusApiModel = {
     completion?: string | number | null;
     image?: string | number | null;
   } | null;
+  /** e.g. ["tools", "reasoning"]; null when Nebius does not say. */
+  supported_features?: readonly string[] | null;
+  /**
+   * Unix seconds. Not used for ordering: Nebius resets it on redeploys, so
+   * long-released models can report the current day.
+   */
+  created?: number | null;
 };
 
 /**
@@ -318,13 +326,37 @@ function rawOutputIsText(modality: string | null | undefined): boolean {
 }
 
 /** Build a ModelDefinition from a live API row plus any curated override. */
-function mapApiModel(api: NebiusApiModel, override: ModelOverride | undefined): ModelDefinition {
+/**
+ * A capability flag, by precedence: curated override, then what Nebius itself
+ * reports (`supported_features`, when it reports anything), then models.dev,
+ * then the permissive default.
+ */
+function capability(
+  override: boolean | undefined,
+  api: NebiusApiModel,
+  feature: "tools" | "reasoning",
+  fromModelsDev: boolean | undefined,
+): boolean {
+  if (override !== undefined) return override;
+  if (Array.isArray(api.supported_features)) return api.supported_features.includes(feature);
+  return fromModelsDev ?? true;
+}
+
+function mapApiModel(
+  api: NebiusApiModel,
+  override: ModelOverride | undefined,
+  modelsDev: ModelsDevModel | undefined,
+): ModelDefinition {
   const modalities = parseModalities(api.architecture?.modality);
   const attachment = modalities.input.includes("image");
   const apiContext =
     typeof api.context_length === "number" && api.context_length > 0 ? api.context_length : 0;
   const context = Math.max(apiContext, override?.minContext ?? 0) || DEFAULT_CONTEXT;
-  const output = override?.outputLimit ?? Math.min(context, DEFAULT_OUTPUT_LIMIT);
+  // models.dev often lists output == context for long-context models; keep our
+  // conservative default cap rather than inviting a 1M-token response.
+  const output =
+    override?.outputLimit ??
+    Math.min(context, modelsDev?.limit?.output ?? DEFAULT_OUTPUT_LIMIT, DEFAULT_OUTPUT_LIMIT);
   return {
     id: api.id,
     name: override?.name ?? api.name ?? api.id,
@@ -336,9 +368,9 @@ function mapApiModel(api: NebiusApiModel, override: ModelOverride | undefined): 
     },
     limit: { context, output },
     attachment,
-    reasoning: override?.reasoning ?? true,
+    reasoning: capability(override?.reasoning, api, "reasoning", modelsDev?.reasoning),
     temperature: override?.temperature ?? true,
-    tool_call: override?.tool_call ?? true,
+    tool_call: capability(override?.tool_call, api, "tools", modelsDev?.tool_call),
     modalities,
   };
 }
@@ -360,7 +392,10 @@ export type NebiusCatalog = {
  * selectable list is flagship-first (curated `order`) then the rest by name,
  * so a newly added Nebius model appears automatically at the tail.
  */
-export function buildCatalog(apiModels: readonly NebiusApiModel[]): NebiusCatalog {
+export function buildCatalog(
+  apiModels: readonly NebiusApiModel[],
+  modelsDev: ModelsDevIndex = {},
+): NebiusCatalog {
   const seenIds = new Set(
     apiModels.filter((m) => m && typeof m.id === "string" && m.id.length > 0).map((m) => m.id),
   );
@@ -376,12 +411,24 @@ export function buildCatalog(apiModels: readonly NebiusApiModel[]): NebiusCatalo
     // agent. Read the raw modality so an unrecognized output token (e.g.
     // "embedding") is excluded rather than defaulting to text.
     .filter((m) => rawOutputIsText(m.architecture?.modality))
-    .map((m) => mapApiModel(m, CURATED_OVERRIDES[m.id]));
+    .map((m) => mapApiModel(m, CURATED_OVERRIDES[m.id], modelsDev[m.id]));
 
+  // Curated flagships first, in their curated order. Everything else - which
+  // is where new Nebius models land - newest first by models.dev release date,
+  // so a model released this week shows up near the top instead of
+  // alphabetically at the tail; models.dev has not dated yet go last, by name.
+  // Nebius's own `created` is deliberately ignored: it is reset on redeploys
+  // (models years old report the current day), so it is not a release signal.
+  // A model that cannot call tools cannot drive a coding agent, so it stays
+  // out of the picker (it is still in `all` for anything that names it).
+  const releasedAt = (d: ModelDefinition): number => modelsDevReleaseTime(modelsDev[d.id]);
   const orderOf = (d: ModelDefinition): number => CURATED_OVERRIDES[d.id]?.order ?? ORDER_FALLBACK;
-  const selectable = [...defs].sort(
-    (a, b) => orderOf(a) - orderOf(b) || a.name.localeCompare(b.name),
-  );
+  const selectable = defs
+    .filter((d) => d.tool_call || CURATED_OVERRIDES[d.id]?.order !== undefined)
+    .sort(
+      (a, b) =>
+        orderOf(a) - orderOf(b) || releasedAt(b) - releasedAt(a) || a.name.localeCompare(b.name),
+    );
 
   const visionRankOf = (d: ModelDefinition): number =>
     CURATED_OVERRIDES[d.id]?.visionRank ?? ORDER_FALLBACK;
@@ -577,3 +624,5 @@ export const VISION_PROMPT =
   "Be concise but specific: layout, UI elements, colors, any text (quote it " +
   "verbatim), diagrams, charts, or notable details. If it is a screenshot, " +
   "describe the visible UI. Keep it under 150 words.";
+
+export * from "./models-dev.js";
