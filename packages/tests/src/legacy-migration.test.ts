@@ -263,22 +263,42 @@ describe("legacy install migration", () => {
     expect(existsSync(path.join(home, ".nebiusrelay"))).toBe(false);
   });
 
-  test("a failed service removal is retried on the next start", async () => {
+  test("a failed service removal is retried, but at most once a day", async () => {
     const home = makeHome();
     const { bundle } = legacyInstall(home);
     const env = { NCONNECT_HOME: path.join(home, ".nconnect") };
+    const day = 24 * 60 * 60 * 1000;
+    const t0 = Date.parse("2026-10-06T00:00:00Z");
+    let calls = 0;
+    const failing = async () => {
+      calls += 1;
+      return false; // launchctl failed or hung
+    };
     const first = await migrateLegacyInstall({
       home,
       env,
       argv1: bundle,
-      stopLegacyService: async () => false, // launchctl failed
+      now: t0,
+      stopLegacyService: failing,
     });
     expect(first!.removedService).toBe(false);
+    expect(calls).toBe(1);
+    // Later the same day: not retried, so startup is never stalled repeatedly.
+    await migrateLegacyInstall({
+      home,
+      env,
+      argv1: bundle,
+      now: t0 + 60_000,
+      stopLegacyService: failing,
+    });
+    expect(calls).toBe(1);
+    // A day later it tries again, and this time succeeds.
     const later = await migrateLegacyInstall({
       home,
       env,
       argv1: bundle,
-      stopLegacyService: async () => true, // succeeded this time
+      now: t0 + day,
+      stopLegacyService: async () => true,
     });
     expect(later?.removedService).toBe(true);
   });

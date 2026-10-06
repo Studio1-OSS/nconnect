@@ -42,7 +42,11 @@ type ClaudeModelOptions = Parameters<typeof resolveTargetModel>[1];
 
 const CLASSIFIER_SYSTEM_MARKER = "monitor for autonomous AI coding agents";
 const CLASSIFIER_VERDICT_MARKERS = ["<block>yes", "<block>no"] as const;
-const TITLE_SYSTEM_MARKER = "You are naming a coding session";
+/** Current wording (2.1.289+) and the earlier one, still sent by older Claude Code. */
+const TITLE_SYSTEM_MARKERS = [
+  "You are naming a coding session",
+  "Generate a concise, sentence-case title",
+] as const;
 
 function systemText(system: AnthropicMessagesRequest["system"]): string {
   if (typeof system === "string") {
@@ -63,7 +67,7 @@ export function classifyClaudeRequest(body: AnthropicMessagesRequest): ClaudeReq
   ) {
     return "auto_mode_classifier";
   }
-  if (system.includes(TITLE_SYSTEM_MARKER)) {
+  if (TITLE_SYSTEM_MARKERS.some((marker) => system.includes(marker))) {
     return "session_title";
   }
   return "standard";

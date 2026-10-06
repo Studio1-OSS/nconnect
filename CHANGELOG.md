@@ -3,7 +3,7 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
-## Unreleased
+## 0.17.0 - 2026-10-06
 
 ### Changed
 
@@ -27,6 +27,27 @@ User-visible changes to NConnect, newest first. This changelog starts at
   `NCONNECT_BACKGROUND_MODEL` (default: GLM 5.3 Flash, keeping its reasoning
   floor so verdicts stay clean). In a measured auto-mode session this cut the
   cost about 3x. `NCONNECT_BACKGROUND_MODEL=off` restores the old behaviour.
+
+### Fixed
+
+- Background calls are never remembered as your Claude model. The auto-mode
+  classifier asks for the Sonnet tier (Kimi K3) on every shell command, and
+  NConnect recorded it as your last-used model, so the next launch could start
+  on the most expensive model in the menu.
+- The model catalog: a corrupt models.dev cache no longer stops the live
+  Nebius list from loading; launch never waits on models.dev (it refreshes in
+  the background); `--model <id>` works for models hidden from the picker; only
+  real release dates order the picker.
+- `nunreal > out.jsonl` no longer shows the task prompt into the redirected
+  output (and hangs); `nunreal -- "fix the tests"` treats plain text as the
+  prompt; a typed task no longer drops flags like `-workspace`.
+- nebiusrelay migration hardening: only exact generated wrappers are
+  rewritten; a failed `launchctl`/`systemctl` is never read as "service
+  removed", and the cleanup retries at most once a day so it cannot stall
+  startup; stale PATH links are repaired even without `~/.nebiusrelay`; the
+  installer only replaces wrappers that run one of our own bundles.
+- The older Claude Code session-title prompt is routed to the background
+  model too. The landing page counts nine harnesses.
 
 ## 0.16.5 - 2026-10-06
 
