@@ -199,20 +199,26 @@ describe("legacy install migration", () => {
 
   test("only exact generated wrappers count as ours", () => {
     const b = "/home/u/.nebiusrelay/bin/nebiusrelay.js";
-    expect(isGeneratedWrapper(`#!/usr/bin/env sh\nexec bun "${b}" "$@"\n`, "nebiusrelay.js")).toBe(
-      true,
-    );
+    expect(isGeneratedWrapper(`#!/usr/bin/env sh\nexec bun "${b}" "$@"\n`, b)).toBe(true);
     expect(
-      isGeneratedWrapper(`#!/usr/bin/env sh\nexec bun "${b}" claude "$@"\n`, "nebiusrelay.js"),
+      isGeneratedWrapper(`#!/usr/bin/env sh\nexec bun "${b}" claude "$@"\n`, b, "claude"),
     ).toBe(true);
-    // Customized: extra setup before the exec.
+    // Another bundle that merely shares the file name.
+    expect(
+      isGeneratedWrapper(`#!/usr/bin/env sh\nexec bun "/opt/custom/nebiusrelay.js" "$@"\n`, b),
+    ).toBe(false);
+    // Right bundle, wrong harness for this wrapper.
+    expect(isGeneratedWrapper(`#!/usr/bin/env sh\nexec bun "${b}" codex "$@"\n`, b, "claude")).toBe(
+      false,
+    );
+    // Extra setup before the exec.
     expect(
       isGeneratedWrapper(
         `#!/usr/bin/env sh\nexport FOO=1\nexec bun "${b}" claude "$@"\n`,
-        "nebiusrelay.js",
+        b,
+        "claude",
       ),
     ).toBe(false);
-    expect(isGeneratedWrapper(`#!/bin/bash\nexec bun "${b}" "$@"\n`, "nebiusrelay.js")).toBe(false);
   });
 
   test("a customized wrapper that still runs the legacy bundle is left alone", async () => {

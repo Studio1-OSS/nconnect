@@ -104,15 +104,14 @@ export type LegacyMigrationResult = {
 };
 
 /**
- * A wrapper we generated: exactly `#!/usr/bin/env sh` plus one
- * `exec bun "<…>/<bundle>" [harness] "$@"` line. Anything else - extra env,
- * setup, a different interpreter - is the user's and is left alone.
+ * A wrapper we generated, byte for byte: what `wrapperBody(bundle, harness)`
+ * writes for this exact legacy bundle path and this wrapper's own harness
+ * (a trailing newline is optional). Anything else - another bundle path, a
+ * different harness, extra env or setup - is the user's and is left alone.
  */
-export function isGeneratedWrapper(content: string, bundleName: string): boolean {
-  const bundle = bundleName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(
-    `^#!/usr/bin/env sh\\nexec bun "[^"\\n]*/${bundle}"(?: [a-z][a-z-]*)? "\\$@"\\n?$`,
-  ).test(content);
+export function isGeneratedWrapper(content: string, bundle: string, harness?: string): boolean {
+  const expected = wrapperBody(bundle, harness);
+  return content === expected || content === expected.trimEnd();
 }
 
 function wrapperBody(bundle: string, harness?: string): string {
@@ -126,11 +125,16 @@ function wrapperBody(bundle: string, harness?: string): string {
  * and the next start tries again.
  */
 async function stopLegacyServiceReal(platform: NodeJS.Platform, home: string): Promise<boolean> {
+  // The exit code, or undefined when the command could not tell us anything:
+  // it failed to start (e.g. ENOENT), timed out, or was killed by a signal.
+  // Only a real exit code may be read as "not loaded" below.
   const run = (file: string, args: string[]) =>
-    new Promise<number>((resolve) =>
+    new Promise<number | undefined>((resolve) =>
       execFile(file, args, { timeout: 15_000 }, (err) => {
-        const code = (err as { code?: unknown } | null)?.code;
-        resolve(err ? (typeof code === "number" ? code : 1) : 0);
+        if (!err) return resolve(0);
+        const e = err as { code?: unknown; killed?: boolean; signal?: unknown };
+        if (e.killed || e.signal || typeof e.code !== "number") return resolve(undefined);
+        resolve(e.code);
       }),
     );
   if (platform === "darwin") {
@@ -140,9 +144,10 @@ async function stopLegacyServiceReal(platform: NodeJS.Platform, home: string): P
     }
     const service = `gui/${process.getuid?.() ?? os.userInfo().uid}/${LEGACY_LAUNCHD_LABEL}`;
     await run("launchctl", ["bootout", service]);
-    // `print` succeeds only while the service is still loaded.
-    if ((await run("launchctl", ["print", service])) === 0) {
-      return false;
+    // `print` exits 0 while the service is still loaded, nonzero once gone.
+    const loaded = await run("launchctl", ["print", service]);
+    if (loaded === undefined || loaded === 0) {
+      return false; // still loaded, or we could not tell: keep it, retry later
     }
     try {
       await (await import("node:fs/promises")).unlink(plist);
@@ -158,9 +163,10 @@ async function stopLegacyServiceReal(platform: NodeJS.Platform, home: string): P
       return false;
     }
     await run("systemctl", ["--user", "disable", "--now", LEGACY_SYSTEMD_UNIT]);
-    // `is-active` exits 0 only while the unit is still running.
-    if ((await run("systemctl", ["--user", "is-active", "--quiet", LEGACY_SYSTEMD_UNIT])) === 0) {
-      return false;
+    // `is-active` exits 0 while the unit is running, nonzero once stopped.
+    const active = await run("systemctl", ["--user", "is-active", "--quiet", LEGACY_SYSTEMD_UNIT]);
+    if (active === undefined || active === 0) {
+      return false; // still running, or we could not tell: keep it, retry later
     }
     try {
       await (await import("node:fs/promises")).unlink(unit);
@@ -283,7 +289,7 @@ export async function migrateLegacyInstall(
       } catch {
         continue;
       }
-      if (!isGeneratedWrapper(current, LEGACY_BUNDLE)) {
+      if (!isGeneratedWrapper(current, path.join(legacyBin, LEGACY_BUNDLE), harness)) {
         continue; // customized, or already rewritten
       }
       writeFileSync(legacyWrapper, wrapperBody(newBundle, harness), {
