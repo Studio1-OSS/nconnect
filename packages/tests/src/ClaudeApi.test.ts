@@ -1037,8 +1037,10 @@ describe("Claude proxy compatibility API", () => {
     expect(messages.filter((message) => message.role === "system")).toHaveLength(1);
     expect(messages[0]?.content).toContain("Nebius Token Factory model routed through nconnect");
     expect(messages[0]?.content).toContain("Generate a concise, sentence-case title");
+    // The earlier title prompt is a background call too: it goes to the
+    // background model, not the Haiku tier.
     expect(upstreamBodies[0]).toMatchObject({
-      model: CLAUDE_HAIKU_MODEL.id,
+      model: getDefaultModel().id,
       stream: true,
     });
   });

@@ -45,6 +45,16 @@ const LEGACY_BUNDLE = "nebiusrelay.js";
 const LEGACY_PREFIX = "NEBIUSRELAY_";
 const NEW_PREFIX = "NCONNECT_";
 const MARKER = "migrated-from-nebiusrelay";
+/** When the legacy login-service cleanup was last attempted (ms since epoch). */
+const SERVICE_ATTEMPT_FILE = "legacy-service-cleanup-attempt";
+/** Retry a failed service cleanup at most this often, so it can never stall every start. */
+const SERVICE_RETRY_INTERVAL_MS = 24 * 60 * 60 * 1000;
+/**
+ * Per launchctl/systemctl call. An attempt makes two calls on macOS (bootout,
+ * print) and up to three on Linux (disable, is-active, daemon-reload), so one
+ * attempt is bounded by ~10s and ~15s respectively - once a day at most.
+ */
+const SERVICE_COMMAND_TIMEOUT_MS = 5_000;
 const LEGACY_LAUNCHD_LABEL = "com.nebiusrelay.daemon";
 const LEGACY_SYSTEMD_UNIT = "nebiusrelay-daemon.service";
 /** Bin dirs of every previous generation of this tool, as PATH links point at them. */
@@ -91,6 +101,8 @@ export type LegacyMigrationOptions = {
   stopLegacyService?: (platform: NodeJS.Platform, home: string) => Promise<boolean>;
   /** PATH to scan for stale links; defaults to the process PATH. */
   pathDirs?: string[];
+  /** Clock for the service-retry throttle; tests inject it. */
+  now?: number;
 };
 
 export type LegacyMigrationResult = {
@@ -130,7 +142,7 @@ async function stopLegacyServiceReal(platform: NodeJS.Platform, home: string): P
   // Only a real exit code may be read as "not loaded" below.
   const run = (file: string, args: string[]) =>
     new Promise<number | undefined>((resolve) =>
-      execFile(file, args, { timeout: 15_000 }, (err) => {
+      execFile(file, args, { timeout: SERVICE_COMMAND_TIMEOUT_MS }, (err) => {
         if (!err) return resolve(0);
         const e = err as { code?: unknown; killed?: boolean; signal?: unknown };
         if (e.killed || e.signal || typeof e.code !== "number") return resolve(undefined);
@@ -344,15 +356,32 @@ export async function migrateLegacyInstall(
     }
   }
 
-  // 4. The old login service would keep starting the old daemon. Every start
+  // 4. The old login service would keep starting the old daemon. Retried
   //    until it is confirmed gone (the real stopper is a no-op once its
-  //    service file has been removed).
+  //    service file has been removed) - but at most once a day. The attempt
+  //    is recorded before it runs, so a hung service manager can cost one
+  //    launch a few seconds, never every launch.
   if (hasLegacyHome) {
-    const stopService = options.stopLegacyService ?? stopLegacyServiceReal;
+    const now = options.now ?? Date.now();
+    const attemptFile = path.join(newHome, SERVICE_ATTEMPT_FILE);
+    let lastAttempt = 0;
     try {
-      result.removedService = await stopService(process.platform, home);
+      lastAttempt = Number.parseInt(readFileSync(attemptFile, "utf8").trim(), 10) || 0;
     } catch {
-      // best-effort
+      // never attempted
+    }
+    if (now - lastAttempt >= SERVICE_RETRY_INTERVAL_MS) {
+      try {
+        writeFileSync(attemptFile, `${now}\n`, "utf8");
+      } catch {
+        // unwritable home: still attempt, just without the throttle
+      }
+      const stopService = options.stopLegacyService ?? stopLegacyServiceReal;
+      try {
+        result.removedService = await stopService(process.platform, home);
+      } catch {
+        // best-effort
+      }
     }
   }
 

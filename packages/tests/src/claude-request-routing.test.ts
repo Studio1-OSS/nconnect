@@ -42,6 +42,14 @@ describe("Claude background-call routing", () => {
   test("recognises the auto-mode classifier and the session title, and nothing else", () => {
     expect(classifyClaudeRequest(classifier)).toBe("auto_mode_classifier");
     expect(classifyClaudeRequest(title)).toBe("session_title");
+    // The earlier title prompt, still sent by older Claude Code versions.
+    expect(
+      classifyClaudeRequest({
+        ...title,
+        system:
+          "You are a Claude agent, built on Anthropic's Claude Agent SDK. Generate a concise, sentence-case title. Return JSON with a single title field.",
+      }),
+    ).toBe("session_title");
     expect(classifyClaudeRequest(mainTurn)).toBe("standard");
     // A streamed, tool-less request mentioning the marker is not the classifier.
     expect(classifyClaudeRequest({ ...classifier, stream: true })).toBe("standard");
