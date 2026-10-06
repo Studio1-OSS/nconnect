@@ -43,32 +43,45 @@ function modelsDevCachePath(home?: string): string {
   return path.join(nconnectHome(home), "models-dev.json");
 }
 
+/**
+ * The models.dev index for this launch. Never waits on the network and never
+ * throws: it returns whatever cache exists (fresh or stale; a missing or
+ * corrupt file counts as empty) and, when that cache is missing or older than
+ * a day, refreshes it in the background so the next launch has it. Launch time
+ * is never spent on optional metadata.
+ */
 async function loadModelsDev(home: string | undefined, now: number): Promise<ModelsDevIndex> {
   if (process.env.NCONNECT_MODELS_DEV?.trim().toLowerCase() === "off") {
     return {};
   }
   const file = modelsDevCachePath(home);
-  const cached = await readJsonIfExists<ModelsDevCache>(file);
-  if (cached?.models && now - cached.fetchedAt < MODELS_DEV_TTL_MS) {
-    return cached.models;
+  let cached: ModelsDevCache | undefined;
+  try {
+    const raw = await readJsonIfExists<ModelsDevCache>(file);
+    cached = raw && typeof raw.models === "object" && raw.models ? raw : undefined;
+  } catch {
+    cached = undefined; // corrupt cache: treat as a miss
   }
+  if (!cached || now - (cached.fetchedAt ?? 0) >= MODELS_DEV_TTL_MS) {
+    void refreshModelsDev(file, now);
+  }
+  return cached?.models ?? {};
+}
+
+async function refreshModelsDev(file: string, now: number): Promise<void> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
     const res = await fetch(MODELS_DEV_API_URL, { signal: controller.signal });
     if (!res.ok) {
-      return cached?.models ?? {};
+      return;
     }
     const models = parseModelsDevIndex(await res.json());
     if (Object.keys(models).length > 0) {
-      await writeJsonAtomic(file, { fetchedAt: now, models } satisfies ModelsDevCache).catch(
-        () => {},
-      );
-      return models;
+      await writeJsonAtomic(file, { fetchedAt: now, models } satisfies ModelsDevCache);
     }
-    return cached?.models ?? {};
   } catch {
-    return cached?.models ?? {};
+    // Best-effort: the next launch tries again.
   } finally {
     clearTimeout(timer);
   }
@@ -116,7 +129,7 @@ async function loadCatalog(options: InitModelCatalogOptions): Promise<void> {
   const baseUrl = (options.baseUrl ?? NEBIUS_BASE_URL).replace(/\/$/, "");
   const file = cachePath(home);
 
-  // Started in parallel with the Nebius fetch; only awaited when building.
+  // Reads the local cache only; any network refresh happens in the background.
   const modelsDevLoad = loadModelsDev(home, now);
   const cached = await readJsonIfExists<CatalogCache>(file);
   const cacheFresh =

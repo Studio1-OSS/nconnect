@@ -420,11 +420,12 @@ export function buildCatalog(
   // Nebius's own `created` is deliberately ignored: it is reset on redeploys
   // (models years old report the current day), so it is not a release signal.
   // A model that cannot call tools cannot drive a coding agent, so it stays
-  // out of the picker (it is still in `all` for anything that names it).
+  // out of the picker - curated or not. It stays in `all`/`byId` (and `vision`
+  // where it applies), and an explicit `--model <id>` still resolves it.
   const releasedAt = (d: ModelDefinition): number => modelsDevReleaseTime(modelsDev[d.id]);
   const orderOf = (d: ModelDefinition): number => CURATED_OVERRIDES[d.id]?.order ?? ORDER_FALLBACK;
   const selectable = defs
-    .filter((d) => d.tool_call || CURATED_OVERRIDES[d.id]?.order !== undefined)
+    .filter((d) => d.tool_call)
     .sort(
       (a, b) =>
         orderOf(a) - orderOf(b) || releasedAt(b) - releasedAt(a) || a.name.localeCompare(b.name),

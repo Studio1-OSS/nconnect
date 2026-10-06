@@ -5,6 +5,7 @@ import {
   getSelectableModels,
   resolveModelByKeys,
   type ModelDefinition,
+  findModelById,
 } from "@nconnect/models";
 
 export const CLAUDE_LOCAL_PROXY_HOST = "127.0.0.1";
@@ -43,12 +44,13 @@ export function resolveClaudeModel(value: string | undefined): ClaudeModelSelect
   if (supported.length === 0) {
     throw new Error("No Claude models are configured.");
   }
-  const found = resolveModelByKeys(
-    supported.map((model) => model.definition),
-    value,
-    [(model) => model.anthropicAlias, (model) => model.id],
-    getDefaultModel().id,
-  );
+  const found =
+    resolveModelByKeys(
+      supported.map((model) => model.definition),
+      value,
+      [(model) => model.anthropicAlias, (model) => model.id],
+      getDefaultModel().id,
+    ) ?? explicitCatalogModel(value);
   if (!found) {
     const expected = supported
       .map(
@@ -59,4 +61,13 @@ export function resolveClaudeModel(value: string | undefined): ClaudeModelSelect
     throw new Error(`Unsupported Claude model "${value}". Expected one of: ${expected}.`);
   }
   return { alias: found.anthropicAlias ?? found.id, definition: found };
+}
+
+/**
+ * An explicit model id that is in the live catalog but not in the picker
+ * (e.g. a model Nebius reports without tool support). The picker is a
+ * recommendation, not an allow-list: naming a model on purpose still works.
+ */
+function explicitCatalogModel(value: string | undefined) {
+  return value ? findModelById(value) : undefined;
 }
