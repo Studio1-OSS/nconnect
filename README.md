@@ -103,6 +103,7 @@ nconnect chatgpt              # alpha: ChatGPT Desktop session with restore (ali
 ### Other commands
 
 ```bash
+nconnect models            # live lineup: model ids, context, prices, Claude tiers
 nconnect usage --last 7d   # local spend by model and tool (never uploaded)
 nconnect update            # update to the latest release now
 nconnect daemon install    # start the daemon at login (macOS launchd / Linux systemd)

@@ -19,6 +19,7 @@ Usage:
   nconnect configure
   nconnect update            update to the latest release
   nconnect whoami
+  nconnect models [--all]    the live model lineup: ids, context, prices (--json)
   nconnect usage [--last 7d] tracked local spend by model and tool
   nconnect daemon install    start the daemon at login (macOS/Linux)
   nconnect daemon uninstall  stop starting the daemon at login

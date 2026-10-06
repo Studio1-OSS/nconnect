@@ -237,6 +237,20 @@ async function main() {
     return;
   }
 
+  // The live model lineup: ids, context, prices, and where each model is used.
+  if (command === "models") {
+    const { initModelCatalog } = await import("../lib/model-catalog-init.js");
+    const { buildModelRows, formatModelsReport } = await import("../lib/models-report.js");
+    await initModelCatalog({ home: os.homedir() });
+    const rows = buildModelRows({ all: parsed.flags.all });
+    process.stdout.write(
+      parsed.flags.json
+        ? `${JSON.stringify(rows, null, 2)}\n`
+        : `${formatModelsReport(rows, { all: parsed.flags.all })}\n`,
+    );
+    return;
+  }
+
   if (command === "configure") {
     await runConfigure();
     return;
