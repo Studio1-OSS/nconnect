@@ -3,6 +3,21 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
+## 0.20.0 - 2026-10-07
+
+### Added
+
+- Auto routing for Claude Code. `nconnect --model auto claude` picks the model
+  for each task: the fast default (GLM 5.3 Flash) for routine work, and the
+  strong model (Kimi K3, about 20x the price) when the task earns it - plan
+  mode, a high effort level, a request to think hard, hard work such as
+  debugging or a refactor, a long prompt, or a task where tool calls keep
+  failing. The tool calls that follow a prompt stay on the model that prompt
+  was routed to. Routing is decided locally from the request, with no extra
+  model call, and the choice is remembered across launches.
+  `NCONNECT_AUTO_FAST_MODEL` and `NCONNECT_AUTO_STRONG_MODEL` change the two
+  models. Auto is opt-in; nothing changes for an explicit model.
+
 ## 0.19.0 - 2026-10-07
 
 ### Changed

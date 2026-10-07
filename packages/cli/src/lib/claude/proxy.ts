@@ -1,7 +1,13 @@
 import { isUserModelChoice, resolveClaudeRequestRoute } from "./request-routing.js";
 import { NATIVE_IMAGE_LIMIT, sendsImagesNatively } from "./native-images.js";
 import { type IncomingMessage, type ServerResponse } from "node:http";
-import { CLAUDE_HAIKU_MODEL, getClaudeSupportedModels } from "./defaults.js";
+import {
+  AUTO_MODEL_ID,
+  CLAUDE_HAIKU_MODEL,
+  autoModelSelection,
+  getClaudeSupportedModels,
+  isAutoModel,
+} from "./defaults.js";
 import { recordAgentModel } from "../model-preferences.js";
 import { type ModelDefinition } from "@nconnect/models";
 import { CostTracker } from "../cost.js";
@@ -96,7 +102,7 @@ export async function handleProxyRequest(
     // context indicator shows the wrong "% used". Advertise the real limits so
     // compaction triggers at the right point.
     writeJson(res, 200, {
-      data: getClaudeSupportedModels().map(claudeModelResponse),
+      data: [autoModelSelection(), ...getClaudeSupportedModels()].map(claudeModelResponse),
     });
     return;
   }
@@ -182,7 +188,9 @@ export async function handleProxyRequest(
   // unless it's the Haiku-tier backend Claude Code uses for its built-in
   // subagents, or one of Claude Code's background calls (classifier, title):
   // those are fixed roles, not the user's pick. Fire-and-forget.
-  if (body.model && isUserModelChoice(body)) {
+  if (isAutoModel(body.model) && isUserModelChoice(body)) {
+    void recordAgentModel("claude", AUTO_MODEL_ID);
+  } else if (body.model && isUserModelChoice(body)) {
     const requested = getClaudeSupportedModels().find(
       (m) => m.alias === body.model || m.definition.id === body.model,
     );
@@ -197,6 +205,17 @@ export async function handleProxyRequest(
   if (compactionTuning.detected) {
     debugLog(options, "claude compaction request tuned", compactionTuning);
   }
+  const route = resolveClaudeRequestRoute(body, {
+    ...options,
+    isCompactionRequest: compactionTuning.detected,
+  });
+  if (route.auto) {
+    debugLog(options, "auto route", {
+      tier: route.auto.tier,
+      reason: route.auto.reason,
+      model: route.targetModel.definition.id,
+    });
+  }
   const imageBlocks = extractImageBlocks(body);
   if (imageBlocks.length > 0) {
     debugLog(options, "image blocks detected", imageBlocks);
@@ -205,11 +224,7 @@ export async function handleProxyRequest(
   // model can't: each image/url block is described by a vision model and
   // replaced with a text block, so it reasons over the description.
   if (imageBlocks.length > 0) {
-    const keepNative = sendsImagesNatively(
-      resolveClaudeRequestRoute(body, options).targetModel.definition,
-    )
-      ? NATIVE_IMAGE_LIMIT
-      : 0;
+    const keepNative = sendsImagesNatively(route.targetModel.definition) ? NATIVE_IMAGE_LIMIT : 0;
     await perf.span(
       "vision_image_resolution",
       () => resolveImageBlocks(body, options, keepNative),

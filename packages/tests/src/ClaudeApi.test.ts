@@ -763,6 +763,61 @@ describe("Claude proxy compatibility API", () => {
     });
   });
 
+  describe("the Auto model through the proxy", () => {
+    const stubUpstream = () => {
+      const bodies: Array<Record<string, unknown>> = [];
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async (_url: string, init?: RequestInit) => {
+          bodies.push(JSON.parse(String(init?.body)) as Record<string, unknown>);
+          return new Response(
+            JSON.stringify({
+              id: "chatcmpl_auto",
+              choices: [{ message: { content: "AUTO_OK" }, finish_reason: "stop" }],
+              usage: { prompt_tokens: 10, completion_tokens: 2, total_tokens: 12 },
+            }),
+            { status: 200, headers: { "content-type": "application/json" } },
+          );
+        }),
+      );
+      return bodies;
+    };
+    const ask = (prompt: string) =>
+      callClaudeProxy({
+        method: "POST",
+        url: "/v1/messages",
+        body: JSON.stringify({
+          model: "nebius-auto",
+          max_tokens: 128,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+
+    test("sends a routine task to the default model and a hard one to Kimi K3", async () => {
+      const bodies = stubUpstream();
+
+      expect((await ask("rename foo to bar")).status).toBe(200);
+      expect(bodies[0]?.model).toBe(getDefaultModel().id);
+
+      const hard = await ask("debug the race condition in the session store");
+      expect(hard.status).toBe(200);
+      expect(bodies[1]?.model).toBe("moonshotai/Kimi-K3");
+      // Claude Code asked for Auto, so that is the model it is told answered.
+      expect(hard.body.model).toBe("nebius-auto");
+      // The placeholder id must never reach Nebius.
+      expect(JSON.stringify(bodies)).not.toContain("nconnect/auto");
+    });
+
+    test("is listed for Claude Code's model discovery", async () => {
+      const response = await callClaudeProxy({ method: "GET", url: "/v1/models" });
+      const ids = (response.body.data as Array<{ id: string }>).map((model) => model.id);
+      expect(ids[0]).toBe("nebius-auto");
+      const one = await callClaudeProxy({ method: "GET", url: "/v1/models/nebius-auto" });
+      expect(one.status).toBe(200);
+      expect(one.body.display_name).toBe("Nebius Auto");
+    });
+  });
+
   test("tunes Claude Code compaction output before forwarding to Nebius", async () => {
     const upstreamBodies: Array<Record<string, unknown>> = [];
     vi.stubGlobal(

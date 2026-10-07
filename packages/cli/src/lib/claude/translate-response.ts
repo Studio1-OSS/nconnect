@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { ModelDefinition } from "@nconnect/models";
 import { stableHash } from "../stable-hash.js";
-import { getClaudeSupportedModels } from "./defaults.js";
+import { autoModelSelection, getClaudeSupportedModels, isAutoModel } from "./defaults.js";
 import { APPROX_CHARS_PER_TOKEN, jsonByteLength, safeClaudeInputLimit } from "./context-budget.js";
 import { mapStopReason, parseJsonOrEmpty } from "./content-format.js";
 import { nativeWebSearchBlocks } from "./native-web-search-response.js";
@@ -36,6 +36,9 @@ export function resolveTargetModel(
   requestedModel: string | undefined,
   options: ClaudeModelOptions,
 ): ResolvedClaudeModel {
+  if (isAutoModel(requestedModel)) {
+    return autoModelSelection();
+  }
   const supported = getClaudeSupportedModels().find(
     (model) => model.alias === requestedModel || model.definition.id === requestedModel,
   );
@@ -46,6 +49,9 @@ export function findClaudeModel(
   modelId: string,
   options: ClaudeModelOptions,
 ): ResolvedClaudeModel | undefined {
+  if (isAutoModel(modelId)) {
+    return autoModelSelection();
+  }
   const supported = getClaudeSupportedModels().find(
     (model) => model.alias === modelId || model.definition.id === modelId,
   );

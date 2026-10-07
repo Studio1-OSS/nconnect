@@ -171,6 +171,9 @@ export function formatModelsReport(
   out.push("");
   out.push("Use one:   nconnect --model <model-id> claude   (or codex, opencode, ...)");
   out.push(
+    "Auto:      nconnect --model auto claude   (Claude Code: fast model for routine tasks, strong model for hard ones)",
+  );
+  out.push(
     "Prices are Nebius list prices per million tokens; cached input bills at the full rate.",
   );
   if (!options.all) {
