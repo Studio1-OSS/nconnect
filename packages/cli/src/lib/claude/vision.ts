@@ -278,7 +278,7 @@ function visionFailoverRaceDelayMs(): number | undefined {
 }
 
 /** Convert an Anthropic image/url block into an OpenAI `image_url` data URL. */
-function toDataUrl(block: ImageBlock | UrlBlock): string | null {
+export function toDataUrl(block: ImageBlock | UrlBlock): string | null {
   if (isImageBlock(block)) {
     const { source } = block;
     if (source.type === "base64" && source.data && source.media_type) {

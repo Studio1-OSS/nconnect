@@ -1,7 +1,12 @@
 import { EventEmitter } from "node:events";
 import { Readable } from "node:stream";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { GLM_5_2, NEBIUS_BASE_URL, type ModelDefinition } from "../../models/src/index.js";
+import {
+  GLM_5_2,
+  KIMI_K2_6,
+  NEBIUS_BASE_URL,
+  type ModelDefinition,
+} from "../../models/src/index.js";
 import { getDefaultModel } from "@nconnect/models";
 import {
   buildClaudeEnv,
@@ -631,6 +636,131 @@ describe("Claude proxy compatibility API", () => {
     expect(String(firstUserContent(upstreamBodies[0]))).toContain(
       "Resolved screenshot: compact terminal description.",
     );
+  });
+
+  describe("images for a model that can see", () => {
+    const image = (data: string) => ({
+      type: "image",
+      source: { type: "base64", media_type: "image/png", data },
+    });
+    /** Upstream stub: records chat bodies, answers the describer separately. */
+    const stubUpstream = () => {
+      const chats: Array<Record<string, unknown>> = [];
+      const describes: Array<Record<string, unknown>> = [];
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async (_url: string, init?: RequestInit) => {
+          const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+          const isDescribe = body.max_tokens === 800 && body.tools === undefined;
+          (isDescribe ? describes : chats).push(body);
+          return new Response(
+            JSON.stringify({
+              id: "chatcmpl_img",
+              choices: [
+                {
+                  message: { content: isDescribe ? "DESCRIBED_AS_TEXT" : "SAW_IT" },
+                  finish_reason: "stop",
+                },
+              ],
+              usage: { prompt_tokens: 10, completion_tokens: 2, total_tokens: 12 },
+            }),
+            { status: 200, headers: { "content-type": "application/json" } },
+          );
+        }),
+      );
+      return { chats, describes };
+    };
+    const send = (model: string | null, content: unknown[]) =>
+      callClaudeProxy({
+        method: "POST",
+        url: "/v1/messages",
+        body: JSON.stringify({ model, max_tokens: 128, messages: [{ role: "user", content }] }),
+      });
+    const userParts = (body: Record<string, unknown> | undefined) =>
+      upstreamMessages(body).find((m) => m.role === "user")?.content;
+
+    test("sends a pasted image as an image, with no describer call", async () => {
+      const { chats, describes } = stubUpstream();
+      const response = await send(KIMI_K2_6.anthropicAlias, [
+        { type: "text", text: "What is this?" },
+        image("NATIVE_PASTE"),
+      ]);
+
+      expect(response.status).toBe(200);
+      expect(describes).toHaveLength(0);
+      expect(chats).toHaveLength(1);
+      expect(chats[0]?.model).toBe(KIMI_K2_6.id);
+      expect(userParts(chats[0])).toEqual([
+        { type: "text", text: "What is this?" },
+        { type: "image_url", image_url: { url: "data:image/png;base64,NATIVE_PASTE" } },
+      ]);
+    });
+
+    test("carries an image a tool returned in the user message after the tool result", async () => {
+      const { chats, describes } = stubUpstream();
+      const response = await send(KIMI_K2_6.anthropicAlias, [
+        {
+          type: "tool_result",
+          tool_use_id: "call_read",
+          content: [{ type: "text", text: "Read screenshot.png" }, image("NATIVE_TOOL")],
+        },
+      ]);
+
+      expect(response.status).toBe(200);
+      expect(describes).toHaveLength(0);
+      const messages = upstreamMessages(chats[0]);
+      const toolIndex = messages.findIndex((m) => m.role === "tool");
+      const userIndex = messages.findIndex((m) => m.role === "user");
+      // A tool message holds text only; the image must follow it, never precede.
+      expect(typeof messages[toolIndex]?.content).toBe("string");
+      expect(String(messages[toolIndex]?.content)).toContain("Read screenshot.png");
+      expect(userIndex).toBeGreaterThan(toolIndex);
+      expect(messages[userIndex]?.content).toEqual([
+        { type: "text", text: "[Image from tool result call_read]" },
+        { type: "image_url", image_url: { url: "data:image/png;base64,NATIVE_TOOL" } },
+      ]);
+    });
+
+    test("still describes images for a text-only model", async () => {
+      const { chats, describes } = stubUpstream();
+      const response = await send(GLM_5_2.anthropicAlias, [
+        { type: "text", text: "What is this?" },
+        image("TEXT_ONLY_MODEL"),
+      ]);
+
+      expect(response.status).toBe(200);
+      expect(describes.length).toBeGreaterThan(0);
+      expect(typeof userParts(chats[0])).toBe("string");
+      expect(String(userParts(chats[0]))).toContain("DESCRIBED_AS_TEXT");
+      expect(JSON.stringify(chats[0])).not.toContain("image_url");
+    });
+
+    test("NCONNECT_CLAUDE_IMAGES=describe forces the description path", async () => {
+      vi.stubEnv("NCONNECT_CLAUDE_IMAGES", "describe");
+      const { chats, describes } = stubUpstream();
+      const response = await send(KIMI_K2_6.anthropicAlias, [image("FORCED_DESCRIBE")]);
+
+      expect(response.status).toBe(200);
+      expect(describes.length).toBeGreaterThan(0);
+      expect(String(userParts(chats[0]))).toContain("DESCRIBED_AS_TEXT");
+      expect(JSON.stringify(chats[0])).not.toContain("image_url");
+    });
+
+    test("keeps only the most recent images as images and describes older ones", async () => {
+      const { chats, describes } = stubUpstream();
+      const content = Array.from({ length: 10 }, (_, i) => image(`HISTORY_${i}`));
+      const response = await send(KIMI_K2_6.anthropicAlias, content);
+
+      expect(response.status).toBe(200);
+      const parts = userParts(chats[0]) as Array<{ type: string; text?: string }>;
+      expect(parts.filter((p) => p.type === "image_url")).toHaveLength(8);
+      // The two oldest became descriptions, and stay first in order.
+      expect(describes).toHaveLength(2);
+      expect(parts.slice(0, 2).every((p) => p.type === "text")).toBe(true);
+      expect(parts[0]?.text).toContain("DESCRIBED_AS_TEXT");
+      expect(JSON.stringify(parts)).not.toContain("HISTORY_0");
+      expect(JSON.stringify(parts)).toContain("HISTORY_9");
+    });
   });
 
   test("tunes Claude Code compaction output before forwarding to Nebius", async () => {

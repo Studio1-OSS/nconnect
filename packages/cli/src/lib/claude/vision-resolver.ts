@@ -105,19 +105,53 @@ const imageDescriptionCache = new LruCache<string, string>(
   IMAGE_CACHE_MAX_BYTES,
 );
 
+/** Every image/url block in the conversation, oldest first, tool results included. */
+function messageImageBlocks(body: AnthropicMessagesRequest): AnthropicContentBlock[] {
+  const found: AnthropicContentBlock[] = [];
+  const visit = (block: unknown): void => {
+    if (isImageBlock(block) || isUrlImageBlock(block)) {
+      found.push(block as AnthropicContentBlock);
+    }
+  };
+  for (const message of body.messages ?? []) {
+    if (!Array.isArray(message.content)) {
+      continue;
+    }
+    for (const block of message.content) {
+      visit(block);
+      if (block.type === "tool_result" && Array.isArray(block.content)) {
+        block.content.forEach(visit);
+      }
+    }
+  }
+  return found;
+}
+
 /**
- * Find every image/url block in the request, describe it with the vision model,
- * and replace it in place with a `text` block holding the description. GLM-5.2
- * is text-only, so this is what lets Claude Code's images reach the model.
+ * Find image/url blocks in the request, describe each with the vision model,
+ * and replace it in place with a `text` block holding the description. This is
+ * what lets Claude Code's images reach a text-only model.
+ *
+ * `keepNative` is for a target model that can see: the most recent that many
+ * images in the conversation are left untouched, to be sent as real images,
+ * and only older ones are described. Images in the system prompt are always
+ * described.
  */
 export async function resolveImageBlocks(
   body: AnthropicMessagesRequest,
   options: ClaudeVisionOptions,
+  keepNative = 0,
 ): Promise<void> {
   const descriptions = new Map<string, string>();
+  const kept = new Set<AnthropicContentBlock>(
+    keepNative > 0 ? messageImageBlocks(body).slice(-keepNative) : [],
+  );
 
   const resolve = async (block: AnthropicContentBlock): Promise<AnthropicContentBlock> => {
     if (!isImageBlock(block) && !isUrlImageBlock(block)) {
+      return block;
+    }
+    if (kept.has(block)) {
       return block;
     }
     const key = imageBlockKey(block);

@@ -1,3 +1,4 @@
+import { sendsImagesNatively } from "./native-images.js";
 import { resolveClaudeRequestRoute } from "./request-routing.js";
 import { randomUUID } from "node:crypto";
 import { type ServerResponse } from "node:http";
@@ -76,7 +77,12 @@ export async function streamAnthropicFromNebius(
   // fallback branches. Behavior is unchanged.
   const run = () => {
     const targetModel = resolveClaudeRequestRoute(body, options).targetModel;
-    const messages = toOpenAIMessages(body, targetModel.definition);
+    const messages = toOpenAIMessages(
+      body,
+      targetModel.definition,
+      undefined,
+      sendsImagesNatively(targetModel.definition),
+    );
     const nativeTools = nativeServerTools(body.tools);
     const upstreamMessages =
       nativeTools.length > 0 ? withClaudeNativeToolSystemPrompt(messages, nativeTools) : messages;

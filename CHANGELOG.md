@@ -3,16 +3,26 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
-## Unreleased
+## 0.19.0 - 2026-10-07
+
+### Changed
+
+- Claude Code now sends images straight to models that can see. With the
+  default GLM 5.3 Flash, Kimi K3 or Kimi K2.6, a pasted screenshot or an image
+  a tool returned reaches the model as an image, instead of being replaced by
+  another model's text description. That removes one extra model call per
+  image and nothing is lost in a summary. Text-only models keep the
+  description path. Only the 8 most recent images stay as images; older ones
+  are described once, so a long session of screenshots does not re-send every
+  image each turn. `NCONNECT_CLAUDE_IMAGES=describe` restores the old
+  behaviour.
 
 ### Fixed
 
-- Docs now say GLM 5.3 Flash and Kimi K3 accept images. A probe image sent to
-  Nebius was read correctly by both, matching Nebius's live modality, while the
-  README, llms.txt and the docs site still called them text-only. The docs
-  also now describe image handling accurately: Codex sends images to the
-  selected model, while the Claude Code proxy always has Kimi K2.6 (then
-  Qwen2.5-VL) describe them as text first.
+- GLM 5.3 Flash and Kimi K3 are marked as accepting images everywhere: the
+  README, llms.txt, the docs site, and the bundled offline catalog, which
+  still listed both as text-only. A probe image sent to Nebius was read
+  correctly by both, matching Nebius's live catalog.
 
 ## 0.18.0 - 2026-10-06
 
