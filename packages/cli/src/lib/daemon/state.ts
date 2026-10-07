@@ -457,6 +457,7 @@ export function buildSession(req: RegisterSessionRequest): SessionState {
       modelName: req.modelName ?? req.modelLabel,
       modelDefinition: req.modelDefinition,
       authToken: req.authToken ?? req.token,
+      agent,
       ...(req.claudeCodeMaxOutputTokens !== undefined
         ? { claudeCodeMaxOutputTokens: req.claudeCodeMaxOutputTokens }
         : {}),

@@ -19,14 +19,17 @@ User-visible changes to NConnect, newest first. This changelog starts at
 
 ### Added
 
-- Auto routing for Claude Code. `nconnect --model auto claude` picks the model
-  for each task: the fast default (GLM 5.3 Flash) for routine work, and the
-  strong model (Kimi K3, about 20x the price) when the task earns it - plan
-  mode, a high effort level, a request to think hard, hard work such as
-  debugging or a refactor, a long prompt, or a task where tool calls keep
-  failing. The tool calls that follow a prompt stay on the model that prompt
-  was routed to. Routing is decided locally from the request, with no extra
-  model call, and the choice is remembered across launches.
+- Auto routing. `nconnect --model auto <harness>` picks the model for each
+  task, with every harness: Claude Code, Codex, ChatGPT Desktop, OpenCode, Pi,
+  Prime, Hermes, DeepSeek Harness, Grok Build and Unreal Agent. Routine work
+  uses the fast default (GLM 5.3 Flash); the strong model (Kimi K3, about 20x
+  the price) is used when the task earns it - a high effort level, a request
+  to think hard, hard work such as debugging or a refactor, a long prompt, a
+  task where tool calls keep failing, or plan mode in Claude Code. The tool
+  calls that follow a prompt stay on the model that prompt was routed to.
+  Routing is decided locally in the daemon, with no extra model call, and a
+  harness's own background calls always use the fast model. The harnesses
+  that normally talk to Nebius directly go through the daemon when on Auto.
   `NCONNECT_AUTO_FAST_MODEL` and `NCONNECT_AUTO_STRONG_MODEL` change the two
   models. Auto is opt-in; nothing changes for an explicit model.
 

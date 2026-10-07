@@ -128,19 +128,27 @@ The catalog is **fetched live** from Nebius (`GET /v1/models?verbose=true`) at s
 
 The default coding model is **GLM 5.3 Flash** (Z.ai): a 1M-context hybrid reasoner at $0.15 / $0.50 per M tokens, roughly 20x cheaper on input than the previous Kimi K3 default. Switch inside your agent or with `--model`.
 
-### Auto: a model per task (Claude Code)
+### Auto: a model per task
 
-`nconnect --model auto claude` lets NConnect pick the model for each task instead of using one model for everything. Routine work runs on the fast default (GLM 5.3 Flash). Work that needs it runs on the strong model (Kimi K3), which costs about 20x more per token. The choice is remembered, so later `nclaude` launches stay on Auto until you pass another `--model`.
+`nconnect --model auto <harness>` lets NConnect pick the model for each task instead of using one model for everything. It works with every harness: Claude Code, Codex, ChatGPT Desktop, OpenCode, Pi, Prime, Hermes, DeepSeek Harness, Grok Build and Unreal Agent.
+
+```bash
+nconnect --model auto claude
+nconnect --model auto codex
+nconnect --model auto opencode
+```
+
+Routine work runs on the fast default (GLM 5.3 Flash). Work that needs it runs on the strong model (Kimi K3), which costs about 20x more per token. Claude Code, Codex and Unreal remember the choice, so later launches stay on Auto until you pass another `--model`.
 
 A task is everything since your last prompt, so the tool calls that follow a prompt stay on the model that prompt was routed to. A task goes to the strong model when:
 
-- Claude Code is in plan mode.
 - You set a high effort level, or ask for deep thinking ("ultrathink", "think hard").
 - The prompt names hard work: debugging, root-cause analysis, architecture, refactors, migrations, concurrency, security or performance work.
 - The prompt is long, such as a pasted spec or stack trace.
 - The task is stuck: three or more tool calls have failed since the prompt.
+- Claude Code is in plan mode. Other harnesses do not report their mode.
 
-Routing is decided locally from the request, with no extra model call. Set `NCONNECT_AUTO_FAST_MODEL` or `NCONNECT_AUTO_STRONG_MODEL` to change either model. `nconnect usage` shows the spend split by model.
+Routing is decided locally inside the NConnect daemon, with no extra model call. A harness's own background calls, such as Codex's memory agent, always use the fast model. OpenCode, Pi, Prime, Hermes, DeepSeek Harness and Grok Build normally talk to Nebius directly; on Auto they go through the daemon, so it must be running. Set `NCONNECT_AUTO_FAST_MODEL` or `NCONNECT_AUTO_STRONG_MODEL` to change either model. `nconnect usage` shows the spend split by model.
 
 | Model                         | Best for                     | Context | Vision |
 | ----------------------------- | ---------------------------- | ------- | ------ |
@@ -195,8 +203,8 @@ Claude Code and Codex expose a native `web_search` tool. Nebius has no hosted se
 | `NCONNECT_MODELS_DEV`           | `off` to stop enriching the model catalog with [models.dev](https://models.dev/providers/nebius) metadata (tool/reasoning flags, release dates for ordering). The live Nebius list is always the source of what exists.                                                                                                  |
 | `NCONNECT_BACKGROUND_MODEL`     | Model for Claude Code's background calls - the auto-mode safety classifier (one per shell command, normally sent to the expensive Sonnet tier) and the session title. Default: the catalog default (GLM 5.3 Flash); `off` keeps Claude Code's own choice. Read when the daemon starts (`nconnect daemon stop` to apply). |
 | `NCONNECT_CLAUDE_IMAGES`        | `describe` makes Claude Code always turn images into a text description from a vision model, even when the selected model can see. By default, vision-capable models receive images directly.                                                                                                                            |
-| `NCONNECT_AUTO_FAST_MODEL`      | Model that `--model auto` uses for routine Claude Code tasks. Default: the catalog default, GLM 5.3 Flash.                                                                                                                                                                                                               |
-| `NCONNECT_AUTO_STRONG_MODEL`    | Model that `--model auto` uses for hard Claude Code tasks. Default: Kimi K3.                                                                                                                                                                                                                                             |
+| `NCONNECT_AUTO_FAST_MODEL`      | Model that `--model auto` uses for routine tasks. Default: the catalog default, GLM 5.3 Flash.                                                                                                                                                                                                                           |
+| `NCONNECT_AUTO_STRONG_MODEL`    | Model that `--model auto` uses for hard tasks. Default: Kimi K3.                                                                                                                                                                                                                                                         |
 | `NCONNECT_REASONING_HISTORY`    | `full` (default) \| `interleaved` \| `off`. How much of previous turns' reasoning is replayed each turn. `off` is cheapest on long sessions; current-turn reasoning is never affected.                                                                                                                                   |
 | `NCONNECT_CODEX_MEMORY_MODEL`   | Model used to summarize Codex task traces for durable memory. Defaults to MiniMax M3.                                                                                                                                                                                                                                    |
 

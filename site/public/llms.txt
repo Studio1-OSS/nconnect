@@ -128,7 +128,7 @@ nconnect --main nebius-kimi-k2-7-code claude -p "task"   # Claude matches alias 
 
 The long form above works across harnesses. Since Relay 0.15.3, Codex also supports `ncodex --model MODEL_ID` and `ncodex -m MODEL_ID`; invalid explicit model names fail instead of silently using the default.
 
-Auto routing (Claude Code): `nconnect --model auto claude` picks a model per task. Routine tasks use the fast default (GLM 5.3 Flash); plan mode, high effort, deep-thinking requests, hard work such as debugging or refactors, long prompts and stuck tasks use the strong model (Kimi K3, about 20x the price). Decided locally with no extra model call; the choice is remembered across launches. Override the two models with `NCONNECT_AUTO_FAST_MODEL` and `NCONNECT_AUTO_STRONG_MODEL`.
+Auto routing: `nconnect --model auto <harness>` picks a model per task, for every harness (claude, codex, chatgpt, opencode, pi, prime, hermes, deepseek, grok, unreal). Routine tasks use the fast default (GLM 5.3 Flash); a high effort level, deep-thinking requests, hard work such as debugging or refactors, long prompts, stuck tasks, and Claude Code's plan mode use the strong model (Kimi K3, about 20x the price). Decided locally in the daemon with no extra model call; a harness's own background calls use the fast model. Spawned harnesses (opencode, pi, prime, hermes, deepseek, grok) are routed through the daemon when on Auto. Claude Code, Codex and Unreal remember the choice across launches. Override the two models with `NCONNECT_AUTO_FAST_MODEL` and `NCONNECT_AUTO_STRONG_MODEL`.
 
 Featured flagship models (any live Nebius id also works with `--model`):
 
