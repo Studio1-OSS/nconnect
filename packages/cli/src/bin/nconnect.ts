@@ -291,6 +291,25 @@ async function main() {
     return;
   }
 
+  // Route the Claude desktop app through NConnect, or switch it back.
+  if (command === "claude-desktop") {
+    const desktop = await import("../lib/claude-desktop.js");
+    if (rawVerb === "off" || parsed.flags.restore) {
+      process.stdout.write(`${await desktop.turnOffClaudeDesktop()}\n`);
+    } else if (rawVerb === "status") {
+      process.stdout.write(`${await desktop.claudeDesktopStatus()}\n`);
+    } else if (rawVerb === undefined || rawVerb === "on") {
+      process.stdout.write(
+        `${await desktop.turnOnClaudeDesktop({ apiKey: parsed.flags.apiKey, model: parsed.flags.main })}\n`,
+      );
+    } else {
+      throw new Error(
+        `Unknown command "claude-desktop ${rawVerb}". Use: nconnect claude-desktop [off|status] [--model <model>]`,
+      );
+    }
+    return;
+  }
+
   if (command === "configure") {
     await runConfigure();
     return;

@@ -7,7 +7,8 @@ import { nconnectHome } from "../paths.js";
 const REGISTRATION_FILE = "registration.json";
 
 /**
- * Persisted daemon registration for the codex-app integration.
+ * Persisted daemon registration for the desktop-app integrations (ChatGPT
+ * Desktop as `codex-app`, Claude Desktop as `claude-desktop`).
  *
  * `nconnect codex-app` configures the Codex desktop app once and exits, so
  * unlike the CLI launchers there is no long-lived process to re-register the
@@ -16,15 +17,23 @@ const REGISTRATION_FILE = "registration.json";
  * `nconnect codex-app`. Persisting the full register body lets the daemon
  * rebuild the session on demand instead.
  */
-export function appRegistrationPath(home = nconnectHome()): string {
-  return path.join(home, "codex-app", REGISTRATION_FILE);
+/** Desktop integrations that keep a persisted registration, one file each. */
+export const APP_REGISTRATION_AGENTS = ["codex-app", "claude-desktop"] as const;
+export type AppRegistrationAgent = (typeof APP_REGISTRATION_AGENTS)[number];
+
+export function appRegistrationPath(
+  home = nconnectHome(),
+  app: AppRegistrationAgent = "codex-app",
+): string {
+  return path.join(home, app, REGISTRATION_FILE);
 }
 
 export async function writeAppRegistration(
   registration: RegisterSessionRequest,
   home = nconnectHome(),
+  app: AppRegistrationAgent = "codex-app",
 ): Promise<void> {
-  const file = appRegistrationPath(home);
+  const file = appRegistrationPath(home, app);
   await mkdir(path.dirname(file), { recursive: true });
   const tmp = `${file}.tmp-${process.pid}`;
   // 0600: the body carries the real Nebius API key, like daemon.sqlite.
@@ -35,8 +44,11 @@ export async function writeAppRegistration(
   await rename(tmp, file);
 }
 
-export async function clearAppRegistration(home = nconnectHome()): Promise<void> {
-  await rm(appRegistrationPath(home), { force: true });
+export async function clearAppRegistration(
+  home = nconnectHome(),
+  app: AppRegistrationAgent = "codex-app",
+): Promise<void> {
+  await rm(appRegistrationPath(home, app), { force: true });
 }
 
 /**
@@ -47,10 +59,11 @@ export async function clearAppRegistration(home = nconnectHome()): Promise<void>
  */
 export async function readAppRegistration(
   home = nconnectHome(),
+  app: AppRegistrationAgent = "codex-app",
 ): Promise<RegisterSessionRequest | undefined> {
   let raw: string;
   try {
-    raw = await readFile(appRegistrationPath(home), "utf8");
+    raw = await readFile(appRegistrationPath(home, app), "utf8");
   } catch {
     return undefined;
   }

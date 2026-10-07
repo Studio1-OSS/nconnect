@@ -48,6 +48,9 @@ const ZERO_COST_SUMMARY = "[nconnect cost] session total: $0.0000 (0 in, 0 out)"
  *   translates it to Nebius chat completions.
  * - `codex-app`: same proxy path as `codex`, but registered by the persistent
  *   ChatGPT Desktop app integration so telemetry can distinguish it.
+ * - `claude-desktop`: same proxy path as `claude` (the desktop app's gateway
+ *   mode speaks Anthropic Messages), registered by the persistent Claude
+ *   Desktop integration.
  * - `unreal`: Unreal Agent's runner also speaks OpenAI Responses, so it rides
  *   the same proxy path as `codex`.
  */
@@ -56,6 +59,7 @@ export type AgentId =
   | "opencode"
   | "codex"
   | "codex-app"
+  | "claude-desktop"
   | "pi"
   | "prime"
   | "hermes"
@@ -411,7 +415,13 @@ export class SessionRegistry {
 export const sessions = new SessionRegistry();
 
 /** Agents whose traffic the daemon proxies (vs. self-reporting cost). */
-const PROXIED_AGENTS = new Set<AgentId>(["claude", "codex", "codex-app", "unreal"]);
+const PROXIED_AGENTS = new Set<AgentId>([
+  "claude",
+  "claude-desktop",
+  "codex",
+  "codex-app",
+  "unreal",
+]);
 
 export function isProxiedAgent(agent: AgentId): boolean {
   return PROXIED_AGENTS.has(agent);
@@ -457,6 +467,7 @@ export function buildSession(req: RegisterSessionRequest): SessionState {
       modelName: req.modelName ?? req.modelLabel,
       modelDefinition: req.modelDefinition,
       authToken: req.authToken ?? req.token,
+      agent,
       ...(req.claudeCodeMaxOutputTokens !== undefined
         ? { claudeCodeMaxOutputTokens: req.claudeCodeMaxOutputTokens }
         : {}),
