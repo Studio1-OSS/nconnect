@@ -1,3 +1,4 @@
+import { launchModelDefinitions } from "../codex/defaults.js";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { getSelectableModels, getVisionPrimary } from "@nconnect/models";
@@ -57,7 +58,7 @@ export type GrokModelCatalog = {
 export function buildGrokModelCatalog(baseUrl = NEBIUS_BASE_URL): GrokModelCatalog {
   return {
     object: "list",
-    data: getSelectableModels().map((model) => ({
+    data: launchModelDefinitions().map((model) => ({
       id: model.id,
       model: model.id,
       name: `Nebius · ${model.name}`,

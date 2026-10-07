@@ -64,11 +64,14 @@ type OpencodeProviderConfig = {
 export function buildOpencodeConfigJson({
   modelId = OPENCODE_DEFAULT_MODEL,
   apiKeyEnvRef = NEBIUS_API_KEY_ENV_REF,
+  baseUrl = NEBIUS_BASE_URL,
   buildPrompt = OPENCODE_BUILD_PROMPT,
   visionPrompt = OPENCODE_VISION_AGENT_PROMPT,
 }: {
   modelId?: string;
   apiKeyEnvRef?: string;
+  /** The daemon's session route when the launch is on Auto; Nebius otherwise. */
+  baseUrl?: string;
   buildPrompt?: string;
   visionPrompt?: string;
 } = {}): OpencodeConfig {
@@ -89,7 +92,7 @@ export function buildOpencodeConfigJson({
     // full suffix still fits without hitting the picker's truncation width
     // (opencode #20968).
     name: "Nebius Token Factory",
-    options: { apiKey: apiKeyEnvRef, baseURL: NEBIUS_BASE_URL },
+    options: { apiKey: apiKeyEnvRef, baseURL: baseUrl },
     models,
     // Restrict /models to exactly the curated set. Without this, OpenCode also
     // shows Nebius's full catalog (hundreds of models) because the `models`

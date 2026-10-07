@@ -258,9 +258,12 @@ describe("the Auto model", () => {
     expect(hard.targetModel.definition.id).toBe(KIMI_K3_ID);
     expect(hard.auto?.tier).toBe("strong");
 
-    // A model name Claude Code made up falls back to the session, which is Auto.
+    // A model name the harness made up falls back to the session, which is
+    // Auto. That is the harness's own call, not the user's task: fast model,
+    // whatever its prompt says.
     const unknown = route({ model: "claude-unknown", tools, messages: [user("debug the crash")] });
-    expect(unknown.targetModel.definition.id).toBe(KIMI_K3_ID);
+    expect(unknown.targetModel.definition.id).toBe(getDefaultModel().id);
+    expect(unknown.auto).toEqual({ tier: "fast", reason: "harness_call" });
   });
 
   test("an explicit model is never rerouted", () => {

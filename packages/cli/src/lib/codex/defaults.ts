@@ -6,6 +6,8 @@ import {
   findModelById,
 } from "@nconnect/models";
 
+import { AUTO_MODEL_ID, autoModelDefinition, isAutoModel } from "../auto-model.js";
+
 export const CODEX_PROVIDER_ID = "nconnect";
 export const CODEX_AUTH_ENV = "NCONNECT_CODEX_AUTH_TOKEN";
 
@@ -19,15 +21,40 @@ export type CodexModelSelection = {
   definition: ModelDefinition;
 };
 
-/** Codex-routable models from the live Nebius catalog. */
+/** Auto as a selection for the harnesses that name models by Nebius id. */
+export function autoCodexSelection(): CodexModelSelection {
+  return { id: AUTO_MODEL_ID, definition: autoModelDefinition() };
+}
+
+/**
+ * Set when this launch selected Auto. A spawned harness only reaches the
+ * daemon - the one place Auto can be resolved - when it was launched with
+ * Auto, so only then may Auto appear in the model list the harness is given.
+ */
+let launchOffersAuto = false;
+
+/**
+ * Models offered to a harness: the live Nebius catalog, led by Auto when this
+ * launch selected it.
+ */
 export function getCodexSupportedModels(): readonly CodexModelSelection[] {
-  return getSelectableModels().map((definition) => ({
+  const models = getSelectableModels().map((definition) => ({
     id: definition.id,
     definition,
   }));
+  return launchOffersAuto ? [autoCodexSelection(), ...models] : models;
+}
+
+/** Same list as bare model definitions, for config builders that want those. */
+export function launchModelDefinitions(): ModelDefinition[] {
+  return getCodexSupportedModels().map((model) => model.definition);
 }
 
 export function resolveCodexModel(value: string | undefined): CodexModelSelection {
+  if (isAutoModel(value)) {
+    launchOffersAuto = true;
+    return autoCodexSelection();
+  }
   const supported = getCodexSupportedModels();
   if (supported.length === 0) {
     throw new Error("No Codex models are configured.");
