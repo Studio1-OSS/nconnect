@@ -7,7 +7,15 @@ import {
   type ModelDefinition,
 } from "@nconnect/models";
 import { writeProxyDebugLog } from "../proxy-debug.js";
-import { normalizeCompactionInput } from "./compaction.js";
+import { isCodexCompactionRequest, normalizeCompactionInput } from "./compaction.js";
+import { AUTO_MODEL_ID, isAutoModel } from "../auto-model.js";
+import {
+  AUTO_HARNESS_CALL,
+  autoTargetModel,
+  chatAutoSignals,
+  decideAuto,
+  type AutoDecision,
+} from "../auto-routing.js";
 import {
   nativeToolMaxUses as sharedNativeToolMaxUses,
   runWebSearch as runSharedWebSearch,
@@ -47,6 +55,8 @@ export type ResolvedCodexRequestModel = {
   targetModelId: string;
   definition: ModelDefinition;
   memory: boolean;
+  /** Set when the request asked for Auto: which tier it was routed to, and why. */
+  auto?: AutoDecision;
 };
 
 type CodexTranslateOptions = {
@@ -54,6 +64,8 @@ type CodexTranslateOptions = {
   targetModelId: string;
   modelName: string;
   modelDefinition: ModelDefinition;
+  /** Which integration owns the session (codex, codex-app, unreal). */
+  agent?: string | undefined;
   debug?: boolean | undefined;
 };
 
@@ -111,12 +123,48 @@ export function resolveCodexRequestModel(
 
   const requestedModel = findModelById(requestedModelId);
   const definition = requestedModel ?? options.modelDefinition;
+  // Auto is a routing choice, not a model Nebius serves: pick the real model
+  // for this task. It is read from the same chat messages the request is
+  // translated into, so one set of rules covers every harness.
+  const askedForAuto = isAutoModel(requestedModelId);
+  if (askedForAuto || (!requestedModel && definition.id === AUTO_MODEL_ID)) {
+    const auto = !askedForAuto
+      ? AUTO_HARNESS_CALL
+      : isCodexCompactionRequest(body)
+        ? decideAuto({ prompt: "", toolErrors: 0, compaction: true })
+        : decideAuto({
+            ...chatAutoSignals({
+              messages: toChatMessages(body, options, EMPTY_CODEX_TOOL_TRANSLATION),
+            }),
+            effort: effortSignal(body, options),
+          });
+    const target = autoTargetModel(auto);
+    return {
+      requestedModelId: AUTO_MODEL_ID,
+      targetModelId: target.id,
+      definition: target,
+      memory: false,
+      auto,
+    };
+  }
   return {
     requestedModelId,
     targetModelId: definition.id,
     definition,
     memory: false,
   };
+}
+
+/**
+ * The effort level as a sign the user wants more thought. Codex and ChatGPT
+ * Desktop send what the user picked. Unreal's runner sends "high" on every
+ * request whatever the task, so for it the level says nothing.
+ */
+function effortSignal(body: ResponsesRequest, options: CodexTranslateOptions): string | undefined {
+  if (options.agent === "unreal") {
+    return undefined;
+  }
+  return typeof body.reasoning?.effort === "string" ? body.reasoning.effort : undefined;
 }
 
 function isCodexMemoryRequest(body: ResponsesRequest, requestedModelId: string): boolean {

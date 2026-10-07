@@ -46,6 +46,8 @@ export type ClaudeProxyOptions = {
   modelName: string;
   modelDefinition: ModelDefinition;
   authToken: string;
+  /** Which integration owns the session. */
+  agent?: string | undefined;
   claudeCodeMaxOutputTokens?: number | undefined;
   claudeCodeMaxOutputTokensUserSet?: boolean | undefined;
   debug?: boolean | undefined;

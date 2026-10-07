@@ -1,3 +1,4 @@
+import { launchModelDefinitions } from "../codex/defaults.js";
 import {
   VISION_PROMPT,
   getDefaultModel,
@@ -58,7 +59,7 @@ function toOpencodeModelEntry(model: ModelDefinition): OpencodeModelEntry {
  */
 export function opencodeModelEntries(): Record<string, OpencodeModelEntry> {
   return Object.fromEntries(
-    getSelectableModels().map((model) => [model.id, toOpencodeModelEntry(model)]),
+    launchModelDefinitions().map((model) => [model.id, toOpencodeModelEntry(model)]),
   );
 }
 
@@ -69,7 +70,7 @@ export function opencodeModelEntries(): Record<string, OpencodeModelEntry> {
  * hundreds of unrelated models.
  */
 export function opencodeModelWhitelist(): string[] {
-  return getSelectableModels().map((model) => model.id);
+  return launchModelDefinitions().map((model) => model.id);
 }
 
 /** OpenCode selector form for the vision subagent's model: provider/<nebius-id>. */
