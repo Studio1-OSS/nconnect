@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import os from "node:os";
+import { resolveNebiusApiKey, resolveNebiusBaseUrl } from "../lib/nebius-core.js";
 import { loadEnvFile } from "../lib/load-env.js";
 import { parseArgs } from "../lib/parse-args.js";
 import { printHelp, runConfigure } from "../lib/commands/global.js";
@@ -248,6 +249,45 @@ async function main() {
         ? `${JSON.stringify(rows, null, 2)}\n`
         : `${formatModelsReport(rows, { all: parsed.flags.all })}\n`,
     );
+    return;
+  }
+
+  // Ask a vision model about an image. Parses its own arguments: the question
+  // is free text, which the harness-oriented parser above would misread.
+  if (command === "image") {
+    const image = await import("../lib/image-command.js");
+    const argv = process.argv.slice(2);
+    const args = image.parseImageArgs(argv.slice(argv.indexOf("image") + 1));
+    if (args.help || !args.verb) {
+      process.stdout.write(`${image.IMAGE_USAGE}\n`);
+      return;
+    }
+    const unsupported = image.unsupportedImageVerb(args.verb);
+    if (unsupported) {
+      throw new Error(unsupported);
+    }
+    if (!args.source) {
+      throw new Error(`Which image?\n\n${image.IMAGE_USAGE}`);
+    }
+    const apiKey = await resolveNebiusApiKey({ apiKey: parsed.flags.apiKey, home: os.homedir() });
+    if (!apiKey) {
+      throw new Error("No Nebius API key found. Run `nconnect configure` or set NEBIUS_API_KEY.");
+    }
+    const { initModelCatalog } = await import("../lib/model-catalog-init.js");
+    await initModelCatalog({ home: os.homedir() });
+    const result = await image.describeImageFile({
+      source: args.source,
+      prompt: args.prompt,
+      model: image.pickImageModel(args.model),
+      apiKey,
+      baseUrl: resolveNebiusBaseUrl(),
+    });
+    if (args.json) {
+      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    } else {
+      process.stdout.write(`${result.text}\n`);
+      process.stderr.write(`${image.formatImageReceipt(result)}\n`);
+    }
     return;
   }
 

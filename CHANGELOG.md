@@ -3,6 +3,18 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
+## 0.21.0 - 2026-10-07
+
+### Added
+
+- `nconnect image describe <file-or-url> [question]` asks a vision model about
+  an image from the terminal, without starting a coding agent. It reads PNG,
+  JPEG, GIF and WebP files or an image URL, defaults to GLM 5.3 Flash, and
+  takes any image-capable model with `--model`. The answer goes to stdout and
+  a token and cost receipt to stderr; `--json` prints both as JSON. Nebius
+  Token Factory serves no image-generation models, so `image generate` and
+  `image edit` explain that instead of running.
+
 ## 0.20.0 - 2026-10-07
 
 ### Added

@@ -21,6 +21,7 @@ Usage:
   nconnect whoami
   nconnect models [--all]    the live model lineup: ids, context, prices (--json)
   nconnect usage [--last 7d] tracked local spend by model and tool
+  nconnect image describe <file> [question]   ask a vision model about an image
   nconnect daemon install    start the daemon at login (macOS/Linux)
   nconnect daemon uninstall  stop starting the daemon at login
   nconnect daemon status     show auto-start service status
