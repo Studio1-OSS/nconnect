@@ -1,4 +1,5 @@
-import { isUserModelChoice } from "./request-routing.js";
+import { isUserModelChoice, resolveClaudeRequestRoute } from "./request-routing.js";
+import { NATIVE_IMAGE_LIMIT, sendsImagesNatively } from "./native-images.js";
 import { type IncomingMessage, type ServerResponse } from "node:http";
 import { CLAUDE_HAIKU_MODEL, getClaudeSupportedModels } from "./defaults.js";
 import { recordAgentModel } from "../model-preferences.js";
@@ -200,12 +201,20 @@ export async function handleProxyRequest(
   if (imageBlocks.length > 0) {
     debugLog(options, "image blocks detected", imageBlocks);
   }
-  // GLM-5.2 can't see images: describe each image/url block with a vision model
-  // and replace it with a text block, so GLM reasons over the description.
+  // A model that can see gets its most recent images as images. A text-only
+  // model can't: each image/url block is described by a vision model and
+  // replaced with a text block, so it reasons over the description.
   if (imageBlocks.length > 0) {
-    await perf.span("vision_image_resolution", () => resolveImageBlocks(body, options), {
-      imageBlockCount: imageBlocks.length,
-    });
+    const keepNative = sendsImagesNatively(
+      resolveClaudeRequestRoute(body, options).targetModel.definition,
+    )
+      ? NATIVE_IMAGE_LIMIT
+      : 0;
+    await perf.span(
+      "vision_image_resolution",
+      () => resolveImageBlocks(body, options, keepNative),
+      { imageBlockCount: imageBlocks.length, keepNative },
+    );
   } else {
     perf.mark("vision_image_resolution_skipped", { imageBlockCount: 0 });
   }

@@ -1,3 +1,4 @@
+import { sendsImagesNatively } from "./native-images.js";
 import { resolveClaudeRequestRoute } from "./request-routing.js";
 import { randomUUID } from "node:crypto";
 import { type ModelDefinition } from "@nconnect/models";
@@ -56,14 +57,24 @@ export async function callNebiusChatCompletions(
     perf?.spanSync("translate_request", () => {
       const targetModel = resolveClaudeRequestRoute(body, options).targetModel;
       const nativeTools = nativeServerTools(body.tools);
-      const messages = toOpenAIMessages(body, targetModel.definition);
+      const messages = toOpenAIMessages(
+        body,
+        targetModel.definition,
+        undefined,
+        sendsImagesNatively(targetModel.definition),
+      );
       const tools = toOpenAITools(body.tools, options);
       return { targetModel, nativeTools, messages, tools };
     }) ??
     (() => {
       const targetModel = resolveClaudeRequestRoute(body, options).targetModel;
       const nativeTools = nativeServerTools(body.tools);
-      const messages = toOpenAIMessages(body, targetModel.definition);
+      const messages = toOpenAIMessages(
+        body,
+        targetModel.definition,
+        undefined,
+        sendsImagesNatively(targetModel.definition),
+      );
       const tools = toOpenAITools(body.tools, options);
       return { targetModel, nativeTools, messages, tools };
     })();

@@ -156,7 +156,7 @@ export const CATALOG_SNAPSHOT: readonly NebiusApiModel[] = [
       "Moonshot AI's Kimi K3 frontier open-weights MoE model (MXFP4, 1M context) with MTP speculative decoding, strong agentic tool use, reasoning, and coding.",
     context_length: 8000,
     architecture: {
-      modality: "text->text",
+      modality: "text+image->text",
     },
     pricing: {
       prompt: "0.000003",
@@ -171,7 +171,7 @@ export const CATALOG_SNAPSHOT: readonly NebiusApiModel[] = [
       "Z.ai's GLM 5.3 Flash: fast, very low cost hybrid-reasoning open-weights model with a 1M context window and strong agentic tool use. The default model.",
     context_length: 1024000,
     architecture: {
-      modality: "text->text",
+      modality: "text+image->text",
     },
     pricing: {
       prompt: "0.00000015",

@@ -21,10 +21,12 @@ import {
   reasoningHistoryPolicy,
   type ReasoningHistoryMode,
 } from "../reasoning-history.js";
+import { isImageBlock, isUrlImageBlock, toDataUrl } from "./vision.js";
 import type {
   AnthropicMessagesRequest,
   AnthropicTool,
   NativeServerTool,
+  OpenAIContentPart,
   OpenAIMessage,
   OpenAITool,
 } from "./wire-types.js";
@@ -235,10 +237,31 @@ export async function runClaudeWebSearch(
   });
 }
 
+/** An Anthropic image/url block as a chat-completions content part. */
+function imagePart(block: unknown): OpenAIContentPart | undefined {
+  if (!isImageBlock(block) && !isUrlImageBlock(block)) {
+    return undefined;
+  }
+  const url = toDataUrl(block);
+  return url
+    ? { type: "image_url", image_url: { url } }
+    : { type: "text", text: "[Image unavailable: could not read image data]" };
+}
+
+/**
+ * Translate an Anthropic request into chat-completions messages.
+ *
+ * `nativeImages` is for a target model that can see. Image blocks then travel
+ * as `image_url` parts instead of being dropped. A tool message can only hold
+ * text, so an image returned by a tool (Claude Code's Read on a screenshot) is
+ * carried in the user message that follows the tool results, labelled with the
+ * call it came from. Leave it off for text-only models and for token counting.
+ */
 export function toOpenAIMessages(
   body: AnthropicMessagesRequest,
   targetModel?: ModelDefinition,
   reasoningMode?: ReasoningHistoryMode,
+  nativeImages = false,
 ): OpenAIMessage[] {
   const historyPolicy =
     reasoningMode === undefined
@@ -264,9 +287,20 @@ export function toOpenAIMessages(
     const textParts: string[] = [];
     const reasoningParts: string[] = [];
     const toolCalls: OpenAIMessage["tool_calls"] = [];
+    // Text and images in their original order, used only when an image is present.
+    const parts: OpenAIContentPart[] = [];
+    let hasImage = false;
+    const sendImages = nativeImages && message.role === "user";
     for (const block of message.content) {
       if (block.type === "text") {
         textParts.push(block.text);
+        parts.push({ type: "text", text: block.text });
+      } else if (sendImages && (block.type === "image" || block.type === "url")) {
+        const part = imagePart(block);
+        if (part) {
+          parts.push(part);
+          hasImage = true;
+        }
       } else if (block.type === "thinking") {
         reasoningParts.push(block.thinking);
       } else if (block.type === "redacted_thinking") {
@@ -277,6 +311,16 @@ export function toOpenAIMessages(
           tool_call_id: block.tool_use_id,
           content: formatToolResultContent(block.content, block.is_error),
         });
+        if (sendImages && Array.isArray(block.content)) {
+          for (const inner of block.content) {
+            const part = imagePart(inner);
+            if (part) {
+              parts.push({ type: "text", text: `[Image from tool result ${block.tool_use_id}]` });
+              parts.push(part);
+              hasImage = true;
+            }
+          }
+        }
       } else if (
         block.type === "web_search_tool_result" ||
         block.type === "web_search_tool_result_error"
@@ -296,10 +340,10 @@ export function toOpenAIMessages(
     }
 
     const content = textParts.join("\n");
-    if (content || reasoningParts.length > 0 || toolCalls.length > 0) {
+    if (hasImage || content || reasoningParts.length > 0 || toolCalls.length > 0) {
       messages.push({
         role: message.role,
-        content: content || null,
+        content: hasImage ? parts : content || null,
         ...(reasoningParts.length > 0 && historyPolicy.includeHistoricalReasoning
           ? { reasoning_content: reasoningParts.join("\n") }
           : {}),

@@ -62,9 +62,14 @@ export type OpenAITool = {
   function: { name: string; description: string; parameters: unknown };
 };
 
+export type OpenAIContentPart =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } };
+
 export type OpenAIMessage = {
   role: "system" | "user" | "assistant" | "tool";
-  content?: string | null;
+  /** A parts array only when a user message carries images for a vision model. */
+  content?: string | null | OpenAIContentPart[];
   reasoning?: string;
   reasoning_content?: string;
   tool_call_id?: string;

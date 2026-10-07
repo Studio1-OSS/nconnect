@@ -184,10 +184,11 @@ describe("Codex App alpha config", () => {
     // Per-model capability flags must be derived from the model definition,
     // not hardcoded off, so vision/tool-calling models are advertised correctly.
     expect(first?.supports_parallel_tool_calls).toBe(true);
-    // The default model is text-only, so it must not advertise image input.
-    expect(getDefaultModel().attachment).toBe(false);
-    expect(first?.supports_image_detail_original).toBe(false);
-    expect(first?.input_modalities).toEqual(["text"]);
+    // The default model accepts images (verified against Nebius), so Codex is
+    // told it may send them.
+    expect(getDefaultModel().attachment).toBe(true);
+    expect(first?.supports_image_detail_original).toBe(true);
+    expect(first?.input_modalities).toEqual(["text", "image"]);
 
     // A vision-capable model in the catalog must advertise image input.
     const vision = catalog.models.find((m) => m.slug === "moonshotai/Kimi-K2.6");
