@@ -164,6 +164,24 @@ Routing is decided locally inside the NConnect daemon, with no extra model call.
 
 Claude Code and Codex send images straight to a vision-capable model, such as the default GLM 5.3 Flash or Kimi K3, so the model sees the image itself. When Claude Code is on a text-only model, a vision model (Kimi K2.6, then Qwen2.5-VL) describes each image as text first. Claude Code keeps the 8 most recent images as images and describes older ones once; set `NCONNECT_CLAUDE_IMAGES=describe` to always describe. OpenCode uses a dedicated `@vision` subagent pinned to the vision flagship. Run `scripts/list-nebius-models.mjs` (with `NEBIUS_API_KEY` set) to print the raw catalog.
 
+## Claude Desktop (beta)
+
+`nconnect claude-desktop` points the Claude desktop app at Nebius models, on macOS and Linux:
+
+```bash
+nconnect claude-desktop                      # default model: GLM 5.3 Flash
+nconnect claude-desktop --model auto         # or any model id
+nconnect claude-desktop status
+nconnect claude-desktop off                  # switch back
+```
+
+It uses Claude Desktop's own third-party inference mode with a gateway that points at the local NConnect daemon. That mode has a separate profile, so your Anthropic login, chats and settings are untouched and come back with `off`. Quit and reopen Claude Desktop after switching either way. The daemon must be running while you use the app; `nconnect daemon install` starts it at login.
+
+Two things to know:
+
+- Claude Desktop refuses gateway models whose names are not Anthropic's. NConnect turns that check off with the app's `unstableDisableModelVerification` setting, so the picker shows the real Nebius model names. The setting is marked unstable, so a Claude Desktop update may remove it and stop this from working.
+- Check that using Claude Desktop with non-Anthropic models fits Anthropic's terms for your use before relying on it.
+
 ## Ask about an image
 
 `nconnect image describe` sends an image and a question to a vision model, straight from the terminal:

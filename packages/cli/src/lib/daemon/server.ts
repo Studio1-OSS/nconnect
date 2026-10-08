@@ -11,7 +11,7 @@ import { handleProxyRequest } from "../claude/proxy.js";
 import { writeAnthropicError, isNebiusApiError } from "../claude/nebius-call.js";
 import { handleCodexProxyRequest, writeOpenAIError } from "../codex/proxy.js";
 import { handleChatPassthrough, isPassthroughPath } from "./chat-passthrough.js";
-import { readAppRegistration } from "./app-registration.js";
+import { APP_REGISTRATION_AGENTS, readAppRegistration } from "./app-registration.js";
 import { nconnectHome } from "../paths.js";
 import { initModelCatalog } from "../model-catalog-init.js";
 import {
@@ -492,13 +492,16 @@ async function handleDaemonRequest(
  * app 401s until the user re-runs `nconnect codex-app`.
  */
 async function restoreAppSession(token: string): Promise<SessionState | undefined> {
-  const registration = await readAppRegistration();
-  if (registration === undefined || registration.token !== token) {
-    return undefined;
+  // Each desktop integration has its own registration and its own token.
+  for (const app of APP_REGISTRATION_AGENTS) {
+    const registration = await readAppRegistration(undefined, app);
+    if (registration !== undefined && registration.token === token) {
+      const state = buildSession(registration);
+      activeSessions.register(state);
+      return state;
+    }
   }
-  const state = buildSession(registration);
-  activeSessions.register(state);
-  return state;
+  return undefined;
 }
 
 function localSessionRoute(

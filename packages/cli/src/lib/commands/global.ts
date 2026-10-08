@@ -30,6 +30,9 @@ Usage:
   nconnect chatgpt off       stop routing Codex/ChatGPT Desktop through the
                                 relay and restore your previous config
                                 (also: "codex off", or bare "nconnect off")
+  nconnect claude-desktop [--model <model>]       (beta, macOS and Linux)
+  nconnect claude-desktop off   switch Claude Desktop back to its own
+                                configuration ("status" shows which is active)
   nconnect codex [...]       (alias: ncodex)
   nconnect claude [...]      (alias: nclaude)
   nconnect pi [...]          (alias: npi)

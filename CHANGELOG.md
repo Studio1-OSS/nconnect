@@ -3,6 +3,22 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
+## 0.22.0 - 2026-10-07
+
+### Added
+
+- `nconnect claude-desktop` routes the Claude desktop app to Nebius models
+  (beta, macOS and Linux). It uses Claude Desktop's third-party inference mode
+  with a gateway pointed at the local daemon, in that mode's separate profile,
+  so the Anthropic login, chats and settings are untouched.
+  `nconnect claude-desktop off` removes exactly what was added and re-applies
+  whatever was applied before; `status` shows which is active. The model
+  picker lists the selected model, Auto and the rest of the lineup, and spend
+  appears in `nconnect usage` as `claude-desktop`. Claude Desktop rejects
+  non-Anthropic model names unless its `unstableDisableModelVerification`
+  setting is on, so NConnect sets it; a Claude Desktop update may remove that
+  setting.
+
 ## 0.21.0 - 2026-10-07
 
 ### Added

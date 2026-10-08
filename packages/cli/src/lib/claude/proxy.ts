@@ -46,7 +46,7 @@ export type ClaudeProxyOptions = {
   modelName: string;
   modelDefinition: ModelDefinition;
   authToken: string;
-  /** Which integration owns the session. */
+  /** Which integration owns the session; model choices are remembered per agent. */
   agent?: string | undefined;
   claudeCodeMaxOutputTokens?: number | undefined;
   claudeCodeMaxOutputTokensUserSet?: boolean | undefined;
@@ -191,13 +191,13 @@ export async function handleProxyRequest(
   // subagents, or one of Claude Code's background calls (classifier, title):
   // those are fixed roles, not the user's pick. Fire-and-forget.
   if (isAutoModel(body.model) && isUserModelChoice(body)) {
-    void recordAgentModel("claude", AUTO_MODEL_ID);
+    void recordAgentModel(options.agent ?? "claude", AUTO_MODEL_ID);
   } else if (body.model && isUserModelChoice(body)) {
     const requested = getClaudeSupportedModels().find(
       (m) => m.alias === body.model || m.definition.id === body.model,
     );
     if (requested && requested.definition.id !== CLAUDE_HAIKU_MODEL.id) {
-      void recordAgentModel("claude", requested.definition.id);
+      void recordAgentModel(options.agent ?? "claude", requested.definition.id);
     }
   }
   const compactionTuning = tuneClaudeCompactionRequest(body, {
