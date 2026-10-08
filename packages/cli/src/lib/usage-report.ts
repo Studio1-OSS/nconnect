@@ -1,4 +1,5 @@
 import { createSessionStore, type TrackedUsageSession } from "./daemon/storage.js";
+import { findModelById } from "@nconnect/models";
 import { CACHE_READ_RATIO_ENV, cacheReadRatio } from "./cost.js";
 
 /**
@@ -34,7 +35,7 @@ const EMPTY: UsageBreakdown = {
   costUsd: 0,
 };
 
-function add(into: UsageBreakdown, session: TrackedUsageSession): UsageBreakdown {
+function add(into: UsageBreakdown, session: Share): UsageBreakdown {
   return {
     sessions: into.sessions + 1,
     promptTokens: into.promptTokens + session.promptTokens,
@@ -42,6 +43,69 @@ function add(into: UsageBreakdown, session: TrackedUsageSession): UsageBreakdown
     completionTokens: into.completionTokens + session.completionTokens,
     costUsd: into.costUsd + session.costUsd,
   };
+}
+
+type Share = Pick<
+  TrackedUsageSession,
+  "promptTokens" | "cachedTokens" | "completionTokens" | "costUsd"
+>;
+
+function modelLabel(id: string): string {
+  return findModelById(id)?.name ?? id;
+}
+
+/**
+ * Split one session's spend across the models it actually used. A session's
+ * launch model is not enough: an Auto session runs each task on a real model,
+ * and a user can switch model mid-session, so reporting everything under the
+ * launch model shows "Auto" as if it were a model with a price.
+ *
+ * The per-model record can cover less than the session total (it restarts
+ * with the daemon, and older sessions have none). Whatever it does not
+ * account for stays under the launch model, so the rows always add up to the
+ * session's total.
+ */
+export function modelShares(session: TrackedUsageSession): Array<[string, Share]> {
+  const launch = session.modelName ?? (session.modelId ? modelLabel(session.modelId) : "unknown");
+  const shares = new Map<string, Share>();
+  const rest: Share = {
+    promptTokens: session.promptTokens,
+    cachedTokens: session.cachedTokens,
+    completionTokens: session.completionTokens,
+    costUsd: session.costUsd,
+  };
+  for (const row of session.byModel ?? []) {
+    const label = modelLabel(row.model);
+    const into = shares.get(label) ?? {
+      promptTokens: 0,
+      cachedTokens: 0,
+      completionTokens: 0,
+      costUsd: 0,
+    };
+    for (const key of ["promptTokens", "cachedTokens", "completionTokens", "costUsd"] as const) {
+      // Never attribute more than the session recorded in total.
+      const amount = Math.min(row[key], Math.max(0, rest[key]));
+      into[key] += amount;
+      rest[key] -= amount;
+    }
+    shares.set(label, into);
+  }
+  const unaccounted = rest.costUsd > 1e-9 || rest.promptTokens > 0 || rest.completionTokens > 0;
+  if (unaccounted || shares.size === 0) {
+    const into = shares.get(launch);
+    shares.set(
+      launch,
+      into
+        ? {
+            promptTokens: into.promptTokens + rest.promptTokens,
+            cachedTokens: into.cachedTokens + rest.cachedTokens,
+            completionTokens: into.completionTokens + rest.completionTokens,
+            costUsd: into.costUsd + rest.costUsd,
+          }
+        : rest,
+    );
+  }
+  return [...shares];
 }
 
 /** Aggregate sessions into totals plus per-model and per-harness rows. */
@@ -59,8 +123,9 @@ export function summarizeUsage(
       activeSessions += 1;
     }
     totals = add(totals, session);
-    const model = session.modelName ?? session.modelId ?? "unknown";
-    models.set(model, add(models.get(model) ?? { ...EMPTY }, session));
+    for (const [model, share] of modelShares(session)) {
+      models.set(model, add(models.get(model) ?? { ...EMPTY }, share));
+    }
     harnesses.set(session.agent, add(harnesses.get(session.agent) ?? { ...EMPTY }, session));
   }
 

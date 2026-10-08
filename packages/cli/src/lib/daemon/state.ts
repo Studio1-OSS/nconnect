@@ -212,6 +212,7 @@ export class SessionRegistry {
       state.endedAt,
       state.costTracker.summarize(),
       state.costTracker.totals,
+      state.costTracker.totalsByModel,
     );
     emitDaemonSessionEndedTelemetry(state);
     return true;
@@ -337,6 +338,7 @@ export class SessionRegistry {
       state.costTracker.summarize(),
       state.costTracker.totals,
       state.externalSummary,
+      state.costTracker.totalsByModel,
     );
   }
 
@@ -380,6 +382,7 @@ export class SessionRegistry {
       state.costTracker.summarize(),
       state.costTracker.totals,
       state.externalSummary,
+      state.costTracker.totalsByModel,
     );
   }
 

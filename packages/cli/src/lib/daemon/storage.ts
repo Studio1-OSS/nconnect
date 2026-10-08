@@ -1,4 +1,4 @@
-import type { TokenUsage } from "../cost.js";
+import type { ModelTokenUsage, TokenUsage } from "../cost.js";
 import type { AgentId, RegisterSessionRequest } from "./state.js";
 import { chmod, mkdir } from "node:fs/promises";
 import os from "node:os";
@@ -55,6 +55,12 @@ export type TrackedUsageSession = {
   endedAt: number;
   /** True while the session is still open (spend may still grow). */
   active?: boolean;
+  /**
+   * Spend per model actually used, keyed by Nebius model id. A session can
+   * use several: Auto routes each task, and a user can switch model mid-way.
+   * Absent for sessions recorded before this was tracked.
+   */
+  byModel?: ModelTokenUsage[];
 };
 
 export type SessionStore = {
@@ -68,6 +74,7 @@ export type SessionStore = {
     endedAt: number,
     costSummary: string,
     costTotals: TokenUsage,
+    byModel?: ModelTokenUsage[],
   ): void;
   updateSessionPid(token: string, pid: number): void;
   updateSessionUsage(
@@ -75,6 +82,7 @@ export type SessionStore = {
     costSummary: string,
     costTotals: TokenUsage,
     externalSummary?: string,
+    byModel?: ModelTokenUsage[],
   ): void;
   updateSessionLastSeen(token: string, lastSeenAt: number): void;
   close(): void;
@@ -202,9 +210,10 @@ class ResilientSessionStore implements SessionStore {
     endedAt: number,
     costSummary: string,
     costTotals: TokenUsage,
+    byModel?: ModelTokenUsage[],
   ): void {
     this.write("mark session ended", () =>
-      this.inner.markSessionEnded(token, endedAt, costSummary, costTotals),
+      this.inner.markSessionEnded(token, endedAt, costSummary, costTotals, byModel),
     );
   }
 
@@ -217,9 +226,10 @@ class ResilientSessionStore implements SessionStore {
     costSummary: string,
     costTotals: TokenUsage,
     externalSummary?: string,
+    byModel?: ModelTokenUsage[],
   ): void {
     this.write("update session usage", () =>
-      this.inner.updateSessionUsage(token, costSummary, costTotals, externalSummary),
+      this.inner.updateSessionUsage(token, costSummary, costTotals, externalSummary, byModel),
     );
   }
 
@@ -281,6 +291,7 @@ class SqliteSessionStore implements SessionStore {
       costUsd: row.cost_usd,
       endedAt: row.ended_at ?? row.last_seen_at ?? row.started_at,
       active: row.ended_at === null || row.ended_at === undefined,
+      ...parseByModel(row.usage_by_model_json),
     }));
   }
 
@@ -335,12 +346,14 @@ class SqliteSessionStore implements SessionStore {
     endedAt: number,
     costSummary: string,
     costTotals: TokenUsage,
+    byModel?: ModelTokenUsage[],
   ): void {
     this.db
       .prepare(`
         UPDATE sessions
         SET ended_at = ?, prompt_tokens = ?, cached_tokens = ?, completion_tokens = ?,
-            cost_usd = ?, cost_summary = ?, updated_at = ?
+            cost_usd = ?, cost_summary = ?,
+            usage_by_model_json = COALESCE(?, usage_by_model_json), updated_at = ?
         WHERE token = ?
       `)
       .run(
@@ -350,6 +363,7 @@ class SqliteSessionStore implements SessionStore {
         costTotals.completionTokens,
         costTotals.costUsd,
         costSummary,
+        serializeByModel(byModel),
         Date.now(),
         token,
       );
@@ -366,12 +380,14 @@ class SqliteSessionStore implements SessionStore {
     costSummary: string,
     costTotals: TokenUsage,
     externalSummary?: string,
+    byModel?: ModelTokenUsage[],
   ): void {
     this.db
       .prepare(`
         UPDATE sessions
         SET prompt_tokens = ?, cached_tokens = ?, completion_tokens = ?, cost_usd = ?,
-            cost_summary = ?, external_summary = COALESCE(?, external_summary), updated_at = ?
+            cost_summary = ?, external_summary = COALESCE(?, external_summary),
+            usage_by_model_json = COALESCE(?, usage_by_model_json), updated_at = ?
         WHERE token = ?
       `)
       .run(
@@ -381,6 +397,7 @@ class SqliteSessionStore implements SessionStore {
         costTotals.costUsd,
         costSummary,
         externalSummary ?? null,
+        serializeByModel(byModel),
         Date.now(),
         token,
       );
@@ -434,6 +451,7 @@ class SqliteSessionStore implements SessionStore {
     this.addColumnIfMissing("sessions", "base_url", "TEXT");
     this.addColumnIfMissing("sessions", "claude_code_max_output_tokens", "INTEGER");
     this.addColumnIfMissing("sessions", "claude_code_max_output_tokens_user_set", "INTEGER");
+    this.addColumnIfMissing("sessions", "usage_by_model_json", "TEXT");
   }
 
   private addColumnIfMissing(table: string, column: string, type: string): void {
@@ -541,7 +559,39 @@ type SessionRow = {
   cost_usd: number;
   cost_summary: string;
   external_summary: string | null;
+  usage_by_model_json?: string | null;
 };
+
+/** Null when there is nothing to record, so COALESCE keeps what is stored. */
+function serializeByModel(byModel: ModelTokenUsage[] | undefined): string | null {
+  return byModel && byModel.length > 0 ? JSON.stringify(byModel) : null;
+}
+
+function parseByModel(raw: string | null | undefined): { byModel?: ModelTokenUsage[] } {
+  if (!raw) {
+    return {};
+  }
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return {};
+    }
+    const num = (value: unknown): number =>
+      typeof value === "number" && Number.isFinite(value) ? value : 0;
+    const byModel = parsed
+      .filter((row): row is Record<string, unknown> => typeof row?.model === "string")
+      .map((row) => ({
+        model: row.model as string,
+        promptTokens: num(row.promptTokens),
+        cachedTokens: num(row.cachedTokens),
+        completionTokens: num(row.completionTokens),
+        costUsd: num(row.costUsd),
+      }));
+    return byModel.length > 0 ? { byModel } : {};
+  } catch {
+    return {};
+  }
+}
 
 function rowToSessionBase(row: SessionRow): StoredSession {
   return {

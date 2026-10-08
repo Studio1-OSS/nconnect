@@ -112,6 +112,18 @@ export type InitModelCatalogOptions = {
  * Idempotent per-process: concurrent callers share one load. Safe to call from
  * both the daemon boot and the CLI entry.
  */
+/**
+ * Where the active catalog came from. "bundled" means neither a live fetch nor
+ * a cache was available, so the list is the snapshot shipped with this
+ * release: about half the live lineup, and possibly out of date.
+ */
+export type CatalogSource = "live" | "cache" | "bundled";
+let catalogSource: CatalogSource = "bundled";
+
+export function activeCatalogSource(): CatalogSource {
+  return catalogSource;
+}
+
 export async function initModelCatalog(options: InitModelCatalogOptions = {}): Promise<void> {
   if (inFlight && !options.force) {
     return inFlight;
@@ -141,6 +153,7 @@ async function loadCatalog(options: InitModelCatalogOptions): Promise<void> {
 
   if (cacheFresh && !options.force) {
     applyCatalog(buildCatalog(cached.models, await modelsDevLoad));
+    catalogSource = "cache";
     return;
   }
 
@@ -153,6 +166,7 @@ async function loadCatalog(options: InitModelCatalogOptions): Promise<void> {
     // else leave the bundled snapshot active.
     if (cached && Array.isArray(cached.models) && cached.models.length > 0) {
       applyCatalog(buildCatalog(cached.models, await modelsDevLoad));
+      catalogSource = "cache";
     }
     return;
   }
@@ -161,11 +175,13 @@ async function loadCatalog(options: InitModelCatalogOptions): Promise<void> {
   if (models.length === 0) {
     if (cached && Array.isArray(cached.models) && cached.models.length > 0) {
       applyCatalog(buildCatalog(cached.models, await modelsDevLoad));
+      catalogSource = "cache";
     }
     return;
   }
 
   applyCatalog(buildCatalog(models, await modelsDevLoad));
+  catalogSource = "live";
   await writeJsonAtomic(file, {
     fetchedAt: now,
     baseUrl,

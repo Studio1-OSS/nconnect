@@ -19,7 +19,7 @@ import {
   registerDaemonSession,
 } from "./daemon/launch.js";
 import type { RegisterSessionRequest } from "./daemon/state.js";
-import { initModelCatalog } from "./model-catalog-init.js";
+import { activeCatalogSource, initModelCatalog } from "./model-catalog-init.js";
 import { resolveNebiusApiKey } from "./nebius-core.js";
 
 const execFileAsync = promisify(execFile);
@@ -319,6 +319,10 @@ export async function turnOnClaudeDesktop(options: {
     );
   }
   await initModelCatalog({ apiKey, home });
+  // The model list is written into the app's config, so a fallback list
+  // sticks until this command runs again. Say so rather than leave the user
+  // with half the lineup and no explanation.
+  const bundledList = activeCatalogSource() === "bundled";
   const selected = resolveClaudeModel(options.model);
 
   const authToken = await localProxyAuthToken();
@@ -360,6 +364,12 @@ export async function turnOnClaudeDesktop(options: {
     "The NConnect daemon must be running while you use the app; `nconnect daemon",
     "install` starts it at login.",
     await relaunchHint(options.open ?? true),
+    ...(bundledList
+      ? [
+          "Note: Nebius's live model list could not be fetched just now, so the picker",
+          "has the bundled list only. Run `nconnect claude-desktop` again to refresh it.",
+        ]
+      : []),
   ].join("\n");
 }
 
