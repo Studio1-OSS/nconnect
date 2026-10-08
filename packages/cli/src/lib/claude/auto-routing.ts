@@ -27,11 +27,23 @@ function hasPlanMarker(text: string): boolean {
   return PLAN_MODE_MARKERS.some((marker) => text.includes(marker));
 }
 
+/**
+ * Effort levels that mean the user asked for more thought. "high" is not one
+ * of them: it is what Claude Code sends on every request when the user has
+ * set nothing at all (verified on 2.1.138, bundled with Claude Desktop, and
+ * on 2.1.294, both with a fresh config). Counting it sent every Auto request
+ * from a default install to the strong model. Only a level above that
+ * default is a choice.
+ */
+const EFFORT_ABOVE_DEFAULT = new Set(["max", "xhigh"]);
+
 function requestedEffort(body: AnthropicMessagesRequest): string | undefined {
-  // Claude Code 2.1.292 sends its effort level as `output_config.effort`.
+  // Claude Code sends its effort level as `output_config.effort`.
   const value =
     body.output_config?.effort ?? body.reasoning_effort ?? body.effort ?? body.thinking?.effort;
-  return typeof value === "string" ? value : undefined;
+  return typeof value === "string" && EFFORT_ABOVE_DEFAULT.has(value.toLowerCase())
+    ? value
+    : undefined;
 }
 
 export function claudeAutoSignals(

@@ -113,6 +113,9 @@ Write a durable handoff summary for continuing the coding task, but keep it boun
 3. Files touched/read and why they matter, using paths and concise descriptions.
 4. Errors encountered and fixes or current hypotheses.
 5. Current work and next concrete step.
+6. Standing instructions from the user: preferences, rules, names, values or
+   anything they asked you to remember or to do later. Keep each one, with its
+   exact values, even when it has nothing to do with the code.
 
 Do not list every user message verbatim. Group repeated feedback.
 Do not include full tool outputs, full diffs, or full code snippets unless a short snippet is essential.

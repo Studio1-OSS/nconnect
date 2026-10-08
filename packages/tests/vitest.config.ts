@@ -6,6 +6,7 @@ export default defineConfig({
   test: {
     exclude: [...configDefaults.exclude, "tmp/**"],
     globals: true,
+    setupFiles: ["./src/test-home.setup.ts"],
     fileParallelism: process.env.VITEST_FILE_PARALLELISM !== "0",
     maxConcurrency: Number(process.env.VITEST_MAX_CONCURRENCY ?? "5"),
     retry,

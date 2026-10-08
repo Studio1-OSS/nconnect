@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import path, { join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
 import { GLM_5_2, getDefaultModel } from "../../models/src/index.js";
 import { modelShares, summarizeUsage } from "../../cli/src/lib/usage-report.js";
@@ -142,5 +142,16 @@ describe("tool references", () => {
       ],
     });
     expect(found).toEqual([]);
+  });
+});
+
+describe("test isolation", () => {
+  test("tests run against a temporary NConnect home, never the developer's own", async () => {
+    const { nconnectHome } = await import("../../cli/src/lib/paths.js");
+    const os = await import("node:os");
+    expect(nconnectHome()).not.toBe(path.join(os.homedir(), ".nconnect"));
+    expect(
+      nconnectHome().startsWith(os.tmpdir()) || nconnectHome().includes("nconnect-test-home-"),
+    ).toBe(true);
   });
 });

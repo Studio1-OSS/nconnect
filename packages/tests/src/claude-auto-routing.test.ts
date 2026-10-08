@@ -66,12 +66,25 @@ describe("auto routing rules", () => {
     expect(decide([user("I think the button should be blue")]).tier).toBe("fast");
   });
 
-  test("an explicit high effort earns the strong model", () => {
-    expect(decide([user("tidy this up")], { effort: "high" })).toEqual({
+  test("an effort level above Claude Code's default earns the strong model", () => {
+    expect(decide([user("tidy this up")], { effort: "max" })).toEqual({
       tier: "strong",
       reason: "high_effort",
     });
     expect(decide([user("tidy this up")], { effort: "low" }).tier).toBe("fast");
+  });
+
+  test("Claude Code's default effort level is not a signal", () => {
+    // Captured from 2.1.138 (bundled with Claude Desktop) and 2.1.294, each
+    // with a fresh config: every request carries effort "high". Treating that
+    // as a choice sent every Auto request to the strong model.
+    const byDefault = { output_config: { effort: "high" }, thinking: { type: "adaptive" } };
+    expect(decide([user("Reply with exactly: OK")], byDefault)).toEqual({
+      tier: "fast",
+      reason: "routine",
+    });
+    // The task still decides.
+    expect(decide([user("debug the crash")], byDefault).reason).toBe("hard_task");
   });
 
   test("a long typed prompt earns the strong model, but injected context does not", () => {
@@ -105,10 +118,9 @@ describe("auto routing rules", () => {
   });
 
   test("reads the effort level where Claude Code sends it", () => {
-    expect(decide([user("tidy this up")], { output_config: { effort: "high" } }).reason).toBe(
+    expect(decide([user("tidy this up")], { output_config: { effort: "xhigh" } }).reason).toBe(
       "high_effort",
     );
-    // Medium is Claude Code's default and must not escalate every request.
     expect(decide([user("tidy this up")], { output_config: { effort: "medium" } }).tier).toBe(
       "fast",
     );

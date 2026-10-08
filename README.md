@@ -142,7 +142,7 @@ Routine work runs on the fast default (GLM 5.3 Flash). Work that needs it runs o
 
 A task is everything since your last prompt, so the tool calls that follow a prompt stay on the model that prompt was routed to. A task goes to the strong model when:
 
-- You set a high effort level, or ask for deep thinking ("ultrathink", "think hard").
+- You raise the effort level above the default (max in Claude Code, high in Codex), or ask for deep thinking ("ultrathink", "think hard").
 - The prompt names hard work: debugging, root-cause analysis, architecture, refactors, migrations, concurrency, security or performance work.
 - The prompt is long, such as a pasted spec or stack trace.
 - The task is stuck: three or more tool calls have failed since the prompt.

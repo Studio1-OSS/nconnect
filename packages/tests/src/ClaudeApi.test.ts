@@ -855,6 +855,9 @@ describe("Claude proxy compatibility API", () => {
     expect(upstreamBodies[0]?.max_tokens).toBe(32_000);
     const upstreamContent = String(firstUserContent(upstreamBodies[0]));
     expect(upstreamContent).toContain("NConnect bounded compaction request");
+    // A summary that keeps only coding state drops what the user asked the
+    // agent to remember ("always use tabs", a name, a value).
+    expect(upstreamContent).toContain("Standing instructions from the user");
     expect(upstreamContent).not.toContain("include full code snippets");
     expect(upstreamContent).not.toContain("List ALL user messages");
   });
