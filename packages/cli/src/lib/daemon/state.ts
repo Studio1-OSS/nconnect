@@ -51,6 +51,8 @@ const ZERO_COST_SUMMARY = "[nconnect cost] session total: $0.0000 (0 in, 0 out)"
  * - `claude-desktop`: same proxy path as `claude` (the desktop app's gateway
  *   mode speaks Anthropic Messages), registered by the persistent Claude
  *   Desktop integration.
+ * - `image`: not a session at all - `nconnect image describe` calls Nebius
+ *   directly and writes one already-ended row so its spend shows in `usage`.
  * - `unreal`: Unreal Agent's runner also speaks OpenAI Responses, so it rides
  *   the same proxy path as `codex`.
  */
@@ -60,6 +62,7 @@ export type AgentId =
   | "codex"
   | "codex-app"
   | "claude-desktop"
+  | "image"
   | "pi"
   | "prime"
   | "hermes"
