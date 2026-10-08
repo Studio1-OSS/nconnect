@@ -1,4 +1,7 @@
-import { findModelById, getDefaultModel } from "@nconnect/models";
+import { findModelById, getDefaultModel, type ModelDefinition } from "@nconnect/models";
+import { decideAutoTier, type AutoDecision } from "./auto-routing.js";
+import { AUTO_HARNESS_CALL } from "../auto-routing.js";
+import { AUTO_MODEL_ID, autoCandidates, isAutoModel } from "./defaults.js";
 import { resolveTargetModel } from "./translate-response.js";
 import type { AnthropicMessagesRequest, ResolvedClaudeModel } from "./wire-types.js";
 
@@ -36,9 +39,13 @@ export type ClaudeRequestKind = "auto_mode_classifier" | "session_title" | "stan
 export type ClaudeRequestRoute = {
   targetModel: ResolvedClaudeModel;
   kind: ClaudeRequestKind;
+  /** Set when the request asked for Auto: which tier it was routed to, and why. */
+  auto?: AutoDecision;
 };
 
-type ClaudeModelOptions = Parameters<typeof resolveTargetModel>[1];
+type ClaudeModelOptions = Parameters<typeof resolveTargetModel>[1] & {
+  isCompactionRequest?: boolean | undefined;
+};
 
 const CLASSIFIER_SYSTEM_MARKER = "monitor for autonomous AI coding agents";
 const CLASSIFIER_VERDICT_MARKERS = ["<block>yes", "<block>no"] as const;
@@ -105,9 +112,28 @@ export function resolveClaudeRequestRoute(
 ): ClaudeRequestRoute {
   const requested = resolveTargetModel(body.model, options);
   const kind = classifyClaudeRequest(body);
-  if (kind === "standard") {
+  // Auto is a routing choice, not a model Nebius serves: it must always be
+  // replaced by a real model before the request goes upstream.
+  const isAuto = requested.definition.id === AUTO_MODEL_ID;
+  if (kind !== "standard") {
+    const background = backgroundModel(env);
+    if (background) {
+      return { targetModel: background, kind };
+    }
+    return { targetModel: isAuto ? selection(autoCandidates(env).fast) : requested, kind };
+  }
+  if (!isAuto) {
     return { targetModel: requested, kind };
   }
-  const background = backgroundModel(env);
-  return { targetModel: background ?? requested, kind };
+  // Only a request that asks for Auto is routed by its task. One that named a
+  // model Nebius does not serve, and so fell back to this Auto session, is the
+  // harness's own call.
+  const auto = isAutoModel(body.model)
+    ? decideAutoTier(body, options.isCompactionRequest === true)
+    : AUTO_HARNESS_CALL;
+  return { targetModel: selection(autoCandidates(env)[auto.tier]), kind, auto };
+}
+
+function selection(definition: ModelDefinition): ResolvedClaudeModel {
+  return { alias: definition.anthropicAlias ?? definition.id, definition };
 }

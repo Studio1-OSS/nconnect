@@ -1,5 +1,6 @@
 import { type ModelDefinition } from "@nconnect/models";
-import { getCodexSupportedModels } from "./defaults.js";
+import { AUTO_MODEL_ID } from "../auto-model.js";
+import { autoCodexSelection, getCodexSupportedModels } from "./defaults.js";
 
 const CODEX_BASE_INSTRUCTIONS =
   "You are Codex, a coding agent. You and the user share one workspace, and your job is to help them complete their coding task accurately and efficiently.";
@@ -34,9 +35,19 @@ const CODEX_MODEL_MESSAGES = {
   },
 };
 
+/**
+ * Codex always runs through the daemon, where Auto is resolved, so its
+ * catalog always offers Auto - whichever model this launch selected.
+ */
+function codexCatalogModels(): Array<{ id: string; definition: ModelDefinition }> {
+  // After the real models: the picker leads with the default, and Auto is opt-in.
+  const models = getCodexSupportedModels().filter((model) => model.id !== AUTO_MODEL_ID);
+  return [...models, autoCodexSelection()];
+}
+
 export function codexModelCatalog(): { models: Array<Record<string, unknown>> } {
   return {
-    models: getCodexSupportedModels().map((model, index) => toCodexModelCatalogEntry(model, index)),
+    models: codexCatalogModels().map((model, index) => toCodexModelCatalogEntry(model, index)),
   };
 }
 

@@ -10,6 +10,7 @@ import {
 } from "./daemon/launch.js";
 import { printSessionCost } from "./proxied-session.js";
 import type { AgentId, RegisterSessionRequest } from "./daemon/state.js";
+import { isAutoModel } from "./auto-model.js";
 
 /**
  * Route a spawned harness through the daemon so its spend is metered.
@@ -64,7 +65,11 @@ function directEndpoint(spec: MeteredSpawnSpec): MeteredEndpoint {
 }
 
 export async function meteredEndpoint(spec: MeteredSpawnSpec): Promise<MeteredEndpoint> {
-  if (!meteringEnabled()) {
+  // Auto is resolved inside the daemon, so a launch on Auto always goes
+  // through it, and cannot fall back to Nebius directly: Nebius has no model
+  // by that name.
+  const needsDaemon = isAutoModel(spec.model.id);
+  if (!needsDaemon && !meteringEnabled()) {
     return directEndpoint(spec);
   }
 
@@ -77,6 +82,9 @@ export async function meteredEndpoint(spec: MeteredSpawnSpec): Promise<MeteredEn
   } catch (err) {
     // Metering is an accounting nicety; it must never be the reason a coding
     // session cannot start. Fall back to talking to Nebius directly.
+    if (needsDaemon) {
+      throw autoNeedsDaemon(err);
+    }
     warnDegraded(err);
     return directEndpoint(spec);
   }
@@ -99,6 +107,9 @@ export async function meteredEndpoint(spec: MeteredSpawnSpec): Promise<MeteredEn
   try {
     await registerDaemonSession(proxyUrl, registration);
   } catch (err) {
+    if (needsDaemon) {
+      throw autoNeedsDaemon(err);
+    }
     warnDegraded(err);
     return directEndpoint(spec);
   }
@@ -147,6 +158,14 @@ export async function meteredEndpoint(spec: MeteredSpawnSpec): Promise<MeteredEn
     metered: true,
     finish,
   };
+}
+
+function autoNeedsDaemon(err: unknown): Error {
+  return new Error(
+    `The Auto model needs the NConnect daemon, which could not be reached (${
+      err instanceof Error ? err.message : String(err)
+    }). Pick a model with --model <id> to run without it.`,
+  );
 }
 
 function warnDegraded(err: unknown): void {

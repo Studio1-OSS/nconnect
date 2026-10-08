@@ -43,6 +43,8 @@ export type CodexProxyOptions = {
   modelName: string;
   modelDefinition: ModelDefinition;
   authToken: string;
+  /** Which integration owns the session (codex, codex-app, unreal). */
+  agent?: string | undefined;
   debug?: boolean | undefined;
   costTracker?: CostTracker | undefined;
   perfSink?: ProxyPerfSink | undefined;
@@ -146,8 +148,12 @@ export async function handleCodexProxyRequest(
     // Remember the user's model across launches: record the model this turn
     // targets, unless it's a memory turn (which uses a fixed memory model, not
     // the user's pick). Fire-and-forget; never blocks the request.
+    // Under Auto that is the choice of Auto, not the model this one task got.
     if (!requestModel.memory) {
-      void recordAgentModel("codex", requestModel.targetModelId);
+      void recordAgentModel(
+        "codex",
+        requestModel.auto ? requestModel.requestedModelId : requestModel.targetModelId,
+      );
     }
     const translatedPayload = toChatPayload(
       body,
@@ -174,6 +180,7 @@ export async function handleCodexProxyRequest(
     model: body.model,
     targetModel: requestModel.targetModelId,
     memory: requestModel.memory,
+    ...(requestModel.auto ? { auto: requestModel.auto } : {}),
     stream: body.stream,
     inputItems: Array.isArray(body.input) ? body.input.length : typeof body.input,
     toolCount: body.tools?.length ?? 0,

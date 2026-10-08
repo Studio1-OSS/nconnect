@@ -4,6 +4,10 @@ import { buildOpencodeConfigJson, buildOpencodeEnv } from "../opencode/core.js";
 import { resolveNebiusApiKey } from "../nebius-core.js";
 import { defineHarness } from "../harness-types.js";
 import { HARNESS } from "../harness.js";
+import { NEBIUS_BASE_URL } from "@nconnect/models";
+import { isAutoModel } from "../auto-model.js";
+import { resolveCodexModel } from "../codex/defaults.js";
+import { meteredEndpoint } from "../metered-spawn.js";
 import type { HarnessContext, HarnessResult } from "../harness-types.js";
 
 /**
@@ -43,9 +47,24 @@ export default defineHarness({
       throw new Error("No Nebius API key found. Pass --api-key or set NEBIUS_API_KEY.");
     }
 
-    const modelId = ctx.main ?? OPENCODE_DEFAULT_MODEL;
-    const configJson = buildOpencodeConfigJson({ modelId });
-    const env = buildOpencodeEnv({ apiKey, configJson });
+    // OpenCode normally talks to Nebius directly. Auto is resolved inside the
+    // daemon, so a launch on Auto is pointed at the daemon's session route
+    // instead, holding the local session token rather than the Nebius key.
+    const auto = isAutoModel(ctx.main) ? resolveCodexModel(ctx.main) : undefined;
+    const endpoint = auto
+      ? await meteredEndpoint({
+          agent: HARNESS.OPENCODE,
+          apiKey,
+          baseUrl: NEBIUS_BASE_URL,
+          model: auto.definition,
+        })
+      : undefined;
+    const modelId = auto?.id ?? ctx.main ?? OPENCODE_DEFAULT_MODEL;
+    const configJson = buildOpencodeConfigJson({
+      modelId,
+      ...(endpoint ? { baseUrl: endpoint.baseUrl } : {}),
+    });
+    const env = buildOpencodeEnv({ apiKey: endpoint?.apiKey ?? apiKey, configJson });
 
     if (process.env.NCONNECT_DEBUG === "1") {
       process.stderr.write(`[nconnect opencode] custom model: ${modelId}\n`);
@@ -74,7 +93,7 @@ export default defineHarness({
         child.on("error", reject);
         child.on("exit", (status, signal) => resolve({ status, signal }));
       },
-    );
+    ).finally(() => endpoint?.finish());
 
     if (typeof result.status === "number") {
       process.exitCode = result.status;

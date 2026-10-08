@@ -8,6 +8,17 @@ import {
   findModelById,
 } from "@nconnect/models";
 
+import { AUTO_MODEL_ALIAS, autoModelDefinition, isAutoModel } from "../auto-model.js";
+
+export {
+  AUTO_FAST_MODEL_ENV,
+  AUTO_MODEL_ALIAS,
+  AUTO_MODEL_ID,
+  AUTO_STRONG_MODEL_ENV,
+  autoCandidates,
+  isAutoModel,
+} from "../auto-model.js";
+
 export const CLAUDE_LOCAL_PROXY_HOST = "127.0.0.1";
 export const CLAUDE_MODEL_CAPABILITIES = GLM_5_2_ANTHROPIC_CAPABILITIES;
 
@@ -39,7 +50,19 @@ export function getClaudeSupportedModels(): readonly ClaudeModelSelection[] {
   return hasHaiku ? selectable : [...selectable, CLAUDE_HAIKU_MODEL_SELECTION];
 }
 
+/**
+ * Auto as a Claude selection (see ../auto-model.ts). It is offered alongside
+ * the real models but kept out of `getClaudeSupportedModels`, so it never
+ * fills one of Claude Code's tiers.
+ */
+export function autoModelSelection(env: NodeJS.ProcessEnv = process.env): ClaudeModelSelection {
+  return { alias: AUTO_MODEL_ALIAS, definition: autoModelDefinition(env) };
+}
+
 export function resolveClaudeModel(value: string | undefined): ClaudeModelSelection {
+  if (isAutoModel(value)) {
+    return autoModelSelection();
+  }
   const supported = getClaudeSupportedModels();
   if (supported.length === 0) {
     throw new Error("No Claude models are configured.");

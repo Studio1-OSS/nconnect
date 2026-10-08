@@ -3,6 +3,15 @@ import { findModelById, type ModelDefinition } from "@nconnect/models";
 import { postChatCompletion, postChatCompletionStream } from "../nebius-client.js";
 import { readJsonBodyWithSize } from "../http-util.js";
 import type { SessionState } from "./state.js";
+import { AUTO_MODEL_ID, isAutoModel } from "../auto-model.js";
+import {
+  AUTO_HARNESS_CALL,
+  autoTargetModel,
+  chatAutoSignals,
+  decideAuto,
+  type AutoDecision,
+} from "../auto-routing.js";
+import { writeProxyDebugLog } from "../proxy-debug.js";
 
 /**
  * OpenAI-compatible passthrough for the spawned harnesses.
@@ -97,6 +106,41 @@ function billingModel(body: Record<string, unknown>, session: SessionState): Mod
   return (requested ? findModelById(requested) : undefined) ?? session.modelDefinition;
 }
 
+/**
+ * Resolve a request for Auto to the real model for this task. This is the one
+ * rewrite the passthrough makes: Auto is a routing choice that Nebius does not
+ * serve, so the `model` field has to name a real model before it is
+ * forwarded. Everything else in the body goes through as the harness wrote it.
+ */
+export function resolveAutoRequest(
+  body: Record<string, unknown>,
+  session: Pick<SessionState, "modelDefinition">,
+): { body: Record<string, unknown>; auto?: AutoDecision } {
+  const requested = typeof body.model === "string" ? body.model : undefined;
+  const unknown = requested === undefined || findModelById(requested) === undefined;
+  const isAuto =
+    isAutoModel(requested) || (unknown && session.modelDefinition.id === AUTO_MODEL_ID);
+  if (!isAuto) {
+    return { body };
+  }
+  const auto = isAutoModel(requested) ? decideAuto(chatAutoSignals(body)) : AUTO_HARNESS_CALL;
+  return { body: { ...body, model: autoTargetModel(auto).id }, auto };
+}
+
+/** Add Auto to a model listing, for a harness that checks its model exists. */
+function withAutoListed(text: string): string {
+  try {
+    const parsed = JSON.parse(text) as { data?: unknown };
+    if (!Array.isArray(parsed.data)) {
+      return text;
+    }
+    const entry = { id: AUTO_MODEL_ID, object: "model", owned_by: "nconnect" };
+    return JSON.stringify({ ...parsed, data: [entry, ...parsed.data] });
+  } catch {
+    return text;
+  }
+}
+
 /** Ask for the terminal usage chunk; without it a streamed turn meters as $0. */
 function withUsageReporting(body: Record<string, unknown>): Record<string, unknown> {
   if (body.stream !== true) {
@@ -127,13 +171,23 @@ export async function handleChatPassthrough(
     res.writeHead(upstream.status, {
       "Content-Type": upstream.headers.get("content-type") ?? "application/json",
     });
-    res.end(text);
+    res.end(
+      upstream.ok && session.modelDefinition.id === AUTO_MODEL_ID ? withAutoListed(text) : text,
+    );
     return;
   }
 
   const { body: parsed } = await readJsonBodyWithSize(req);
-  const body = withUsageReporting((parsed ?? {}) as Record<string, unknown>);
+  const routed = resolveAutoRequest((parsed ?? {}) as Record<string, unknown>, session);
+  const body = withUsageReporting(routed.body);
   const model = billingModel(body, session);
+  if (routed.auto) {
+    writeProxyDebugLog("nconnect proxy", session, "auto route", {
+      tier: routed.auto.tier,
+      reason: routed.auto.reason,
+      model: model.id,
+    });
+  }
 
   const abort = new AbortController();
   res.once("close", () => {

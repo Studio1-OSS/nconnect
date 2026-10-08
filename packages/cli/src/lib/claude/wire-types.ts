@@ -36,6 +36,7 @@ export type AnthropicMessagesRequest = {
   thinking?: { type?: string; budget_tokens?: number; effort?: unknown };
   effort?: unknown;
   reasoning_effort?: unknown;
+  output_config?: { effort?: unknown };
 };
 
 export type AnthropicCountTokensRequest = Pick<
