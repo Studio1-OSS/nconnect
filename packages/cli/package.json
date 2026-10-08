@@ -1,6 +1,6 @@
 {
   "name": "@nconnect/cli",
-  "version": "0.22.1",
+  "version": "0.22.2",
   "description": "CLI for routing Claude Code, OpenCode, Codex, and Pi Code through Nebius Token Factory",
   "license": "MIT",
   "bin": {

@@ -3,6 +3,25 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
+## 0.22.2 - 2026-10-08
+
+### Fixed
+
+- Auto no longer sends every Claude Code request to the strong model on a
+  default install. Claude Code sends effort level "high" on every request
+  unless the user has set a different one, and Auto treated "high" as a
+  request for more thought. With default settings that routed even a one-word
+  reply to Kimi K3, about 20x the price, in both the Claude Code CLI and
+  Claude Desktop. Only a level above the default (max) now counts. It went
+  unnoticed in earlier testing because the test machine had the effort level
+  set to medium.
+- Compaction summaries now keep standing instructions from the user, such as
+  preferences, rules and values they asked the agent to remember. NConnect's
+  shortened compaction prompt asked only for coding state, and in a real
+  session the agent could no longer recall a value given at the start. On the
+  captured request, the old prompt dropped it in 1 of 6 summaries and the new
+  one kept it in 6 of 6.
+
 ## 0.22.1 - 2026-10-08
 
 Fixes from an end-to-end test of every installed harness on the 0.22.0 release.
