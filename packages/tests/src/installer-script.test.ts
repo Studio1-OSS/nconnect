@@ -85,4 +85,46 @@ describe("public installer", () => {
       rmSync(home, { recursive: true, force: true });
     }
   });
+
+  test("finds Bun where BUN_INSTALL put it when it has to install Bun", () => {
+    const home = mkdtempSync(path.join(tmpdir(), "relay-install-bun-"));
+    try {
+      const tools = path.join(home, "tools");
+      const bunHome = path.join(home, "custom bun");
+      mkdirSync(tools);
+      // curl stands in for both downloads: Bun's installer (which honours
+      // BUN_INSTALL, like the real one) and the NConnect bundle.
+      writeFileSync(
+        path.join(tools, "curl"),
+        `#!/bin/sh
+if [ "$2" = "https://bun.sh/install" ]; then
+  cat <<'BUN'
+mkdir -p "$BUN_INSTALL/bin"
+printf '#!/bin/sh\\n[ "$1" = "--version" ] && echo 9.9.9 && exit 0\\nprintf "%%s\\\\n" "$@"\\n' > "$BUN_INSTALL/bin/bun"
+chmod +x "$BUN_INSTALL/bin/bun"
+BUN
+  exit 0
+fi
+printf "// test bundle\\n" > "$4"
+`,
+        { mode: 0o755 },
+      );
+      const output = execFileSync("/bin/sh", [], {
+        input: readFileSync(installer),
+        env: {
+          HOME: home,
+          SHELL: "/bin/sh",
+          PATH: `${tools}:/usr/bin:/bin`,
+          BUN_INSTALL: bunHome,
+          NCONNECT_HOME: path.join(home, "nc"),
+          NCONNECT_ORIGIN: "https://installer.test",
+        },
+        encoding: "utf8",
+      });
+      expect(output).toContain("Bun installed: 9.9.9");
+      expect(output).toContain("Verified:");
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  });
 });

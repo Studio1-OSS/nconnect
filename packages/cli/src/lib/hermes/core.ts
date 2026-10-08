@@ -268,6 +268,7 @@ export function buildHermesLaunchSpec({
   hermesHome,
   passthrough = [],
   env = process.env,
+  cwd = process.cwd(),
 }: {
   mode: HermesLaunchMode;
   modelId: string;
@@ -276,6 +277,8 @@ export function buildHermesLaunchSpec({
   hermesHome: string;
   passthrough?: string[];
   env?: NodeJS.ProcessEnv;
+  /** The directory the user launched from. */
+  cwd?: string;
 }): HermesLaunchSpec {
   const forwardedArgs = argsWithoutRuntimeOverrides(passthrough);
   return {
@@ -295,6 +298,12 @@ export function buildHermesLaunchSpec({
       HERMES_INFERENCE_MODEL: modelId,
       HERMES_INFERENCE_PROVIDER: HERMES_PROVIDER_ID,
       HERMES_TUI_PROVIDER: HERMES_PROVIDER_ID,
+      // Hermes's terminal tool works in TERMINAL_CWD, and in one-shot mode
+      // (`-z`) falls back to the home directory when it is unset - so a task
+      // launched in a project would read and write files in ~ instead
+      // (verified on Hermes 0.20.1). Point it at the launch directory unless
+      // the user chose one.
+      ...(mode === "terminal" ? { TERMINAL_CWD: env.TERMINAL_CWD?.trim() || cwd } : {}),
     },
   };
 }

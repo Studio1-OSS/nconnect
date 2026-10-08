@@ -3,6 +3,29 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
+## 0.22.1 - 2026-10-08
+
+Fixes from an end-to-end test of every installed harness on the 0.22.0 release.
+
+### Fixed
+
+- `nconnect usage` reports an Auto session under the models it actually ran
+  on. It was grouping each session under its launch model, so Auto appeared as
+  a model of its own and the split between GLM 5.3 Flash and Kimi K3 was
+  hidden. The same applied to a session whose model was switched mid-way.
+  Totals were always right; only the breakdown was wrong.
+- Hermes one-shot runs (`nhermes -z "..."`) now work in the directory you
+  launched from. Hermes falls back to the home directory when its
+  `TERMINAL_CWD` is unset, so tasks read and wrote files in `~` instead of the
+  project. NConnect now sets it to the launch directory unless you set one.
+- The installer no longer fails after installing Bun when `BUN_INSTALL` points
+  somewhere other than `~/.bun`.
+- `nconnect claude-desktop` says when Nebius's live model list could not be
+  fetched and the picker was given the smaller bundled list, instead of
+  leaving half the lineup with no explanation.
+- Claude Code turns that follow a tool search are no longer treated as
+  carrying images, which skipped the fast context-size estimate for them.
+
 ## 0.22.0 - 2026-10-07
 
 ### Added

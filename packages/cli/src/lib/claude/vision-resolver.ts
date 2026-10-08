@@ -224,6 +224,8 @@ export function extractImageBlocks(body: AnthropicMessagesRequest): Array<Record
     "tool_use",
     "server_tool_use",
     "tool_result",
+    // Claude Code's tool search returns these; they name a tool, not an image.
+    "tool_reference",
     "web_search_tool_result",
     "web_search_tool_result_error",
   ]);

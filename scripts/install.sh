@@ -42,8 +42,10 @@ else
     err "Need curl to install Bun. Please install curl and re-run."
     exit 1
   fi
-  # bun.sh writes to ~/.bun; add to PATH for this script's later bun calls.
-  export BUN_INSTALL="$HOME/.bun"
+  # bun.sh installs into $BUN_INSTALL, or ~/.bun when that is unset. Look in
+  # the same place: with BUN_INSTALL pointing elsewhere, assuming ~/.bun made
+  # this step fail right after a successful install.
+  export BUN_INSTALL="${BUN_INSTALL:-$HOME/.bun}"
   export PATH="$BUN_INSTALL/bin:$PATH"
   if ! command -v bun >/dev/null 2>&1; then
     err "Bun install finished but bun isn't on PATH. Open a new shell and re-run."
