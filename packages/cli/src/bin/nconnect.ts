@@ -275,13 +275,15 @@ async function main() {
     }
     const { initModelCatalog } = await import("../lib/model-catalog-init.js");
     await initModelCatalog({ home: os.homedir() });
+    const imageModel = image.pickImageModel(args.model);
     const result = await image.describeImageFile({
       source: args.source,
       prompt: args.prompt,
-      model: image.pickImageModel(args.model),
+      model: imageModel,
       apiKey,
       baseUrl: resolveNebiusBaseUrl(),
     });
+    await image.recordImageUsage(result, imageModel);
     if (args.json) {
       process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     } else {

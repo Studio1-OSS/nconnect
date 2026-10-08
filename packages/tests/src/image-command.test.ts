@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -151,5 +152,59 @@ describe("asking Nebius", () => {
     await expect(
       ask((async () => new Response("<html>", { status: 200 })) as typeof fetch),
     ).rejects.toThrow(/non-JSON/);
+  });
+});
+
+describe("image spend in the usage report", () => {
+  test("a describe call is recorded and shows under its own tool and model", () => {
+    const home = mkdtempSync(path.join(tmpdir(), "nconnect-image-usage-"));
+    try {
+      const output = execFileSync(
+        process.execPath,
+        [
+          "--input-type=module",
+          "-e",
+          `
+            import { recordImageUsage } from "./packages/cli/dist/lib/image-command.js";
+            import { buildUsageReport, formatUsageReport } from "./packages/cli/dist/lib/usage-report.js";
+            import { createSessionStore } from "./packages/cli/dist/lib/daemon/storage.js";
+            import { getDefaultModel } from "./packages/models/dist/index.js";
+            const probe = await createSessionStore();
+            if (probe.kind !== "sqlite") throw new Error("sqlite unavailable");
+            probe.close();
+            const model = getDefaultModel();
+            const result = { model: model.id, text: "a red circle", usage: { inputTokens: 1000, outputTokens: 200 }, costUsd: 0.0025 };
+            await recordImageUsage(result, model);
+            await recordImageUsage(result, model);
+            const summary = await buildUsageReport(60_000);
+            const store = await createSessionStore();
+            const active = store.restoreActiveSessions().length;
+            store.close();
+            console.log(JSON.stringify({ summary, active, text: formatUsageReport(summary, "1m") }));
+          `,
+        ],
+        {
+          cwd: path.join(import.meta.dirname, "../../.."),
+          encoding: "utf8",
+          env: { ...process.env, NCONNECT_HOME: home },
+        },
+      );
+      const { summary, active, text } = JSON.parse(output.trim().split("\n").at(-1) ?? "{}");
+      expect(summary.sessions).toBe(2);
+      expect(summary.costUsd).toBeCloseTo(0.005);
+      expect(summary.promptTokens).toBe(2000);
+      expect(summary.byHarness).toEqual([expect.objectContaining({ agent: "image", sessions: 2 })]);
+      expect(summary.byModel).toEqual([
+        expect.objectContaining({ model: getDefaultModel().name, sessions: 2 }),
+      ]);
+      // Written already ended: the daemon must not pick it up as a live session.
+      expect(active).toBe(0);
+      expect(summary.activeSessions).toBe(0);
+      expect(text).toMatch(/image\s+\$0\.0050\s+2 session/);
+      // The Nebius key is not part of the record.
+      expect(output).not.toContain("apiKey");
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
   });
 });

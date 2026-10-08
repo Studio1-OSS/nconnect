@@ -153,7 +153,7 @@ Vision-capable models (those whose API modality includes image input, e.g. GLM 5
 
 ## Ask about an image
 
-`nconnect image describe <file-or-url> [question] [--model <id>] [--json]` sends an image and a question to a vision model without starting a coding agent. PNG, JPEG, GIF and WebP files or an http(s) URL. Default model: GLM 5.3 Flash; `--model` must be a model that accepts images. Answer on stdout, a token and cost receipt on stderr; `--json` prints `{model, text, usage, costUsd}`. Spend from this command is not included in `nconnect usage`. There is no image generation: Nebius Token Factory serves no image-generation models.
+`nconnect image describe <file-or-url> [question] [--model <id>] [--json]` sends an image and a question to a vision model without starting a coding agent. PNG, JPEG, GIF and WebP files or an http(s) URL. Default model: GLM 5.3 Flash; `--model` must be a model that accepts images. Answer on stdout, a token and cost receipt on stderr; `--json` prints `{model, text, usage, costUsd}`. Each call is recorded locally and appears in `nconnect usage` under the tool `image`. There is no image generation: Nebius Token Factory serves no image-generation models.
 
 ## Headless & agentic usage
 

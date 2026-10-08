@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import {
@@ -9,6 +10,7 @@ import {
   isVisionModel,
   type ModelDefinition,
 } from "@nconnect/models";
+import { createSessionStore } from "./daemon/storage.js";
 
 /**
  * `nconnect image describe`: ask a vision model about an image from the
@@ -237,6 +239,53 @@ export async function describeImageFile(options: {
     usage: { inputTokens, outputTokens },
     costUsd: (inputTokens * model.cost.input + outputTokens * model.cost.output) / 1_000_000,
   };
+}
+
+/**
+ * Record a describe call in the local session store, so `nconnect usage`
+ * counts it. The command talks to Nebius directly rather than through the
+ * daemon, which is what normally writes that store, so it writes one
+ * already-ended session itself. Best-effort: a spend record must never be the
+ * reason the answer is lost. The Nebius key is not stored.
+ */
+export async function recordImageUsage(
+  result: ImageDescription,
+  model: ModelDefinition,
+  now = Date.now(),
+): Promise<void> {
+  try {
+    const store = await createSessionStore();
+    try {
+      const token = `image-${randomUUID()}`;
+      const totals = {
+        promptTokens: result.usage.inputTokens,
+        cachedTokens: 0,
+        completionTokens: result.usage.outputTokens,
+        costUsd: result.costUsd,
+      };
+      const summary = formatImageReceipt(result);
+      store.upsertSession({
+        token,
+        agent: "image",
+        apiKey: "",
+        modelLabel: model.name,
+        modelId: model.id,
+        targetModelId: model.id,
+        modelName: model.name,
+        modelDefinition: model,
+        startedAt: now,
+        lastSeenAt: now,
+        endedAt: now,
+        costSummary: summary,
+        costTotals: totals,
+      });
+      store.markSessionEnded(token, now, summary, totals, [{ model: model.id, ...totals }]);
+    } finally {
+      store.close();
+    }
+  } catch {
+    // The description was already printed; an unwritable store is not an error.
+  }
 }
 
 export function formatImageReceipt(result: ImageDescription): string {

@@ -3,6 +3,15 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
+## 0.22.3 - 2026-10-08
+
+### Fixed
+
+- `nconnect image describe` spend now appears in `nconnect usage`, under the
+  tool `image` and the model that read the image. The command calls Nebius
+  directly rather than through the daemon, so its spend was missing from the
+  report.
+
 ## 0.22.2 - 2026-10-08
 
 ### Fixed

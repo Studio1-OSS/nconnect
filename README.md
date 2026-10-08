@@ -192,7 +192,7 @@ nconnect image describe error.png "What is the error message?"
 nconnect image describe diagram.webp --model moonshotai/Kimi-K3 --json
 ```
 
-It reads PNG, JPEG, GIF and WebP files, or an http(s) image URL. The default model is GLM 5.3 Flash; `--model` takes any model that accepts images. The answer goes to stdout and a one-line token and cost receipt to stderr, so the output pipes cleanly. `--json` prints the answer, model, token counts and cost as JSON.
+It reads PNG, JPEG, GIF and WebP files, or an http(s) image URL. The default model is GLM 5.3 Flash; `--model` takes any model that accepts images. The answer goes to stdout and a one-line token and cost receipt to stderr, so the output pipes cleanly. `--json` prints the answer, model, token counts and cost as JSON. Each call also shows up in `nconnect usage` under the tool `image`.
 
 Nebius Token Factory does not serve image-generation models, so there is no `image generate` or `image edit`.
 
