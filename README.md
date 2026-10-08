@@ -164,6 +164,20 @@ Routing is decided locally inside the NConnect daemon, with no extra model call.
 
 Claude Code and Codex send images straight to a vision-capable model, such as the default GLM 5.3 Flash or Kimi K3, so the model sees the image itself. When Claude Code is on a text-only model, a vision model (Kimi K2.6, then Qwen2.5-VL) describes each image as text first. Claude Code keeps the 8 most recent images as images and describes older ones once; set `NCONNECT_CLAUDE_IMAGES=describe` to always describe. OpenCode uses a dedicated `@vision` subagent pinned to the vision flagship. Run `scripts/list-nebius-models.mjs` (with `NEBIUS_API_KEY` set) to print the raw catalog.
 
+## Ask about an image
+
+`nconnect image describe` sends an image and a question to a vision model, straight from the terminal:
+
+```bash
+nconnect image describe screenshot.png
+nconnect image describe error.png "What is the error message?"
+nconnect image describe diagram.webp --model moonshotai/Kimi-K3 --json
+```
+
+It reads PNG, JPEG, GIF and WebP files, or an http(s) image URL. The default model is GLM 5.3 Flash; `--model` takes any model that accepts images. The answer goes to stdout and a one-line token and cost receipt to stderr, so the output pipes cleanly. `--json` prints the answer, model, token counts and cost as JSON.
+
+Nebius Token Factory does not serve image-generation models, so there is no `image generate` or `image edit`.
+
 ## Web search
 
 Claude Code and Codex expose a native `web_search` tool. Nebius has no hosted search, so NConnect backs the tool with [Tavily](https://tavily.com). With a Tavily key configured, searches return real results with citations; without one, the agent gets a clear "TAVILY_API_KEY not set" message instead of a silent failure.

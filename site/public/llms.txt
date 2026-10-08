@@ -147,6 +147,10 @@ Note: `zai-org/GLM-5.2` was the previous default but Nebius removed it from the 
 
 Vision-capable models (those whose API modality includes image input, e.g. GLM 5.3 Flash, Kimi K3, Kimi K2.6 and Qwen2.5-VL) accept image attachments directly in Claude Code and Codex. For a text-only model, the Claude Code proxy replaces images with a text description from a vision model (Kimi K2.6, then Qwen2.5-VL). With a vision-capable model it keeps the 8 most recent images as images and describes older ones; `NCONNECT_CLAUDE_IMAGES=describe` always describes. OpenCode routes images for text-only models to the `@vision` subagent.
 
+## Ask about an image
+
+`nconnect image describe <file-or-url> [question] [--model <id>] [--json]` sends an image and a question to a vision model without starting a coding agent. PNG, JPEG, GIF and WebP files or an http(s) URL. Default model: GLM 5.3 Flash; `--model` must be a model that accepts images. Answer on stdout, a token and cost receipt on stderr; `--json` prints `{model, text, usage, costUsd}`. Spend from this command is not included in `nconnect usage`. There is no image generation: Nebius Token Factory serves no image-generation models.
+
 ## Headless & agentic usage
 
 Both Claude Code and Codex CLI run headlessly (no TTY), so you can delegate code changes to an AI agent from scripts, CI, or another orchestrating agent. The patterns below were verified against the installed `ncodex` and `nclaude` (v0.5.26) and apply to both. They differ in the headless subcommand and in how permissions are handled; the stdin, banner, and model-selection behavior is identical.
