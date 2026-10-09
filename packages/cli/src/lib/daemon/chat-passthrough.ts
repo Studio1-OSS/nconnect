@@ -137,7 +137,7 @@ export function resolveAutoRequest(
           session.autoSettings,
         )
       : AUTO_HARNESS_CALL;
-  const target = autoTargetModel(auto, session.autoSettings);
+  const target = autoTargetModel(auto, session.autoSettings, agentTurn ? signals : undefined);
   return {
     body: {
       ...body,

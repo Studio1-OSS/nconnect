@@ -1,0 +1,4 @@
+{
+  "level": "medium",
+  "prompt": "Write a function convert(csv_text) in convert.py that turns CSV text into JSON Lines: one JSON object per data row, keyed by the header. Header names are trimmed. Values that look like integers or decimals become numbers, empty values become null, everything else stays a string. Quoted fields containing commas or newlines must work. Skip completely blank lines. Return a string with one object per line and no trailing newline."
+}

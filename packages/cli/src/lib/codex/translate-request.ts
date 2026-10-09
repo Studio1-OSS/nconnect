@@ -137,12 +137,14 @@ export function resolveCodexRequestModel(
   // translated into, so one set of rules covers every harness.
   const askedForAuto = isAutoModel(requestedModelId);
   if (askedForAuto || (!requestedModel && definition.id === AUTO_MODEL_ID)) {
+    const signals =
+      askedForAuto && !isCodexCompactionRequest(body) ? codexAutoSignals(body, options) : undefined;
     const auto = !askedForAuto
       ? AUTO_HARNESS_CALL
-      : isCodexCompactionRequest(body)
-        ? decideAuto({ prompt: "", toolErrors: 0, compaction: true })
-        : decideAuto(codexAutoSignals(body, options), options.autoSettings);
-    const target = autoTargetModel(auto, options.autoSettings);
+      : signals
+        ? decideAuto(signals, options.autoSettings)
+        : decideAuto({ prompt: "", toolErrors: 0, compaction: true });
+    const target = autoTargetModel(auto, options.autoSettings, signals);
     return {
       requestedModelId: AUTO_MODEL_ID,
       targetModelId: target.id,

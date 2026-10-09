@@ -19,6 +19,16 @@ User-visible changes to NConnect, newest first. This changelog starts at
   slow, down or unsure. On 34 labelled prompts across the three tiers the
   keyword rules picked the right tier 11 times; the Nebius model and Jev each
   picked it 31 times.
+- Each Auto tier is now a list of candidates, and Auto uses the first one that
+  can do what the task needs. A balanced task that carries an image goes to
+  Kimi K2.6 rather than the text-only GLM 5.3. The tier settings accept
+  lists and wildcards (`*flash*`, `moonshotai/*`), `NCONNECT_AUTO_MODELS` is
+  an allow list, and `NCONNECT_AUTO_EXCLUDED_MODELS` an exclude list that
+  always wins.
+- A benchmark for Auto lives in `packages/tests/benchmarks/auto-routing`:
+  twelve coding tasks with hidden tests, run on fast-only, strong-only and
+  Auto. On its first run the fast model alone matched Auto's pass rate at a
+  sixteenth of the cost; see its README before relying on Auto to save money.
 - `NCONNECT_AUTO_COST_TIER` (`low`, `medium`, `high`) sets how readily Auto
   pays for a bigger model.
 - `NCONNECT_AUTO_PER_TURN=on` lets the follow-up turns of a task run one tier

@@ -1,6 +1,8 @@
+import type { ModelDefinition } from "@nconnect/models";
 import { decidedDifficulty, type AutoDeciderConfig } from "../auto-decider.js";
 import type { AutoSettings } from "../auto-model.js";
 import {
+  autoTargetModel,
   decideAuto,
   typedPromptText,
   type AutoDecision,
@@ -56,6 +58,12 @@ export function claudeAutoSignals(
   let toolErrors = 0;
   let taskTurns = 0;
   let lastTurnFailed = false;
+  let images = false;
+  let chars = 0;
+  const isImage = (block: unknown) => {
+    const type = (block as { type?: unknown } | null)?.type;
+    return type === "image" || type === "url";
+  };
   let planMarkerAt = -1;
   let planExitAt = -1;
   const planExitCalls = new Set<string>();
@@ -90,6 +98,28 @@ export function claudeAutoSignals(
       toolErrors = 0;
       taskTurns = 0;
       lastTurnFailed = false;
+      images = false;
+    }
+    // Images the task carries: pasted by the user, or returned by a tool
+    // (Read on a screenshot).
+    for (const block of blocks) {
+      if (block.type === "text") {
+        chars += block.text.length;
+      } else if (isImage(block)) {
+        images = true;
+      } else if (block.type === "tool_result") {
+        if (typeof block.content === "string") {
+          chars += block.content.length;
+        } else if (Array.isArray(block.content)) {
+          for (const inner of block.content) {
+            if (isImage(inner)) {
+              images = true;
+            } else if (typeof (inner as { text?: unknown })?.text === "string") {
+              chars += (inner as { text: string }).text.length;
+            }
+          }
+        }
+      }
     }
     // A user turn that carries tool results reports on the assistant turn
     // before it; whether any of them failed is what the next turn inherits.
@@ -117,6 +147,8 @@ export function claudeAutoSignals(
     toolErrors,
     taskTurns,
     lastTurnFailed,
+    images,
+    contextTokens: Math.ceil(chars / 4),
     planMode: planMarkerAt > planExitAt,
     effort: requestedEffort(body),
     // A compaction request is a long summarising job with a long prompt. The
@@ -124,6 +156,21 @@ export function claudeAutoSignals(
     // reliable signal; the prompt check covers an untouched request.
     compaction: isCompactionRequest || isClaudeCompactionRequest(body),
   };
+}
+
+/** A Claude Code request for Auto: the tier decision and the model it lands on. */
+export function resolveClaudeAuto(
+  body: AnthropicMessagesRequest,
+  isCompactionRequest = false,
+  decider?: AutoDeciderConfig,
+  settings: AutoSettings = {},
+): { auto: AutoDecision; model: ModelDefinition } {
+  const signals = claudeAutoSignals(body, isCompactionRequest);
+  const auto = decideAuto(
+    { ...signals, difficulty: decidedDifficulty(decider, signals.prompt) },
+    settings,
+  );
+  return { auto, model: autoTargetModel(auto, settings, signals) };
 }
 
 export function decideAutoTier(

@@ -1,5 +1,5 @@
 import type { ModelDefinition } from "@nconnect/models";
-import { autoCandidates, type AutoCostTier, type AutoSettings } from "./auto-model.js";
+import { pickAutoModel, type AutoCostTier, type AutoSettings } from "./auto-model.js";
 
 /**
  * Per-task routing for the "Auto" model, shared by every harness.
@@ -88,6 +88,10 @@ export type AutoSignals = {
   taskTurns?: number | undefined;
   /** Whether the most recent tool results included a failure. */
   lastTurnFailed?: boolean | undefined;
+  /** The task carries images: pasted, or returned by a tool. */
+  images?: boolean | undefined;
+  /** Rough size of the conversation's text, in tokens. */
+  contextTokens?: number | undefined;
 };
 
 /** Typed prompt length, in characters, past which a task counts as involved. */
@@ -225,12 +229,19 @@ export function decideAuto(signals: AutoSignals, settings: AutoSettings = {}): A
   return decision;
 }
 
-/** The real model a decision lands on. */
+/**
+ * The real model a decision lands on: the first candidate in its tier that
+ * can do what the task needs (see pickAutoModel).
+ */
 export function autoTargetModel(
   decision: AutoDecision,
   settings: AutoSettings = {},
+  signals?: Pick<AutoSignals, "images" | "contextTokens">,
 ): ModelDefinition {
-  return autoCandidates(settings)[decision.tier];
+  return pickAutoModel(decision.tier, settings, {
+    vision: signals?.images,
+    contextTokens: signals?.contextTokens,
+  });
 }
 
 /**
@@ -266,6 +277,19 @@ function chatText(content: unknown): string {
     .join("\n");
 }
 
+/** Text is about four characters a token; image data is not counted. */
+const APPROX_CHARS_PER_TOKEN = 4;
+
+function hasImagePart(content: unknown): boolean {
+  return (
+    Array.isArray(content) &&
+    content.some((part) => {
+      const type = (part as { type?: unknown } | null)?.type;
+      return type === "image_url" || type === "input_image";
+    })
+  );
+}
+
 /**
  * Whether a tool result reports a failure. Chat completions has no error flag
  * on a tool message, so this reads the result itself: an exit code other than
@@ -297,8 +321,11 @@ export function chatAutoSignals(body: {
   let taskTurns = 0;
   let lastTurnFailed = false;
   let inResults = false;
+  let images = false;
+  let chars = 0;
   const messages = Array.isArray(body.messages) ? (body.messages as ChatMessage[]) : [];
   for (const message of messages) {
+    chars += chatText(message?.content).length;
     if (message?.role === "user") {
       const typed = typedPromptText(chatText(message.content));
       if (typed) {
@@ -307,6 +334,10 @@ export function chatAutoSignals(body: {
         toolErrors = 0;
         taskTurns = 0;
         lastTurnFailed = false;
+        images = false;
+      }
+      if (hasImagePart(message.content)) {
+        images = true;
       }
       inResults = false;
     } else if (message?.role === "assistant") {
@@ -329,6 +360,8 @@ export function chatAutoSignals(body: {
     toolErrors,
     taskTurns,
     lastTurnFailed,
+    images,
+    contextTokens: Math.ceil(chars / APPROX_CHARS_PER_TOKEN),
     effort: typeof body.reasoning_effort === "string" ? body.reasoning_effort : undefined,
   };
 }

@@ -1,0 +1,4 @@
+{
+  "level": "hard",
+  "prompt": "Our rate limiter in ratelimit.py lets clients go over the limit around window boundaries, and its memory use grows forever as new clients come and go. Fix both. The class docstring describes the intended behaviour."
+}

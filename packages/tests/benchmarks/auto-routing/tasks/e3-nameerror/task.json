@@ -1,0 +1,4 @@
+{
+  "level": "easy",
+  "prompt": "stats.mean crashes with a NameError. Fix it."
+}

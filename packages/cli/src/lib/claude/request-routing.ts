@@ -1,7 +1,7 @@
 import type { AutoSettings } from "../auto-model.js";
 import type { AutoDeciderConfig } from "../auto-decider.js";
 import { findModelById, getDefaultModel, type ModelDefinition } from "@nconnect/models";
-import { decideAutoTier, type AutoDecision } from "./auto-routing.js";
+import { resolveClaudeAuto, type AutoDecision } from "./auto-routing.js";
 import { AUTO_HARNESS_CALL } from "../auto-routing.js";
 import { AUTO_MODEL_ID, autoCandidates, isAutoModel } from "./defaults.js";
 import { resolveTargetModel } from "./translate-response.js";
@@ -135,19 +135,20 @@ export function resolveClaudeRequestRoute(
   // Only a request that asks for Auto is routed by its task. One that named a
   // model Nebius does not serve, and so fell back to this Auto session, is the
   // harness's own call.
-  const auto = isAutoModel(body.model)
-    ? decideAutoTier(
-        body,
-        options.isCompactionRequest === true,
-        options.autoDecider,
-        options.autoSettings,
-      )
-    : AUTO_HARNESS_CALL;
-  return {
-    targetModel: selection(autoCandidates(options.autoSettings ?? {})[auto.tier]),
-    kind,
-    auto,
-  };
+  if (!isAutoModel(body.model)) {
+    return {
+      targetModel: selection(autoCandidates(options.autoSettings ?? {}).fast),
+      kind,
+      auto: AUTO_HARNESS_CALL,
+    };
+  }
+  const { auto, model } = resolveClaudeAuto(
+    body,
+    options.isCompactionRequest === true,
+    options.autoDecider,
+    options.autoSettings ?? {},
+  );
+  return { targetModel: selection(model), kind, auto };
 }
 
 /**

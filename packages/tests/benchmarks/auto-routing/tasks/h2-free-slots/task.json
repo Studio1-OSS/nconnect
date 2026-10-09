@@ -1,0 +1,4 @@
+{
+  "level": "hard",
+  "prompt": "free_slots in calendar_util.py gives wrong answers for some calendars: overlapping meetings, a short meeting inside a longer one, and meetings that start before the working day or end after it. Make it correct. The docstring is the spec."
+}
