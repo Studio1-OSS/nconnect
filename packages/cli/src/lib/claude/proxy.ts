@@ -1,6 +1,11 @@
+import type { AutoSettings } from "../auto-model.js";
 import { claudeAutoSignals } from "./auto-routing.js";
 import { primeAutoDecider, type AutoDeciderConfig } from "../auto-decider.js";
-import { isUserModelChoice, resolveClaudeRequestRoute } from "./request-routing.js";
+import {
+  isUserModelChoice,
+  resolveClaudeRequestRoute,
+  servedModelName,
+} from "./request-routing.js";
 import { NATIVE_IMAGE_LIMIT, sendsImagesNatively } from "./native-images.js";
 import { type IncomingMessage, type ServerResponse } from "node:http";
 import {
@@ -52,6 +57,8 @@ export type ClaudeProxyOptions = {
   agent?: string | undefined;
   /** Optional model-based judgement for Auto routing on this session. */
   autoDecider?: AutoDeciderConfig | undefined;
+  /** How Auto behaves for this session. */
+  autoSettings?: AutoSettings | undefined;
   claudeCodeMaxOutputTokens?: number | undefined;
   claudeCodeMaxOutputTokensUserSet?: boolean | undefined;
   debug?: boolean | undefined;
@@ -319,7 +326,7 @@ export async function handleProxyRequest(
     }
   }
   const anthropicMessage = perf.spanSync("response_map", () =>
-    toAnthropicMessage(openAiResponse, body.model ?? options.modelId),
+    toAnthropicMessage(openAiResponse, servedModelName(body, options, route.targetModel)),
   );
 
   const delta = options.costTracker?.requestDelta;

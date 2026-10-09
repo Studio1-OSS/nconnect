@@ -1,3 +1,4 @@
+import { autoSettingsFromEnv } from "./auto-model.js";
 import { autoDeciderFromEnv } from "./auto-decider.js";
 import { execFile } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
@@ -343,6 +344,7 @@ export async function turnOnClaudeDesktop(options: {
     // Kept in the persisted registration too, so the route still has its
     // decider after the daemon restarts and rebuilds it from disk.
     ...(decider ? { autoDecider: decider } : {}),
+    autoSettings: autoSettingsFromEnv(),
     ...(process.env.NCONNECT_DEBUG === "1" ? { debug: true } : {}),
   };
   await registerDaemonSession(proxyUrl, registration);

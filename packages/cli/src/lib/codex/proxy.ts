@@ -1,3 +1,5 @@
+import { isAutoModel } from "../auto-model.js";
+import type { AutoSettings } from "../auto-model.js";
 import { primeAutoDecider, type AutoDeciderConfig } from "../auto-decider.js";
 import { type IncomingMessage, type ServerResponse } from "node:http";
 import { type ModelDefinition } from "@nconnect/models";
@@ -49,6 +51,8 @@ export type CodexProxyOptions = {
   agent?: string | undefined;
   /** Optional model-based judgement for Auto routing on this session. */
   autoDecider?: AutoDeciderConfig | undefined;
+  /** How Auto behaves for this session. */
+  autoSettings?: AutoSettings | undefined;
   debug?: boolean | undefined;
   costTracker?: CostTracker | undefined;
   perfSink?: ProxyPerfSink | undefined;
@@ -179,6 +183,11 @@ export async function handleCodexProxyRequest(
     return { nativeToolCount, toolTranslation, requestModel, translatedPayload };
   });
   const { nativeToolCount, toolTranslation, requestModel, translatedPayload } = translated;
+  // A request for Auto is answered under the name of the model that ran, so
+  // Codex and the user can see what Auto picked.
+  if (requestModel.auto && isAutoModel(body.model ?? options.modelId)) {
+    body.model = requestModel.targetModelId;
+  }
   const upstreamAbort = new AbortController();
   const markClientDisconnected = () => {
     upstreamAbort.abort();

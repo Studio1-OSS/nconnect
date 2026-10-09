@@ -17,7 +17,8 @@ import {
   type AutoDecision,
   type AutoSignals,
 } from "../auto-routing.js";
-import { decidedHardness, type AutoDeciderConfig } from "../auto-decider.js";
+import { decidedDifficulty, type AutoDeciderConfig } from "../auto-decider.js";
+import type { AutoSettings } from "../auto-model.js";
 import {
   nativeToolMaxUses as sharedNativeToolMaxUses,
   runWebSearch as runSharedWebSearch,
@@ -69,6 +70,7 @@ type CodexTranslateOptions = {
   /** Which integration owns the session (codex, codex-app, unreal). */
   agent?: string | undefined;
   autoDecider?: AutoDeciderConfig | undefined;
+  autoSettings?: AutoSettings | undefined;
   debug?: boolean | undefined;
 };
 
@@ -85,7 +87,11 @@ export function toChatPayload(
   estimatedInputTokens: number,
 ): Record<string, unknown> {
   const messages = toChatMessages(body, options, toolTranslation);
-  const translatedReasoningEffort = reasoningEffort(body, requestModel.definition);
+  const translatedReasoningEffort = reasoningEffort(
+    body,
+    requestModel.definition,
+    requestModel.auto?.effort,
+  );
   const messagesWithNativePrompt =
     toolTranslation.nativeTools.length > 0
       ? withNativeToolSystemPrompt(messages, toolTranslation.nativeTools)
@@ -135,8 +141,8 @@ export function resolveCodexRequestModel(
       ? AUTO_HARNESS_CALL
       : isCodexCompactionRequest(body)
         ? decideAuto({ prompt: "", toolErrors: 0, compaction: true })
-        : decideAuto(codexAutoSignals(body, options));
-    const target = autoTargetModel(auto);
+        : decideAuto(codexAutoSignals(body, options), options.autoSettings);
+    const target = autoTargetModel(auto, options.autoSettings);
     return {
       requestedModelId: AUTO_MODEL_ID,
       targetModelId: target.id,
@@ -161,7 +167,7 @@ function codexAutoSignals(body: ResponsesRequest, options: CodexTranslateOptions
   return {
     ...signals,
     effort: effortSignal(body, options),
-    hardness: decidedHardness(options.autoDecider, signals.prompt),
+    difficulty: decidedDifficulty(options.autoDecider, signals.prompt),
   };
 }
 
@@ -718,12 +724,22 @@ function toChatResponseFormat(text: ResponsesTextConfig | undefined): unknown {
   return undefined;
 }
 
-function reasoningEffort(body: ResponsesRequest, model: ModelDefinition): string | undefined {
+function reasoningEffort(
+  body: ResponsesRequest,
+  model: ModelDefinition,
+  /** Effort Auto suggests for this request, when it routed it. */
+  autoEffort?: string,
+): string | undefined {
   const effort = body.reasoning?.effort;
   if (!model.reasoning) {
     return undefined;
   }
   if (acceptsReasoningEffort(model.id)) {
+    // Auto judged this task worth more thought. A user who picked high effort
+    // themselves still gets theirs, below.
+    if (autoEffort && effort !== "high" && effort !== "xhigh" && effort !== "max") {
+      return autoEffort;
+    }
     // Mirror the Claude proxy: GLM-5.2 and Kimi-K3 reason on every turn unless
     // told not to, which dominates latency. Honor an explicit effort, else
     // default to a fast "none" (overridable with NCONNECT_REASONING_EFFORT).

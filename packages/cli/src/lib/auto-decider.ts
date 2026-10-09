@@ -6,8 +6,9 @@ import { writeProxyDebugLog } from "./proxy-debug.js";
  *
  * By default Auto guesses how hard a task is from keywords and prompt length
  * (auto-routing.ts). That misses most hard tasks, which rarely say "debug":
- * on a 28-prompt labelled set the rules got 13 right, a Nebius-hosted model
- * 26, and TypeSafe's Jev 28. A decider replaces that one guess - and only
+ * asked routine-or-hard on a 28-prompt labelled set, the rules got 13 right,
+ * a Nebius-hosted model 26, and TypeSafe's Jev 28. The decider answers on
+ * three levels - routine, moderate, hard - to match Auto's three tiers. A decider replaces that one guess - and only
  * that guess. It runs for Auto requests alone, and the user's explicit
  * signals (plan mode, a raised effort level, asking to think hard) still win.
  *
@@ -66,6 +67,8 @@ const INSTRUCTIONS =
   "You route coding requests to a model tier. Judge only how hard the request is to get right.";
 const ROUTINE =
   "Small, well specified, low risk. One obvious change, a lookup, a rename, running a command.";
+const MODERATE =
+  "A contained piece of work that takes some thought but whose approach is clear: a new function or endpoint, a multi-step edit in one area, tests with several cases.";
 const HARD =
   "Needs investigation, diagnosis, design, or reasoning across several files; the cause or the approach is not given.";
 
@@ -172,7 +175,7 @@ async function askNebius(
       messages: [
         {
           role: "system",
-          content: `${INSTRUCTIONS}\nA = routine: ${ROUTINE}\nB = hard: ${HARD}\nAnswer with one letter: A or B.`,
+          content: `${INSTRUCTIONS}\nA = routine: ${ROUTINE}\nB = moderate: ${MODERATE}\nC = hard: ${HARD}\nAnswer with one letter: A, B or C.`,
         },
         { role: "user", content: `Request: ${prompt}` },
       ],
@@ -188,18 +191,27 @@ async function askNebius(
     }>;
   };
   const tops = json.choices?.[0]?.logprobs?.content?.[0]?.top_logprobs ?? [];
-  let routine = 0;
-  let hard = 0;
+  const mass = { A: 0, B: 0, C: 0 };
   for (const top of tops) {
     const token = top.token.trim();
-    if (token === "A") {
-      routine += Math.exp(top.logprob);
-    } else if (token === "B") {
-      hard += Math.exp(top.logprob);
+    if (token === "A" || token === "B" || token === "C") {
+      mass[token] += Math.exp(top.logprob);
     }
   }
-  // A model that thinks out loud first never puts A or B in the first token.
-  return routine + hard > 0 ? hard / (routine + hard) : undefined;
+  // A model that thinks out loud first never puts a letter in the first token.
+  return difficultyFrom(mass.A, mass.B, mass.C);
+}
+
+/**
+ * One number from three probabilities: 0 routine, 0.5 moderate, 1 hard. An
+ * unsure answer lands between the levels instead of jumping to one of them.
+ */
+function difficultyFrom(routine: number, moderate: number, hard: number): number | undefined {
+  const total = routine + moderate + hard;
+  if (!(total > 0)) {
+    return undefined;
+  }
+  return Math.min(1, Math.max(0, (0.5 * moderate + hard) / total));
 }
 
 /** Jev and Laya: a typed choice with a probability per option. */
@@ -221,21 +233,43 @@ async function askSystemOne(
         tier: {
           type: "choice",
           instructions: INSTRUCTIONS,
-          criteria: { routine: ROUTINE, hard: HARD },
+          // Laya is asked the two-way question. Given three options it calls
+          // nearly everything "moderate" (13 of 34 right); given two, its
+          // probability of "hard" spreads out and an unsure answer lands in
+          // the middle tier on its own.
+          criteria: laya
+            ? { routine: ROUTINE, hard: HARD }
+            : { routine: ROUTINE, moderate: MODERATE, hard: HARD },
         },
       },
     },
     timeoutMs,
   )) as { answers?: { tier?: { choice?: string; probabilities?: Record<string, number> } } };
   const tier = json.answers?.tier;
-  const hard = tier?.probabilities?.hard;
-  if (typeof hard === "number" && Number.isFinite(hard)) {
-    return Math.min(1, Math.max(0, hard));
+  const p = tier?.probabilities;
+  const num = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : 0);
+  const fromProbabilities = p
+    ? difficultyFrom(num(p.routine), num(p.moderate), num(p.hard))
+    : undefined;
+  if (fromProbabilities !== undefined) {
+    return fromProbabilities;
   }
-  return tier?.choice === "hard" ? 1 : tier?.choice === "routine" ? 0 : undefined;
+  return tier?.choice === "hard"
+    ? 1
+    : tier?.choice === "moderate"
+      ? 0.5
+      : tier?.choice === "routine"
+        ? 0
+        : undefined;
 }
 
-type Cached = { hardness: number | undefined };
+type Cached = { difficulty: number | undefined; at: number };
+/**
+ * How long a "no answer" stands. Long enough that a task routes one way from
+ * its first turn to its last; short enough that one slow moment does not
+ * leave that prompt on the keyword rules for good.
+ */
+export const NO_ANSWER_TTL_MS = 5 * 60_000;
 const cache = new Map<string, Cached>();
 const inFlight = new Map<string, Promise<void>>();
 
@@ -246,17 +280,17 @@ function cacheKey(config: AutoDeciderConfig, prompt: string): string {
 }
 
 /**
- * The decider's answer for this prompt: the probability the task is hard, or
+ * The decider's answer for this prompt: 0 routine, 0.5 moderate, 1 hard, or
  * undefined when it has not been asked, or was asked and had no answer.
  */
-export function decidedHardness(
+export function decidedDifficulty(
   config: AutoDeciderConfig | undefined,
   prompt: string,
 ): number | undefined {
   if (!config || !prompt) {
     return undefined;
   }
-  return cache.get(cacheKey(config, prompt))?.hardness;
+  return cache.get(cacheKey(config, prompt))?.difficulty;
 }
 
 /**
@@ -274,7 +308,8 @@ export async function primeAutoDecider(
     return;
   }
   const key = cacheKey(config, prompt);
-  if (cache.has(key)) {
+  const known = cache.get(key);
+  if (known && (known.difficulty !== undefined || now() - known.at < NO_ANSWER_TTL_MS)) {
     return;
   }
   const running = inFlight.get(key);
@@ -285,11 +320,11 @@ export async function primeAutoDecider(
     const started = Date.now();
     const fetchImpl = context.fetchImpl ?? fetch;
     const timeoutMs = config.timeoutMs ?? DEFAULT_DECIDER_TIMEOUT_MS;
-    let hardness: number | undefined;
+    let difficulty: number | undefined;
     let error: string | undefined;
     try {
       const clipped = clip(prompt);
-      hardness =
+      difficulty =
         config.kind === "nebius"
           ? await askNebius(config, clipped, context, fetchImpl, timeoutMs)
           : await askSystemOne(config, clipped, fetchImpl, timeoutMs);
@@ -297,7 +332,8 @@ export async function primeAutoDecider(
       error =
         err instanceof Error ? (err.name === "AbortError" ? "timeout" : err.message) : "error";
     }
-    cache.set(key, { hardness });
+    cache.delete(key);
+    cache.set(key, { difficulty, at: now() });
     if (cache.size > CACHE_ENTRIES) {
       const oldest = cache.keys().next();
       if (!oldest.done) {
@@ -306,7 +342,9 @@ export async function primeAutoDecider(
     }
     writeProxyDebugLog("nconnect proxy", context, "auto decider", {
       decider: config.kind,
-      ...(hardness === undefined ? { answer: "none" } : { hard: Number(hardness.toFixed(3)) }),
+      ...(difficulty === undefined
+        ? { answer: "none" }
+        : { difficulty: Number(difficulty.toFixed(3)) }),
       ...(error ? { error } : {}),
       ms: Date.now() - started,
     });
@@ -315,8 +353,16 @@ export async function primeAutoDecider(
   return run;
 }
 
+let now = (): number => Date.now();
+
+/** Test hook: replace the clock. */
+export function setAutoDeciderClock(clock: () => number): void {
+  now = clock;
+}
+
 /** Test hook: forget every cached decision. */
 export function clearAutoDeciderCache(): void {
+  now = () => Date.now();
   cache.clear();
   inFlight.clear();
 }

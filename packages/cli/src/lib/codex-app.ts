@@ -1,3 +1,4 @@
+import { autoSettingsFromEnv } from "./auto-model.js";
 import { autoDeciderFromEnv } from "./auto-decider.js";
 import { constants as fsConstants } from "node:fs";
 import { access, copyFile, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
@@ -103,6 +104,7 @@ export async function runCodexAppCommand(ctx: HarnessContext): Promise<HarnessRe
     // Kept in the persisted registration too, so the route still has its
     // decider after the daemon restarts and rebuilds it from disk.
     ...(decider ? { autoDecider: decider } : {}),
+    autoSettings: autoSettingsFromEnv(),
     ...(process.env.NCONNECT_DEBUG === "1" ? { debug: true } : {}),
   };
   await registerDaemonSession(proxyUrl, registration);

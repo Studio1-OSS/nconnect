@@ -1,3 +1,4 @@
+import { autoSettingsFromEnv, validAutoSettings, type AutoSettings } from "../auto-model.js";
 import { autoDeciderFromEnv, type AutoDeciderConfig } from "../auto-decider.js";
 import { CostTracker } from "../cost.js";
 import type { ModelDefinition } from "@nconnect/models";
@@ -107,6 +108,7 @@ export type SessionState = {
   costTracker: CostTracker;
   /** Decider for Auto routing on this session, if the launcher chose one. */
   autoDecider?: AutoDeciderConfig;
+  autoSettings?: AutoSettings;
   debug?: boolean;
   externalSummary?: string;
   proxyPerf?: SessionProxyPerfSummary;
@@ -172,6 +174,8 @@ export type RegisterSessionRequest = {
   claudeCodeMaxOutputTokensUserSet?: boolean;
   /** Optional model-based judgement for Auto routing, chosen by the launcher. */
   autoDecider?: AutoDeciderConfig;
+  /** How Auto behaves for this session: cost tier, models, effort, stepping. */
+  autoSettings?: AutoSettings;
   debug?: boolean;
 };
 
@@ -466,6 +470,7 @@ export function buildSession(req: RegisterSessionRequest): SessionState {
   // without one (restored after a daemon restart) uses the daemon's own
   // environment, and failing that the keyword rules.
   const autoDecider = validDecider(req.autoDecider) ?? autoDeciderFromEnv().config;
+  const autoSettings = validAutoSettings(req.autoSettings) ?? autoSettingsFromEnv();
   const state: SessionState = {
     token: req.token,
     agent,
@@ -479,6 +484,7 @@ export function buildSession(req: RegisterSessionRequest): SessionState {
     costTracker,
     ...(typeof req.pid === "number" ? { pid: req.pid } : {}),
     ...(autoDecider ? { autoDecider } : {}),
+    autoSettings,
     ...(req.debug !== undefined ? { debug: req.debug } : {}),
   };
   if (isProxiedAgent(agent)) {
@@ -492,6 +498,7 @@ export function buildSession(req: RegisterSessionRequest): SessionState {
       authToken: req.authToken ?? req.token,
       agent,
       ...(autoDecider ? { autoDecider } : {}),
+      autoSettings,
       ...(req.claudeCodeMaxOutputTokens !== undefined
         ? { claudeCodeMaxOutputTokens: req.claudeCodeMaxOutputTokens }
         : {}),

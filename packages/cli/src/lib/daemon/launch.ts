@@ -1,3 +1,4 @@
+import { autoSettingsFromEnv } from "../auto-model.js";
 import { autoDeciderFromEnv } from "../auto-decider.js";
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -259,9 +260,12 @@ export async function registerDaemonSession(
   const response = await daemonFetch(`${proxyUrl}/internal/sessions`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(
-      decider.config ? { ...registration, autoDecider: decider.config } : registration,
-    ),
+    body: JSON.stringify({
+      ...registration,
+      ...(decider.config ? { autoDecider: decider.config } : {}),
+      // Auto's own settings travel the same way, for the same reason.
+      ...(registration.autoSettings ? {} : { autoSettings: autoSettingsFromEnv() }),
+    }),
   });
   if (!response.ok) {
     const detail = await response.text().catch(() => "");

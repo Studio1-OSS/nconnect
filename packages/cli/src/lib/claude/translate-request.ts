@@ -56,6 +56,8 @@ function defaultReasoningEffort(): NebiusReasoningEffort {
 export function nebiusReasoningEffort(
   body: AnthropicMessagesRequest,
   targetModel: ModelDefinition,
+  /** Effort Auto suggests for this request, when it routed it. */
+  autoEffort?: NebiusReasoningEffort,
 ): NebiusReasoningEffort | undefined {
   // Only send reasoning_effort to models known to accept it (GLM-5.2, Kimi-K3);
   // other Nebius models may reject the parameter. Both are hybrid reasoners that
@@ -75,6 +77,11 @@ export function nebiusReasoningEffort(
   );
   if (explicitEffort) {
     return applyEffortFloor(explicitEffort, targetModel);
+  }
+  // Auto judged this task worth more thought. It sets this on a task's first
+  // turn only, so the tool-calling turns after it stay fast.
+  if (autoEffort) {
+    return autoEffort;
   }
 
   // Otherwise keep turns fast: send an explicit low/no effort so GLM-5.2 does

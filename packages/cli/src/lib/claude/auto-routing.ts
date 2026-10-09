@@ -1,4 +1,5 @@
-import { decidedHardness, type AutoDeciderConfig } from "../auto-decider.js";
+import { decidedDifficulty, type AutoDeciderConfig } from "../auto-decider.js";
+import type { AutoSettings } from "../auto-model.js";
 import {
   decideAuto,
   typedPromptText,
@@ -53,6 +54,8 @@ export function claudeAutoSignals(
 ): AutoSignals {
   let prompt = "";
   let toolErrors = 0;
+  let taskTurns = 0;
+  let lastTurnFailed = false;
   let planMarkerAt = -1;
   let planExitAt = -1;
   const planExitCalls = new Set<string>();
@@ -60,6 +63,7 @@ export function claudeAutoSignals(
   (body.messages ?? []).forEach((message, index) => {
     const blocks = blocksOf(message.content);
     if (message.role === "assistant") {
+      taskTurns += 1;
       for (const block of blocks) {
         if (block.type === "tool_use" && block.name === PLAN_EXIT_TOOL) {
           planExitCalls.add(block.id);
@@ -84,6 +88,13 @@ export function claudeAutoSignals(
       // A new prompt starts a new task: earlier failures belong to the last one.
       prompt = typed;
       toolErrors = 0;
+      taskTurns = 0;
+      lastTurnFailed = false;
+    }
+    // A user turn that carries tool results reports on the assistant turn
+    // before it; whether any of them failed is what the next turn inherits.
+    if (blocks.some((block) => block.type === "tool_result")) {
+      lastTurnFailed = blocks.some((block) => block.type === "tool_result" && block.is_error);
     }
     for (const block of blocks) {
       if (block.type === "text") {
@@ -104,6 +115,8 @@ export function claudeAutoSignals(
   return {
     prompt,
     toolErrors,
+    taskTurns,
+    lastTurnFailed,
     planMode: planMarkerAt > planExitAt,
     effort: requestedEffort(body),
     // A compaction request is a long summarising job with a long prompt. The
@@ -117,7 +130,11 @@ export function decideAutoTier(
   body: AnthropicMessagesRequest,
   isCompactionRequest = false,
   decider?: AutoDeciderConfig,
+  settings: AutoSettings = {},
 ): AutoDecision {
   const signals = claudeAutoSignals(body, isCompactionRequest);
-  return decideAuto({ ...signals, hardness: decidedHardness(decider, signals.prompt) });
+  return decideAuto(
+    { ...signals, difficulty: decidedDifficulty(decider, signals.prompt) },
+    settings,
+  );
 }

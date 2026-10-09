@@ -1,6 +1,6 @@
-import { decidedHardness, primeAutoDecider } from "../auto-decider.js";
+import { decidedDifficulty, primeAutoDecider } from "../auto-decider.js";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { findModelById, type ModelDefinition } from "@nconnect/models";
+import { acceptsReasoningEffort, findModelById, type ModelDefinition } from "@nconnect/models";
 import { postChatCompletion, postChatCompletionStream } from "../nebius-client.js";
 import { readJsonBodyWithSize } from "../http-util.js";
 import type { SessionState } from "./state.js";
@@ -115,7 +115,7 @@ function billingModel(body: Record<string, unknown>, session: SessionState): Mod
  */
 export function resolveAutoRequest(
   body: Record<string, unknown>,
-  session: Pick<SessionState, "modelDefinition" | "autoDecider">,
+  session: Pick<SessionState, "modelDefinition" | "autoDecider" | "autoSettings">,
 ): { body: Record<string, unknown>; auto?: AutoDecision } {
   const requested = typeof body.model === "string" ? body.model : undefined;
   const unknown = requested === undefined || findModelById(requested) === undefined;
@@ -126,9 +126,24 @@ export function resolveAutoRequest(
   }
   const signals = chatAutoSignals(body);
   const auto = isAutoModel(requested)
-    ? decideAuto({ ...signals, hardness: decidedHardness(session.autoDecider, signals.prompt) })
+    ? decideAuto(
+        { ...signals, difficulty: decidedDifficulty(session.autoDecider, signals.prompt) },
+        session.autoSettings,
+      )
     : AUTO_HARNESS_CALL;
-  return { body: { ...body, model: autoTargetModel(auto).id }, auto };
+  const target = autoTargetModel(auto, session.autoSettings);
+  return {
+    body: {
+      ...body,
+      model: target.id,
+      // Auto's suggested effort, only where the harness set none and the
+      // model takes one. An explicit choice by the harness is left alone.
+      ...(auto.effort && body.reasoning_effort === undefined && acceptsReasoningEffort(target.id)
+        ? { reasoning_effort: auto.effort }
+        : {}),
+    },
+    auto,
+  };
 }
 
 /** Add Auto to a model listing, for a harness that checks its model exists. */

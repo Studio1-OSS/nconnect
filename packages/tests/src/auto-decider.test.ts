@@ -3,8 +3,9 @@ import { GLM_5_2, getDefaultModel } from "../../models/src/index.js";
 import {
   autoDeciderFromEnv,
   clearAutoDeciderCache,
-  decidedHardness,
+  decidedDifficulty,
   primeAutoDecider,
+  setAutoDeciderClock,
   type AutoDeciderConfig,
 } from "../../cli/src/lib/auto-decider.js";
 import { decideAuto } from "../../cli/src/lib/auto-routing.js";
@@ -26,7 +27,7 @@ const KIMI_K3_ID = "moonshotai/Kimi-K3";
 const FAST_ID = getDefaultModel().id;
 const context = { nebiusApiKey: "nebius-key", nebiusBaseUrl: "https://nebius.test/v1/" };
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status });
-const nebiusAnswer = (a: number, b: number) =>
+const nebiusAnswer = (a: number, b: number, c: number) =>
   json({
     choices: [
       {
@@ -36,6 +37,7 @@ const nebiusAnswer = (a: number, b: number) =>
               top_logprobs: [
                 { token: "A", logprob: Math.log(a) },
                 { token: " B", logprob: Math.log(b) },
+                { token: "C", logprob: Math.log(c) },
                 { token: "The", logprob: -20 },
               ],
             },
@@ -97,7 +99,7 @@ describe("choosing a decider", () => {
 
 describe("asking each decider", () => {
   test("nebius: one token out, probability read from the token scores", async () => {
-    const fetchImpl = vi.fn(async () => nebiusAnswer(0.1, 0.9));
+    const fetchImpl = vi.fn(async () => nebiusAnswer(0.1, 0.2, 0.7));
     const config: AutoDeciderConfig = { kind: "nebius" };
     await primeAutoDecider(config, HARD_NO_KEYWORD, { ...context, fetchImpl: fetchImpl as never });
 
@@ -107,7 +109,9 @@ describe("asking each decider", () => {
     const body = JSON.parse(String(init.body));
     expect(body).toMatchObject({ model: "google/gemma-3-27b-it", max_tokens: 1, logprobs: true });
     expect(body.messages[1].content).toBe(`Request: ${HARD_NO_KEYWORD}`);
-    expect(decidedHardness(config, HARD_NO_KEYWORD)).toBeCloseTo(0.9);
+    expect(body.messages[0].content).toContain("A, B or C");
+    // Routine 0, moderate 0.5, hard 1, weighted by probability.
+    expect(decidedDifficulty(config, HARD_NO_KEYWORD)).toBeCloseTo(0.5 * 0.2 + 0.7);
   });
 
   test("jev: a typed choice sent to TypeSafe with the user's key", async () => {
@@ -122,8 +126,8 @@ describe("asking each decider", () => {
     const body = JSON.parse(String(init.body));
     expect(body.model).toBe("jev-latest");
     expect(body.state).toBe(`Request: ${HARD_NO_KEYWORD}`);
-    expect(Object.keys(body.questions.tier.criteria)).toEqual(["routine", "hard"]);
-    expect(decidedHardness(config, HARD_NO_KEYWORD)).toBeCloseTo(0.97);
+    expect(Object.keys(body.questions.tier.criteria)).toEqual(["routine", "moderate", "hard"]);
+    expect(decidedDifficulty(config, HARD_NO_KEYWORD)).toBeCloseTo(0.97);
   });
 
   test("laya: the same question to a local server, with no key by default", async () => {
@@ -139,9 +143,11 @@ describe("asking each decider", () => {
     expect((init.headers as Record<string, string>).Authorization).toBeUndefined();
     const body = JSON.parse(String(init.body));
     expect(body.state).toEqual({ body: `Request: ${EASY_WITH_KEYWORD}` });
+    // Two options for Laya: with three it answers "moderate" to almost everything.
+    expect(Object.keys(body.questions.tier.criteria)).toEqual(["routine", "hard"]);
     // Named explicitly: Laya's other checkpoints are much weaker at this.
     expect(body.model).toBe("typed-decisions");
-    expect(decidedHardness(config, EASY_WITH_KEYWORD)).toBeCloseTo(0.2);
+    expect(decidedDifficulty(config, EASY_WITH_KEYWORD)).toBeCloseTo(0.2);
   });
 
   test("asks once per prompt, however many turns the task takes", async () => {
@@ -169,13 +175,13 @@ describe("asking each decider", () => {
         }),
     );
     await primeAutoDecider(config, "slow", { ...context, fetchImpl: hang as never });
-    expect(decidedHardness(config, "slow")).toBeUndefined();
+    expect(decidedDifficulty(config, "slow")).toBeUndefined();
     await primeAutoDecider(config, "slow", { ...context, fetchImpl: hang as never });
     expect(hang).toHaveBeenCalledTimes(1);
 
     const down = vi.fn(async () => json({ error: "nope" }, 503));
     await primeAutoDecider(config, "down", { ...context, fetchImpl: down as never });
-    expect(decidedHardness(config, "down")).toBeUndefined();
+    expect(decidedDifficulty(config, "down")).toBeUndefined();
 
     // A reasoning model that opens with prose instead of A or B.
     const prose = vi.fn(async () =>
@@ -184,7 +190,33 @@ describe("asking each decider", () => {
       }),
     );
     await primeAutoDecider({ kind: "nebius" }, "prose", { ...context, fetchImpl: prose as never });
-    expect(decidedHardness({ kind: "nebius" }, "prose")).toBeUndefined();
+    expect(decidedDifficulty({ kind: "nebius" }, "prose")).toBeUndefined();
+  });
+
+  test("a failed answer is asked again later, a real answer is kept", async () => {
+    const config: AutoDeciderConfig = { kind: "jev", apiKey: "k" };
+    let time = 1_000_000;
+    setAutoDeciderClock(() => time);
+    const flaky = vi
+      .fn()
+      .mockImplementationOnce(async () => json({ error: "busy" }, 503))
+      .mockImplementation(async () => systemOneAnswer(0.9));
+    const ctx = { ...context, fetchImpl: flaky as never };
+    await primeAutoDecider(config, "retry me", ctx);
+    expect(decidedDifficulty(config, "retry me")).toBeUndefined();
+    // Minutes later, still the same task: not asked again.
+    time += 4 * 60_000;
+    await primeAutoDecider(config, "retry me", ctx);
+    expect(flaky).toHaveBeenCalledTimes(1);
+    // Past the window: a new task with the same words gets a fresh answer.
+    time += 2 * 60_000;
+    await primeAutoDecider(config, "retry me", ctx);
+    expect(flaky).toHaveBeenCalledTimes(2);
+    expect(decidedDifficulty(config, "retry me")).toBeCloseTo(0.9);
+    // A real answer does not expire.
+    time += 24 * 60 * 60_000;
+    await primeAutoDecider(config, "retry me", ctx);
+    expect(flaky).toHaveBeenCalledTimes(2);
   });
 
   test("a long prompt is clipped to its start and end", async () => {
@@ -211,30 +243,34 @@ describe("how a decider's answer is used", () => {
       tier: "fast",
       reason: "routine",
     });
-    expect(decideAuto({ ...base, prompt: HARD_NO_KEYWORD, hardness: 0.9 })).toEqual({
+    expect(decideAuto({ ...base, prompt: HARD_NO_KEYWORD, difficulty: 0.9 })).toMatchObject({
       tier: "strong",
       reason: "decider_hard",
     });
+    expect(decideAuto({ ...base, prompt: HARD_NO_KEYWORD, difficulty: 0.5 })).toMatchObject({
+      tier: "balanced",
+      reason: "decider_moderate",
+    });
     expect(decideAuto({ ...base, prompt: EASY_WITH_KEYWORD }).reason).toBe("hard_task");
-    expect(decideAuto({ ...base, prompt: EASY_WITH_KEYWORD, hardness: 0.02 })).toEqual({
+    expect(decideAuto({ ...base, prompt: EASY_WITH_KEYWORD, difficulty: 0.02 })).toEqual({
       tier: "fast",
       reason: "decider_routine",
     });
-    expect(decideAuto({ ...base, prompt: "y".repeat(5000), hardness: 0.1 }).tier).toBe("fast");
+    expect(decideAuto({ ...base, prompt: "y".repeat(5000), difficulty: 0.1 }).tier).toBe("fast");
   });
 
   test("the user's explicit signals and a stuck task still win", () => {
-    expect(decideAuto({ ...base, hardness: 0.01, planMode: true }).reason).toBe("plan_mode");
-    expect(decideAuto({ ...base, hardness: 0.01, effort: "max" }).reason).toBe("high_effort");
-    expect(decideAuto({ ...base, prompt: "ultrathink", hardness: 0.01 }).reason).toBe(
+    expect(decideAuto({ ...base, difficulty: 0.01, planMode: true }).reason).toBe("plan_mode");
+    expect(decideAuto({ ...base, difficulty: 0.01, effort: "max" }).reason).toBe("high_effort");
+    expect(decideAuto({ ...base, prompt: "ultrathink", difficulty: 0.01 }).reason).toBe(
       "deep_thinking",
     );
-    expect(decideAuto({ ...base, hardness: 0.01, toolErrors: 3 }).reason).toBe("stuck");
-    expect(decideAuto({ ...base, hardness: 0.99, compaction: true }).reason).toBe("compaction");
+    expect(decideAuto({ ...base, difficulty: 0.01, toolErrors: 3 }).reason).toBe("stuck");
+    expect(decideAuto({ ...base, difficulty: 0.99, compaction: true }).reason).toBe("compaction");
   });
 
   test("no answer means the keyword rules decide, exactly as without a decider", () => {
-    expect(decideAuto({ ...base, prompt: "debug the crash", hardness: undefined }).reason).toBe(
+    expect(decideAuto({ ...base, prompt: "debug the crash", difficulty: undefined }).reason).toBe(
       "hard_task",
     );
   });
@@ -261,10 +297,9 @@ describe("the decider in each request path", () => {
       tools: [{ name: "Bash" }],
       messages: [{ role: "user" as const, content: HARD_NO_KEYWORD }],
     };
-    expect(resolveClaudeRequestRoute(body, { ...session, autoDecider: config }, {}).auto).toEqual({
-      tier: "strong",
-      reason: "decider_hard",
-    });
+    expect(
+      resolveClaudeRequestRoute(body, { ...session, autoDecider: config }, {}).auto,
+    ).toMatchObject({ tier: "strong", reason: "decider_hard" });
     // Without a decider on the session, the same request uses the rules.
     expect(resolveClaudeRequestRoute(body, session, {}).auto?.reason).toBe("routine");
   });
