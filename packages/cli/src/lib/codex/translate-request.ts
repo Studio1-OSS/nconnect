@@ -15,7 +15,9 @@ import {
   chatAutoSignals,
   decideAuto,
   type AutoDecision,
+  type AutoSignals,
 } from "../auto-routing.js";
+import { decidedHardness, type AutoDeciderConfig } from "../auto-decider.js";
 import {
   nativeToolMaxUses as sharedNativeToolMaxUses,
   runWebSearch as runSharedWebSearch,
@@ -66,6 +68,7 @@ type CodexTranslateOptions = {
   modelDefinition: ModelDefinition;
   /** Which integration owns the session (codex, codex-app, unreal). */
   agent?: string | undefined;
+  autoDecider?: AutoDeciderConfig | undefined;
   debug?: boolean | undefined;
 };
 
@@ -132,12 +135,7 @@ export function resolveCodexRequestModel(
       ? AUTO_HARNESS_CALL
       : isCodexCompactionRequest(body)
         ? decideAuto({ prompt: "", toolErrors: 0, compaction: true })
-        : decideAuto({
-            ...chatAutoSignals({
-              messages: toChatMessages(body, options, EMPTY_CODEX_TOOL_TRANSLATION),
-            }),
-            effort: effortSignal(body, options),
-          });
+        : decideAuto(codexAutoSignals(body, options));
     const target = autoTargetModel(auto);
     return {
       requestedModelId: AUTO_MODEL_ID,
@@ -153,6 +151,36 @@ export function resolveCodexRequestModel(
     definition,
     memory: false,
   };
+}
+
+/** What a Codex-style request says about the current task. */
+function codexAutoSignals(body: ResponsesRequest, options: CodexTranslateOptions): AutoSignals {
+  const signals = chatAutoSignals({
+    messages: toChatMessages(body, options, EMPTY_CODEX_TOOL_TRANSLATION),
+  });
+  return {
+    ...signals,
+    effort: effortSignal(body, options),
+    hardness: decidedHardness(options.autoDecider, signals.prompt),
+  };
+}
+
+/**
+ * The typed prompt an Auto request should be judged on, or undefined when the
+ * request is not one a decider should see: not asking for Auto, a compaction,
+ * or the harness's own background call.
+ */
+export function codexAutoPrompt(
+  body: ResponsesRequest,
+  options: CodexTranslateOptions,
+): string | undefined {
+  if (!isAutoModel(body.model ?? options.modelId) || isCodexCompactionRequest(body)) {
+    return undefined;
+  }
+  if (isCodexMemoryRequest(body, body.model ?? options.modelId)) {
+    return undefined;
+  }
+  return codexAutoSignals(body, options).prompt || undefined;
 }
 
 /**

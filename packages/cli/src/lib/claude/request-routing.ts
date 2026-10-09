@@ -1,3 +1,4 @@
+import type { AutoDeciderConfig } from "../auto-decider.js";
 import { findModelById, getDefaultModel, type ModelDefinition } from "@nconnect/models";
 import { decideAutoTier, type AutoDecision } from "./auto-routing.js";
 import { AUTO_HARNESS_CALL } from "../auto-routing.js";
@@ -45,6 +46,7 @@ export type ClaudeRequestRoute = {
 
 type ClaudeModelOptions = Parameters<typeof resolveTargetModel>[1] & {
   isCompactionRequest?: boolean | undefined;
+  autoDecider?: AutoDeciderConfig | undefined;
 };
 
 const CLASSIFIER_SYSTEM_MARKER = "monitor for autonomous AI coding agents";
@@ -129,7 +131,7 @@ export function resolveClaudeRequestRoute(
   // model Nebius does not serve, and so fell back to this Auto session, is the
   // harness's own call.
   const auto = isAutoModel(body.model)
-    ? decideAutoTier(body, options.isCompactionRequest === true)
+    ? decideAutoTier(body, options.isCompactionRequest === true, options.autoDecider)
     : AUTO_HARNESS_CALL;
   return { targetModel: selection(autoCandidates(env)[auto.tier]), kind, auto };
 }

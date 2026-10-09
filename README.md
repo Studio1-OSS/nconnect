@@ -150,6 +150,38 @@ A task is everything since your last prompt, so the tool calls that follow a pro
 
 Routing is decided locally inside the NConnect daemon, with no extra model call. A harness's own background calls, such as Codex's memory agent, always use the fast model. OpenCode, Pi, Prime, Hermes, DeepSeek Harness and Grok Build normally talk to Nebius directly; on Auto they go through the daemon, so it must be running. Set `NCONNECT_AUTO_FAST_MODEL` or `NCONNECT_AUTO_STRONG_MODEL` to change either model. `nconnect usage` shows the spend split by model.
 
+#### Smarter Auto: let a model judge the task (optional)
+
+By default Auto guesses how hard a task is from keywords and prompt length. That misses most hard tasks, which rarely contain a word like "debug". You can have a model make that one judgement instead. It applies to Auto only, and your explicit signals (plan mode, a raised effort level, asking to think hard) still win.
+
+| `NCONNECT_AUTO_DECIDER` | What judges the task                                                          | Needs                                                | Where your prompt goes              |
+| ----------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------------- |
+| unset                   | Keyword rules                                                                 | nothing                                              | nowhere                             |
+| `nebius`                | A small Nebius model, answering in one token                                  | nothing extra                                        | Nebius, as the request already does |
+| `jev`                   | [Jev](https://typesafe.ai), TypeSafe's hosted decision model                  | `TYPESAFE_API_KEY`                                   | TypeSafe                            |
+| `laya`                  | [Laya](https://github.com/NandhaKishorM/laya), an open model you run yourself | `pip install "laya[serve]"` and `laya-serve` running | stays on your machine               |
+
+```bash
+NCONNECT_AUTO_DECIDER=nebius nconnect --model auto claude
+TYPESAFE_API_KEY=... NCONNECT_AUTO_DECIDER=jev nconnect --model auto codex
+NCONNECT_AUTO_DECIDER=laya nconnect --model auto opencode
+```
+
+The decider is asked once per prompt you type. The tool calls that follow reuse the answer, so a task stays on one model and only its first request waits. If the decider is slow, down or has no answer, the keyword rules decide.
+
+On a set of 28 labelled prompts (14 routine, 14 hard), written to include cases keywords get wrong:
+
+| Decider                             | Correct of 28 | Typical wait       |
+| ----------------------------------- | ------------- | ------------------ |
+| Keyword rules                       | 13            | none               |
+| `laya` (typed-decisions checkpoint) | 25            | about 50 ms        |
+| `nebius` (Gemma 3 27B)              | 26            | about 0.3 to 0.7 s |
+| `jev` (1.13.0)                      | 28            | about 0.4 s        |
+
+That is a small set and it measures agreement with labels, not whether routing saves money on real work. A confident claim inside a prompt ("this is a trivial one-line change") can talk every model-based decider into the cheap tier.
+
+Other settings: `NCONNECT_AUTO_DECIDER_MODEL` (the Nebius model, Jev model or Laya checkpoint), `NCONNECT_AUTO_DECIDER_URL` (the Jev or Laya endpoint; Laya defaults to `http://127.0.0.1:8000/v1/systemone`), `NCONNECT_AUTO_DECIDER_TIMEOUT_MS` (default 2500), and `LAYA_API_KEY` for a protected Laya server.
+
 | Model                         | Best for                     | Context | Vision |
 | ----------------------------- | ---------------------------- | ------- | ------ |
 | **GLM 5.3 Flash** _(default)_ | Fast, very low cost, agentic | 1M      | Yes    |
@@ -221,6 +253,7 @@ Claude Code and Codex expose a native `web_search` tool. Nebius has no hosted se
 | `NCONNECT_MODELS_DEV`           | `off` to stop enriching the model catalog with [models.dev](https://models.dev/providers/nebius) metadata (tool/reasoning flags, release dates for ordering). The live Nebius list is always the source of what exists.                                                                                                  |
 | `NCONNECT_BACKGROUND_MODEL`     | Model for Claude Code's background calls - the auto-mode safety classifier (one per shell command, normally sent to the expensive Sonnet tier) and the session title. Default: the catalog default (GLM 5.3 Flash); `off` keeps Claude Code's own choice. Read when the daemon starts (`nconnect daemon stop` to apply). |
 | `NCONNECT_CLAUDE_IMAGES`        | `describe` makes Claude Code always turn images into a text description from a vision model, even when the selected model can see. By default, vision-capable models receive images directly.                                                                                                                            |
+| `NCONNECT_AUTO_DECIDER`         | `nebius`, `jev` or `laya`: let a model judge how hard each Auto task is, instead of keyword rules. See "Smarter Auto" above.                                                                                                                                                                                             |
 | `NCONNECT_AUTO_FAST_MODEL`      | Model that `--model auto` uses for routine tasks. Default: the catalog default, GLM 5.3 Flash.                                                                                                                                                                                                                           |
 | `NCONNECT_AUTO_STRONG_MODEL`    | Model that `--model auto` uses for hard tasks. Default: Kimi K3.                                                                                                                                                                                                                                                         |
 | `NCONNECT_REASONING_HISTORY`    | `full` (default) \| `interleaved` \| `off`. How much of previous turns' reasoning is replayed each turn. `off` is cheapest on long sessions; current-turn reasoning is never affected.                                                                                                                                   |

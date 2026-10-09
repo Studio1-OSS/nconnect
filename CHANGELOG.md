@@ -3,6 +3,21 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
+## 0.23.0 - 2026-10-09
+
+### Added
+
+- Auto can let a model judge how hard a task is, instead of keyword rules. Set
+  `NCONNECT_AUTO_DECIDER` to `nebius` (a small Nebius model answering in one
+  token, nothing else to set up), `jev` (TypeSafe's hosted Jev model, with
+  `TYPESAFE_API_KEY`) or `laya` (the open Laya model run locally with
+  `laya-serve`). It applies to Auto requests only and works with every
+  harness. The decider is asked once per typed prompt, the tool calls that
+  follow reuse its answer, and the keyword rules take over when it is slow,
+  down or unsure. Plan mode, a raised effort level and a request to think hard
+  still take priority. On 28 labelled prompts the keyword rules got 13 right,
+  Laya 25, the Nebius model 26 and Jev 28. Unset, nothing changes.
+
 ## 0.22.3 - 2026-10-08
 
 ### Fixed

@@ -1,3 +1,4 @@
+import { decidedHardness, type AutoDeciderConfig } from "../auto-decider.js";
 import {
   decideAuto,
   typedPromptText,
@@ -115,6 +116,8 @@ export function claudeAutoSignals(
 export function decideAutoTier(
   body: AnthropicMessagesRequest,
   isCompactionRequest = false,
+  decider?: AutoDeciderConfig,
 ): AutoDecision {
-  return decideAuto(claudeAutoSignals(body, isCompactionRequest));
+  const signals = claudeAutoSignals(body, isCompactionRequest);
+  return decideAuto({ ...signals, hardness: decidedHardness(decider, signals.prompt) });
 }

@@ -1,3 +1,4 @@
+import { autoDeciderFromEnv, type AutoDeciderConfig } from "../auto-decider.js";
 import { CostTracker } from "../cost.js";
 import type { ModelDefinition } from "@nconnect/models";
 import { NEBIUS_BASE_URL } from "../nebius-core.js";
@@ -104,6 +105,8 @@ export type SessionState = {
   baseUrl: string;
   modelDefinition: ModelDefinition;
   costTracker: CostTracker;
+  /** Decider for Auto routing on this session, if the launcher chose one. */
+  autoDecider?: AutoDeciderConfig;
   debug?: boolean;
   externalSummary?: string;
   proxyPerf?: SessionProxyPerfSummary;
@@ -167,6 +170,8 @@ export type RegisterSessionRequest = {
   claudeCodeMaxOutputTokens?: number;
   /** True when the user had CLAUDE_CODE_MAX_OUTPUT_TOKENS set before launch. */
   claudeCodeMaxOutputTokensUserSet?: boolean;
+  /** Optional model-based judgement for Auto routing, chosen by the launcher. */
+  autoDecider?: AutoDeciderConfig;
   debug?: boolean;
 };
 
@@ -445,11 +450,22 @@ export function speaksResponsesApi(agent: string | undefined): boolean {
  * fully-formed proxy options; self-reporting agents get `options` undefined
  * (the proxy handler is never called for them).
  */
+function validDecider(value: unknown): AutoDeciderConfig | undefined {
+  const kind = (value as { kind?: unknown } | null | undefined)?.kind;
+  return kind === "nebius" || kind === "jev" || kind === "laya"
+    ? (value as AutoDeciderConfig)
+    : undefined;
+}
+
 export function buildSession(req: RegisterSessionRequest): SessionState {
   const agent: AgentId = req.agent ?? "claude";
   const costTracker = new CostTracker(req.modelDefinition);
   const now = Date.now();
   const baseUrl = req.baseUrl ?? NEBIUS_BASE_URL;
+  // The launcher's choice travels with the registration. A session rebuilt
+  // without one (restored after a daemon restart) uses the daemon's own
+  // environment, and failing that the keyword rules.
+  const autoDecider = validDecider(req.autoDecider) ?? autoDeciderFromEnv().config;
   const state: SessionState = {
     token: req.token,
     agent,
@@ -462,6 +478,7 @@ export function buildSession(req: RegisterSessionRequest): SessionState {
     modelDefinition: req.modelDefinition,
     costTracker,
     ...(typeof req.pid === "number" ? { pid: req.pid } : {}),
+    ...(autoDecider ? { autoDecider } : {}),
     ...(req.debug !== undefined ? { debug: req.debug } : {}),
   };
   if (isProxiedAgent(agent)) {
@@ -474,6 +491,7 @@ export function buildSession(req: RegisterSessionRequest): SessionState {
       modelDefinition: req.modelDefinition,
       authToken: req.authToken ?? req.token,
       agent,
+      ...(autoDecider ? { autoDecider } : {}),
       ...(req.claudeCodeMaxOutputTokens !== undefined
         ? { claudeCodeMaxOutputTokens: req.claudeCodeMaxOutputTokens }
         : {}),

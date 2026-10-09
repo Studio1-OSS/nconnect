@@ -1,3 +1,4 @@
+import { autoDeciderFromEnv } from "./auto-decider.js";
 import { execFile } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
@@ -328,6 +329,7 @@ export async function turnOnClaudeDesktop(options: {
   const authToken = await localProxyAuthToken();
   const sessionToken = claudeDesktopSessionToken(authToken);
   const { url: proxyUrl } = await ensureDaemon();
+  const decider = autoDeciderFromEnv().config;
   const registration: RegisterSessionRequest = {
     token: sessionToken,
     authToken,
@@ -338,6 +340,9 @@ export async function turnOnClaudeDesktop(options: {
     targetModelId: selected.definition.id,
     modelName: selected.definition.name,
     modelDefinition: selected.definition,
+    // Kept in the persisted registration too, so the route still has its
+    // decider after the daemon restarts and rebuilds it from disk.
+    ...(decider ? { autoDecider: decider } : {}),
     ...(process.env.NCONNECT_DEBUG === "1" ? { debug: true } : {}),
   };
   await registerDaemonSession(proxyUrl, registration);

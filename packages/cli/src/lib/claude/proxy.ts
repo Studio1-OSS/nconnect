@@ -1,3 +1,5 @@
+import { claudeAutoSignals } from "./auto-routing.js";
+import { primeAutoDecider, type AutoDeciderConfig } from "../auto-decider.js";
 import { isUserModelChoice, resolveClaudeRequestRoute } from "./request-routing.js";
 import { NATIVE_IMAGE_LIMIT, sendsImagesNatively } from "./native-images.js";
 import { type IncomingMessage, type ServerResponse } from "node:http";
@@ -48,6 +50,8 @@ export type ClaudeProxyOptions = {
   authToken: string;
   /** Which integration owns the session; model choices are remembered per agent. */
   agent?: string | undefined;
+  /** Optional model-based judgement for Auto routing on this session. */
+  autoDecider?: AutoDeciderConfig | undefined;
   claudeCodeMaxOutputTokens?: number | undefined;
   claudeCodeMaxOutputTokensUserSet?: boolean | undefined;
   debug?: boolean | undefined;
@@ -206,6 +210,22 @@ export async function handleProxyRequest(
   });
   if (compactionTuning.detected) {
     debugLog(options, "claude compaction request tuned", compactionTuning);
+  }
+  // Auto with a decider: ask it about a newly typed prompt before routing.
+  // Tool-calling turns carry the same prompt and reuse the cached answer.
+  if (
+    options.autoDecider &&
+    isAutoModel(body.model) &&
+    isUserModelChoice(body) &&
+    !compactionTuning.detected
+  ) {
+    await perf.span("auto_decider", () =>
+      primeAutoDecider(options.autoDecider, claudeAutoSignals(body).prompt, {
+        nebiusApiKey: options.apiKey,
+        nebiusBaseUrl: options.baseUrl,
+        debug: options.debug,
+      }),
+    );
   }
   const route = resolveClaudeRequestRoute(body, {
     ...options,

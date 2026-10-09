@@ -1,3 +1,4 @@
+import { decidedHardness, primeAutoDecider } from "../auto-decider.js";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { findModelById, type ModelDefinition } from "@nconnect/models";
 import { postChatCompletion, postChatCompletionStream } from "../nebius-client.js";
@@ -114,7 +115,7 @@ function billingModel(body: Record<string, unknown>, session: SessionState): Mod
  */
 export function resolveAutoRequest(
   body: Record<string, unknown>,
-  session: Pick<SessionState, "modelDefinition">,
+  session: Pick<SessionState, "modelDefinition" | "autoDecider">,
 ): { body: Record<string, unknown>; auto?: AutoDecision } {
   const requested = typeof body.model === "string" ? body.model : undefined;
   const unknown = requested === undefined || findModelById(requested) === undefined;
@@ -123,7 +124,10 @@ export function resolveAutoRequest(
   if (!isAuto) {
     return { body };
   }
-  const auto = isAutoModel(requested) ? decideAuto(chatAutoSignals(body)) : AUTO_HARNESS_CALL;
+  const signals = chatAutoSignals(body);
+  const auto = isAutoModel(requested)
+    ? decideAuto({ ...signals, hardness: decidedHardness(session.autoDecider, signals.prompt) })
+    : AUTO_HARNESS_CALL;
   return { body: { ...body, model: autoTargetModel(auto).id }, auto };
 }
 
@@ -178,7 +182,19 @@ export async function handleChatPassthrough(
   }
 
   const { body: parsed } = await readJsonBodyWithSize(req);
-  const routed = resolveAutoRequest((parsed ?? {}) as Record<string, unknown>, session);
+  const incoming = (parsed ?? {}) as Record<string, unknown>;
+  // Auto with a decider: ask it about a newly typed prompt before routing.
+  if (
+    session.autoDecider &&
+    isAutoModel(typeof incoming.model === "string" ? incoming.model : "")
+  ) {
+    await primeAutoDecider(session.autoDecider, chatAutoSignals(incoming).prompt, {
+      nebiusApiKey: session.apiKey,
+      nebiusBaseUrl: session.baseUrl,
+      debug: session.debug,
+    });
+  }
+  const routed = resolveAutoRequest(incoming, session);
   const body = withUsageReporting(routed.body);
   const model = billingModel(body, session);
   if (routed.auto) {

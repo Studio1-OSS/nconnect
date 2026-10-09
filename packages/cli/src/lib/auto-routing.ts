@@ -43,7 +43,9 @@ export type AutoDecision = {
     | "hard_task"
     | "long_prompt"
     | "stuck"
-    | "harness_call";
+    | "harness_call"
+    | "decider_hard"
+    | "decider_routine";
 };
 
 /**
@@ -67,7 +69,15 @@ export type AutoSignals = {
   effort?: string | undefined;
   /** A history-summarising request: long by nature, and cheap-model work. */
   compaction?: boolean;
+  /**
+   * An optional decider's probability that the task is hard (auto-decider.ts).
+   * When present it replaces the keyword and length guesses below.
+   */
+  hardness?: number | undefined;
 };
+
+/** At or above this, a decider's answer sends the task to the strong model. */
+export const AUTO_DECIDER_THRESHOLD = 0.5;
 
 /** Typed prompt length, in characters, past which a task counts as hard. */
 export const AUTO_LONG_PROMPT_CHARS = 3_000;
@@ -119,6 +129,16 @@ export function decideAuto(signals: AutoSignals): AutoDecision {
   }
   if (DEEP_THINKING.test(signals.prompt)) {
     return { tier: "strong", reason: "deep_thinking" };
+  }
+  if (signals.hardness !== undefined) {
+    // A model read the prompt: trust it over keywords. A task that keeps
+    // failing still escalates, whatever it looked like at the start.
+    if (signals.hardness >= AUTO_DECIDER_THRESHOLD) {
+      return { tier: "strong", reason: "decider_hard" };
+    }
+    return signals.toolErrors >= AUTO_STUCK_TOOL_ERRORS
+      ? { tier: "strong", reason: "stuck" }
+      : { tier: "fast", reason: "decider_routine" };
   }
   if (HARD_TASK.test(signals.prompt)) {
     return { tier: "strong", reason: "hard_task" };
