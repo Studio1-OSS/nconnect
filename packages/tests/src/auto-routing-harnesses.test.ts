@@ -57,6 +57,25 @@ describe("auto routing for chat-completions harnesses", () => {
     );
   });
 
+  test("reads Grok Build's wrapped prompt, not its context blocks", () => {
+    // Shapes captured from Grok Build through NConnect.
+    const info = user(
+      "<user_info>\nOS Version: macos\nShell: /bin/zsh\n</user_info>\n\n<rules>\nDebug and refactor carefully.\n</rules>",
+    );
+    const skills = user(
+      "<system-reminder>\nThe following skills are available\n</system-reminder>",
+    );
+    const query = user("<user_query>\nReply with exactly: NC_OK\n</user_query>");
+    const mcp = user(
+      "<system-reminder>\nMCP servers connected: github (49 tools)\n</system-reminder>",
+    );
+    const signals = chatAutoSignals({ messages: [info, skills, query, mcp] });
+    // The tags are Grok's wrapping, not the user's words: a decider shown them
+    // judged this trivial request as moderate.
+    expect(signals.prompt).toBe("Reply with exactly: NC_OK");
+    expect(decide([info, skills, query, mcp])).toEqual({ tier: "fast", reason: "routine" });
+  });
+
   test("keeps a task on one model and starts over at the next prompt", () => {
     const hard = [user("investigate the memory leak"), call, tool("ok"), call, tool("ok")];
     expect(decide(hard).tier).toBe("strong");

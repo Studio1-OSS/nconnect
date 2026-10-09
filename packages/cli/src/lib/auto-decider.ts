@@ -263,6 +263,13 @@ async function askSystemOne(
         : undefined;
 }
 
+function isDroppedConnection(err: unknown): boolean {
+  if (!(err instanceof Error) || err.name === "AbortError") {
+    return false;
+  }
+  return !/^HTTP \d+$/.test(err.message);
+}
+
 type Cached = { difficulty: number | undefined; at: number };
 /**
  * How long a "no answer" stands. Long enough that a task routes one way from
@@ -322,12 +329,24 @@ export async function primeAutoDecider(
     const timeoutMs = config.timeoutMs ?? DEFAULT_DECIDER_TIMEOUT_MS;
     let difficulty: number | undefined;
     let error: string | undefined;
+    const clipped = clip(prompt);
+    const ask = () =>
+      config.kind === "nebius"
+        ? askNebius(config, clipped, context, fetchImpl, timeoutMs)
+        : askSystemOne(config, clipped, fetchImpl, timeoutMs);
     try {
-      const clipped = clip(prompt);
-      difficulty =
-        config.kind === "nebius"
-          ? await askNebius(config, clipped, context, fetchImpl, timeoutMs)
-          : await askSystemOne(config, clipped, fetchImpl, timeoutMs);
+      try {
+        difficulty = await ask();
+      } catch (err) {
+        // A connection that drops at once is usually a stale keep-alive socket
+        // (seen against Nebius after an idle spell). One more try costs almost
+        // nothing. A timeout or an HTTP error is not retried: the first would
+        // double the wait, and the second will not change.
+        if (!isDroppedConnection(err) || Date.now() - started > 500) {
+          throw err;
+        }
+        difficulty = await ask();
+      }
     } catch (err) {
       error =
         err instanceof Error ? (err.name === "AbortError" ? "timeout" : err.message) : "error";

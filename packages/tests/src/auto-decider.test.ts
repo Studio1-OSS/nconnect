@@ -219,6 +219,30 @@ describe("asking each decider", () => {
     expect(flaky).toHaveBeenCalledTimes(2);
   });
 
+  test("a dropped connection is retried once; a timeout or an HTTP error is not", async () => {
+    const config: AutoDeciderConfig = { kind: "nebius" };
+    const dropped = vi
+      .fn()
+      .mockImplementationOnce(async () => {
+        throw new Error("The socket connection was closed unexpectedly.");
+      })
+      .mockImplementation(async () => nebiusAnswer(0.9, 0.05, 0.05));
+    await primeAutoDecider(config, "stale socket", { ...context, fetchImpl: dropped as never });
+    expect(dropped).toHaveBeenCalledTimes(2);
+    expect(decidedDifficulty(config, "stale socket")).toBeCloseTo(0.075);
+
+    const refused = vi.fn(async () => json({ error: "nope" }, 500));
+    await primeAutoDecider(config, "server error", { ...context, fetchImpl: refused as never });
+    expect(refused).toHaveBeenCalledTimes(1);
+
+    const alwaysDropped = vi.fn(async () => {
+      throw new Error("socket closed");
+    });
+    await primeAutoDecider(config, "still down", { ...context, fetchImpl: alwaysDropped as never });
+    expect(alwaysDropped).toHaveBeenCalledTimes(2);
+    expect(decidedDifficulty(config, "still down")).toBeUndefined();
+  });
+
   test("a long prompt is clipped to its start and end", async () => {
     const fetchImpl = vi.fn(async () => systemOneAnswer(0.5));
     const long = `START ${"x".repeat(20_000)} END`;

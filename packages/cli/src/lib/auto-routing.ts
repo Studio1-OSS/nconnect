@@ -239,11 +239,14 @@ export function autoTargetModel(
  * run to thousands of characters and says nothing about how hard the task is.
  */
 const INJECTED_BLOCK =
-  /<(system-reminder|environment_context|user_instructions|recommended_plugins|permissions[ _]instructions|collaboration_mode|skills_instructions|turn_aborted|user_shell_command|subagent_notification|context|system|INSTRUCTIONS)\b[^>]*>[\s\S]*?<\/\1>/g;
+  /<(system-reminder|environment_context|user_instructions|recommended_plugins|user_info|rules|permissions[ _]instructions|collaboration_mode|skills_instructions|turn_aborted|user_shell_command|subagent_notification|context|system|INSTRUCTIONS)\b[^>]*>[\s\S]*?<\/\1>/g;
+
+/** Grok Build wraps the user's own words in this tag; the words are the prompt. */
+const USER_QUERY = /<user_query>([\s\S]*?)<\/user_query>/g;
 
 /** What the user typed, with injected context blocks removed. */
 export function typedPromptText(text: string): string {
-  return text.replace(INJECTED_BLOCK, "").trim();
+  return text.replace(INJECTED_BLOCK, "").replace(USER_QUERY, "$1").trim();
 }
 
 type ChatMessage = { role?: unknown; content?: unknown };
