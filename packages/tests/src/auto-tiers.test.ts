@@ -193,7 +193,11 @@ describe("reasoning effort", () => {
 
   test("reaches passthrough harnesses only where they set none", () => {
     const session = { modelDefinition: autoModelDefinition({}) };
-    const body = { model: AUTO_MODEL_ID, messages: [{ role: "user", content: "debug the crash" }] };
+    const body = {
+      model: AUTO_MODEL_ID,
+      tools: [{ type: "function", function: { name: "bash" } }],
+      messages: [{ role: "user", content: "debug the crash" }],
+    };
     expect(resolveAutoRequest(body, session).body).toMatchObject({
       model: STRONG,
       reasoning_effort: "medium",

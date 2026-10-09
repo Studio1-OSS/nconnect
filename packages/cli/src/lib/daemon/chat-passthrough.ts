@@ -125,12 +125,18 @@ export function resolveAutoRequest(
     return { body };
   }
   const signals = chatAutoSignals(body);
-  const auto = isAutoModel(requested)
-    ? decideAuto(
-        { ...signals, difficulty: decidedDifficulty(session.autoDecider, signals.prompt) },
-        session.autoSettings,
-      )
-    : AUTO_HARNESS_CALL;
+  // A request that offers the model no tools is not a turn of the coding
+  // agent: it is the harness's own utility call - a session title, a summary -
+  // made under whatever model the session uses. Seen with DeepSeek Harness,
+  // whose title request was judged like a task and sent to the middle tier.
+  const agentTurn = Array.isArray(body.tools) && body.tools.length > 0;
+  const auto =
+    isAutoModel(requested) && agentTurn
+      ? decideAuto(
+          { ...signals, difficulty: decidedDifficulty(session.autoDecider, signals.prompt) },
+          session.autoSettings,
+        )
+      : AUTO_HARNESS_CALL;
   const target = autoTargetModel(auto, session.autoSettings);
   return {
     body: {
@@ -201,7 +207,9 @@ export async function handleChatPassthrough(
   // Auto with a decider: ask it about a newly typed prompt before routing.
   if (
     session.autoDecider &&
-    isAutoModel(typeof incoming.model === "string" ? incoming.model : "")
+    isAutoModel(typeof incoming.model === "string" ? incoming.model : "") &&
+    Array.isArray(incoming.tools) &&
+    incoming.tools.length > 0
   ) {
     await primeAutoDecider(session.autoDecider, chatAutoSignals(incoming).prompt, {
       nebiusApiKey: session.apiKey,

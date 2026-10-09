@@ -185,7 +185,7 @@ TYPESAFE_API_KEY=... NCONNECT_AUTO_DECIDER=jev nconnect --model auto codex
 NCONNECT_AUTO_DECIDER=laya nconnect --model auto opencode
 ```
 
-The decider is asked once per prompt you type. The tool calls that follow reuse the answer, so a task stays on one model and only its first request waits. If the decider is slow, down or has no answer, the keyword rules decide.
+The decider is asked once per prompt you type. The tool calls that follow reuse the answer, so only a task's first request waits. If the decider is down or has no answer, the keyword rules decide. If it is merely slow (over 2.5 seconds), the first turn goes by the keyword rules and the answer is used from the next turn on.
 
 On a set of 34 labelled prompts (12 routine, 10 moderate, 12 hard), written to include cases keywords get wrong:
 

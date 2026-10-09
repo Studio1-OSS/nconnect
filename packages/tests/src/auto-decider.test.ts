@@ -164,8 +164,29 @@ describe("asking each decider", () => {
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 
-  test("a slow, failing or unreadable decider gives no answer and is not retried mid-task", async () => {
+  test("a slow answer misses its first turn and is used from the next", async () => {
     const config: AutoDeciderConfig = { kind: "jev", apiKey: "k", timeoutMs: 20 };
+    const slow = vi.fn(
+      () =>
+        new Promise<Response>((resolve) => setTimeout(() => resolve(systemOneAnswer(0.95)), 80)),
+    );
+    const ctx = { ...context, fetchImpl: slow as never };
+    const started = Date.now();
+    await primeAutoDecider(config, "slow", ctx);
+    // The turn is not held up past the wait, and goes by the keyword rules.
+    expect(Date.now() - started).toBeLessThan(70);
+    expect(decidedDifficulty(config, "slow")).toBeUndefined();
+    // A second turn arriving meanwhile does not start a second request.
+    await primeAutoDecider(config, "slow", ctx);
+    expect(slow).toHaveBeenCalledTimes(1);
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    expect(decidedDifficulty(config, "slow")).toBeCloseTo(0.95);
+    await primeAutoDecider(config, "slow", ctx);
+    expect(slow).toHaveBeenCalledTimes(1);
+  });
+
+  test("a request that never answers is abandoned, and a failing or unreadable one gives no answer", async () => {
+    const config: AutoDeciderConfig = { kind: "jev", apiKey: "k", timeoutMs: 10 };
     const hang = vi.fn(
       (_url: string, init?: RequestInit) =>
         new Promise<Response>((_resolve, reject) => {
@@ -174,16 +195,26 @@ describe("asking each decider", () => {
           );
         }),
     );
-    await primeAutoDecider(config, "slow", { ...context, fetchImpl: hang as never });
-    expect(decidedDifficulty(config, "slow")).toBeUndefined();
-    await primeAutoDecider(config, "slow", { ...context, fetchImpl: hang as never });
+    await primeAutoDecider(config, "hung", {
+      ...context,
+      fetchImpl: hang as never,
+      hardTimeoutMs: 40,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 90));
+    expect(decidedDifficulty(config, "hung")).toBeUndefined();
+    // Recorded as "no answer": not asked again within the task.
+    await primeAutoDecider(config, "hung", {
+      ...context,
+      fetchImpl: hang as never,
+      hardTimeoutMs: 40,
+    });
     expect(hang).toHaveBeenCalledTimes(1);
 
     const down = vi.fn(async () => json({ error: "nope" }, 503));
     await primeAutoDecider(config, "down", { ...context, fetchImpl: down as never });
     expect(decidedDifficulty(config, "down")).toBeUndefined();
 
-    // A reasoning model that opens with prose instead of A or B.
+    // A reasoning model that opens with prose instead of a letter.
     const prose = vi.fn(async () =>
       json({
         choices: [{ logprobs: { content: [{ top_logprobs: [{ token: "The", logprob: -0.1 }] }] } }],
@@ -354,7 +385,11 @@ describe("the decider in each request path", () => {
 
   test("the passthrough harnesses", async () => {
     await prime(EASY_WITH_KEYWORD, 0.03);
-    const body = { model: AUTO_MODEL_ID, messages: [{ role: "user", content: EASY_WITH_KEYWORD }] };
+    const body = {
+      model: AUTO_MODEL_ID,
+      tools: [{ type: "function", function: { name: "bash" } }],
+      messages: [{ role: "user", content: EASY_WITH_KEYWORD }],
+    };
     const routed = resolveAutoRequest(body, { modelDefinition: autoDef, autoDecider: config });
     expect(routed.body.model).toBe(FAST_ID);
     expect(routed.auto).toEqual({ tier: "fast", reason: "decider_routine" });

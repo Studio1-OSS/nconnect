@@ -114,6 +114,7 @@ describe("the passthrough used by Pi, Prime, Hermes, DeepSeek, Grok and OpenCode
       model: AUTO_MODEL_ID,
       stream: true,
       temperature: 0.2,
+      tools: [{ type: "function", function: { name: "bash" } }],
       messages: [user("fix the typo")],
     };
     const easy = resolveAutoRequest(body, autoSession);
@@ -132,6 +133,16 @@ describe("the passthrough used by Pi, Prime, Hermes, DeepSeek, Grok and OpenCode
     expect(routed.body).toBe(body);
     expect(routed.auto).toBeUndefined();
     expect(resolveAutoRequest({ model: "auto-ish/other" }, plainSession).auto).toBeUndefined();
+  });
+
+  test("sends a request with no tools to the fast model: it is not an agent turn", () => {
+    // DeepSeek Harness asks for a session title under the session's model.
+    const title = resolveAutoRequest(
+      { model: AUTO_MODEL_ID, messages: [user("Debug and refactor: write a title for this chat")] },
+      autoSession,
+    );
+    expect(title.body.model).toBe(FAST_ID);
+    expect(title.auto).toEqual({ tier: "fast", reason: "harness_call" });
   });
 
   test("sends a harness's own call under an unknown model name to the fast model", () => {

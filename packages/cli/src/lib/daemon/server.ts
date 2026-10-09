@@ -1,3 +1,4 @@
+import { AUTO_DECIDER_WARMUP_PROMPT, primeAutoDecider } from "../auto-decider.js";
 import http, { type IncomingMessage, type ServerResponse, type Server } from "node:http";
 import { once } from "node:events";
 import { statSync } from "node:fs";
@@ -567,6 +568,16 @@ async function registerSession(req: IncomingMessage, res: ServerResponse): Promi
   }
   const state = buildSession(body);
   activeSessions.register(state);
+  // The first call to a decider is the slow one (a new connection, a cold
+  // model). Make it now, in the background, so the user's first prompt gets
+  // its answer in time. Cached, so a re-registration does not repeat it.
+  if (state.autoDecider) {
+    void primeAutoDecider(state.autoDecider, AUTO_DECIDER_WARMUP_PROMPT, {
+      nebiusApiKey: state.apiKey,
+      nebiusBaseUrl: state.baseUrl,
+      debug: state.debug,
+    });
+  }
   writeJson(res, 200, {
     ok: true,
     session: {

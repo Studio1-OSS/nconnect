@@ -24,9 +24,11 @@ import { writeProxyDebugLog } from "./proxy-debug.js";
  * Jev and Laya share one wire format, so they share one client.
  *
  * The answer is cached per typed prompt. The tool-calling turns of a task
- * carry the same prompt, so a task costs one decider call, stays on one
- * model, and adds no delay after its first request. A decider that is slow,
- * down or unsure is recorded as "no answer" and the keyword rules decide.
+ * carry the same prompt, so a task costs one decider call and adds no delay
+ * after its first request. A decider that is down or unsure is recorded as
+ * "no answer" and the keyword rules decide. One that is merely slow misses
+ * the first turn - which goes by the keyword rules - and is used from the
+ * next turn on, so a slow first answer can move a task between tiers once.
  */
 
 export type AutoDeciderKind = "nebius" | "jev" | "laya";
@@ -57,8 +59,17 @@ export const DEFAULT_LAYA_URL = "http://127.0.0.1:8000/v1/systemone";
  * Left to itself the server picks by language, so name the good one.
  */
 export const DEFAULT_LAYA_MODEL = "typed-decisions";
+/** Sent once when a session starts, to open the connection before it matters. */
+export const AUTO_DECIDER_WARMUP_PROMPT = "warm-up: reply with exactly OK";
+
 /** A decision is worth a short wait, not a stalled turn. */
 export const DEFAULT_DECIDER_TIMEOUT_MS = 2_500;
+/**
+ * How long a decider request may run before it is abandoned. Longer than the
+ * wait: the first call to a cold endpoint can take several seconds, and its
+ * answer is still worth having for the rest of the task.
+ */
+export const DECIDER_HARD_TIMEOUT_MS = 20_000;
 /** Typed prompt sent to the decider; the start and the end carry the ask. */
 const MAX_PROMPT_CHARS = 6_000;
 const CACHE_ENTRIES = 500;
@@ -128,6 +139,8 @@ export type DeciderContext = {
   nebiusBaseUrl: string;
   debug?: boolean | undefined;
   fetchImpl?: Fetch | undefined;
+  /** Test hook: how long a request may run before it is abandoned. */
+  hardTimeoutMs?: number | undefined;
 };
 
 async function postJson(
@@ -319,14 +332,20 @@ export async function primeAutoDecider(
   if (known && (known.difficulty !== undefined || now() - known.at < NO_ANSWER_TTL_MS)) {
     return;
   }
+  // How long this request waits for the answer. The decider itself is given
+  // longer (below): a slow answer misses this turn but is in the cache for
+  // the next one, rather than being thrown away and the wait repeated.
+  const waitMs = config.timeoutMs ?? DEFAULT_DECIDER_TIMEOUT_MS;
+  const waitFor = (work: Promise<void>): Promise<void> =>
+    Promise.race([work, new Promise<void>((resolve) => setTimeout(resolve, waitMs).unref?.())]);
   const running = inFlight.get(key);
   if (running) {
-    return running;
+    return waitFor(running);
   }
   const run = (async () => {
     const started = Date.now();
     const fetchImpl = context.fetchImpl ?? fetch;
-    const timeoutMs = config.timeoutMs ?? DEFAULT_DECIDER_TIMEOUT_MS;
+    const timeoutMs = Math.max(waitMs, context.hardTimeoutMs ?? DECIDER_HARD_TIMEOUT_MS);
     let difficulty: number | undefined;
     let error: string | undefined;
     const clipped = clip(prompt);
@@ -366,10 +385,12 @@ export async function primeAutoDecider(
         : { difficulty: Number(difficulty.toFixed(3)) }),
       ...(error ? { error } : {}),
       ms: Date.now() - started,
+      // Arrived after its first request had moved on: used from the next turn.
+      ...(Date.now() - started > waitMs ? { late: true } : {}),
     });
   })().finally(() => inFlight.delete(key));
   inFlight.set(key, run);
-  return run;
+  return waitFor(run);
 }
 
 let now = (): number => Date.now();
