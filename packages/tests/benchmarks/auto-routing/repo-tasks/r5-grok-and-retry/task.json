@@ -1,0 +1,9 @@
+{
+  "level": "repo",
+  "commit": "0ed3d3b",
+  "tests": [
+    "packages/tests/src/auto-decider.test.ts",
+    "packages/tests/src/auto-routing-harnesses.test.ts"
+  ],
+  "prompt": "Two problems found running Auto with a decider through Grok Build.\n\n1. Grok Build wraps the user's words in `<user_query>...</user_query>` tags and sends its own context as separate user messages wrapped in `<user_info>` and `<rules>` blocks. The tags reach the decider as part of the prompt, and the context blocks can be mistaken for the user's prompt. The prompt Auto reads (`chatAutoSignals(...).prompt`) must be just the user's words: for a message `<user_query>\\nReply with exactly: NC_OK\\n</user_query>` it is `Reply with exactly: NC_OK`, and `<user_info>` and `<rules>` blocks are treated as injected context like `<system-reminder>` already is.\n\n2. The first decider call after an idle spell can fail immediately because the connection was closed (the fetch throws, for example \"The socket connection was closed unexpectedly.\"). The task is then left on the keyword rules. A decider request whose connection drops like that must be retried once, and only once. A timeout or an HTTP error response must not be retried.\n\nThis is a pnpm monorepo. Run one test file with `cd packages/tests && node_modules/.bin/vitest run src/<file>.test.ts`; do not run the whole suite. packages/cli imports @nconnect/models from its build output, so after changing packages/models run `node_modules/.bin/tsc -p packages/models/tsconfig.json` from the repository root. Dependencies are already installed: never run pnpm, npm or any install command. Do not bump versions or edit CHANGELOG or the site/ folder."
+}

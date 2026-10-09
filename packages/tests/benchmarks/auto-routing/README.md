@@ -42,6 +42,28 @@ On these tasks Auto did not pay for itself. The fast model alone passed as many 
 
 What this does and does not show: it shows that Auto's routing works as designed and that on small, self-contained tasks the design costs money without buying quality. It does not show how Auto does on large repositories or long sessions, where a fast model is more likely to fail.
 
+## Repository tasks (10 October 2026, stopped early)
+
+A harder suite lives in `repo-tasks/`: eight real fixes from this repository's history. The agent gets the whole codebase as it was just before the fix, without git history, and an issue-style description. It is graded by the tests the real fix shipped with, written into the tree only after the agent stops. All eight fail before their fix and pass with it (`--validate`).
+
+The run was stopped after four completed runs because of cost: the strong model spent about $5 a task here, so three trials of all eight tasks would have cost about $190.
+
+| Task                                                                      | Fast-only            | Strong-only        | Auto               |
+| ------------------------------------------------------------------------- | -------------------- | ------------------ | ------------------ |
+| Auto reads Claude Code's default effort as a request for the strong model | pass, $0.08, 1 min   | pass, $4.99, 9 min | pass, $3.08, 6 min |
+| `nconnect models` reports a bundled fallback as live (two packages)       | pass, $0.09, 1.5 min | not finished       | not run            |
+
+During that run an agent ran a package install inside its work copy, which relinked this checkout's `node_modules` into a temporary directory. The agent is no longer allowed to run a package manager, and the prompts say so; the four results above predate that change.
+
+Four runs settle nothing, but they point the same way as the small suite: the fast model solved both real fixes at about a sixtieth of the strong model's cost. Results are in `repo-results.json`.
+
+```bash
+python3 run.py --nconnect ../../../../site/nconnect.js --suite repo --validate
+NEBIUS_API_KEY=... python3 run.py --nconnect ../../../../site/nconnect.js --suite repo --configs fast --trials 3 --out repo-results.json
+```
+
+`--budget 20` stops the run once the recorded cost passes that many dollars. The fast-only command above costs about $2; adding `strong` or `auto` costs about $5 and $3 per task per trial.
+
 ## Run it
 
 ```bash
