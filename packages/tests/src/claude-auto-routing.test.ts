@@ -55,7 +55,7 @@ describe("auto routing rules", () => {
       "why does the proxy return 401 after a restart?",
       "plan the migration from sqlite to postgres",
     ]) {
-      expect(decide([user(prompt)]), prompt).toEqual({ tier: "strong", reason: "hard_task" });
+      expect(decide([user(prompt)]), prompt).toMatchObject({ tier: "strong", reason: "hard_task" });
     }
   });
 
@@ -67,7 +67,7 @@ describe("auto routing rules", () => {
   });
 
   test("an effort level above Claude Code's default earns the strong model", () => {
-    expect(decide([user("tidy this up")], { effort: "max" })).toEqual({
+    expect(decide([user("tidy this up")], { effort: "max" })).toMatchObject({
       tier: "strong",
       reason: "high_effort",
     });
@@ -173,7 +173,7 @@ describe("auto routing rules", () => {
         ],
       },
     ];
-    expect(decide(planning)).toEqual({ tier: "strong", reason: "plan_mode" });
+    expect(decide(planning)).toMatchObject({ tier: "strong", reason: "plan_mode" });
 
     const rejected = [...planning, toolCall("exit1", "ExitPlanMode"), toolResult("exit1", true)];
     expect(decide(rejected).reason).toBe("plan_mode");
@@ -191,7 +191,7 @@ describe("auto routing rules", () => {
         ],
       } as unknown as AnthropicMessage,
     ];
-    expect(decide(viaSystem)).toEqual({ tier: "strong", reason: "plan_mode" });
+    expect(decide(viaSystem)).toMatchObject({ tier: "strong", reason: "plan_mode" });
 
     // Entering plan mode again later counts again.
     const again = [
@@ -237,25 +237,30 @@ describe("the Auto model", () => {
     }
   });
 
-  test("chooses between the default model and Kimi K3, and fits either", () => {
-    const { fast, strong } = autoCandidates({});
+  test("chooses between three models, and fits any of them", () => {
+    const { fast, balanced, strong } = autoCandidates({});
     expect(fast.id).toBe(getDefaultModel().id);
+    expect(balanced.id).toBe("zai-org/GLM-5.3");
     expect(strong.id).toBe(KIMI_K3_ID);
     const auto = autoModelSelection({}).definition;
     expect(auto.name).toBe("Auto");
-    expect(auto.limit.context).toBe(Math.min(fast.limit.context, strong.limit.context));
-    expect(auto.limit.output).toBe(Math.min(fast.limit.output, strong.limit.output));
+    const all = [fast, balanced, strong];
+    expect(auto.limit.context).toBe(Math.min(...all.map((m) => m.limit.context)));
+    expect(auto.limit.output).toBe(Math.min(...all.map((m) => m.limit.output)));
   });
 
-  test("the two models can be overridden", () => {
-    const { fast, strong } = autoCandidates({
-      NCONNECT_AUTO_FAST_MODEL: GLM_5_2.id,
-      NCONNECT_AUTO_STRONG_MODEL: KIMI_K2_6.anthropicAlias ?? "",
+  test("each of the three models can be overridden", () => {
+    const { fast, balanced, strong } = autoCandidates({
+      fastModel: GLM_5_2.id,
+      balancedModel: getDefaultModel().id,
+      strongModel: KIMI_K2_6.anthropicAlias ?? "",
     });
     expect(fast.id).toBe(GLM_5_2.id);
+    expect(balanced.id).toBe(getDefaultModel().id);
     expect(strong.id).toBe(KIMI_K2_6.id);
     // An unknown name falls back rather than breaking every request.
-    expect(autoCandidates({ NCONNECT_AUTO_STRONG_MODEL: "nope/none" }).strong.id).toBe(KIMI_K3_ID);
+    expect(autoCandidates({ strongModel: "nope/none" }).strong.id).toBe(KIMI_K3_ID);
+    expect(autoCandidates({ balancedModel: "nope/none" }).balanced.id).toBe("zai-org/GLM-5.3");
   });
 
   test("a request for Auto is always routed to a real model", () => {

@@ -15,7 +15,10 @@ import {
   chatAutoSignals,
   decideAuto,
   type AutoDecision,
+  type AutoSignals,
 } from "../auto-routing.js";
+import { decidedDifficulty, type AutoDeciderConfig } from "../auto-decider.js";
+import type { AutoSettings } from "../auto-model.js";
 import {
   nativeToolMaxUses as sharedNativeToolMaxUses,
   runWebSearch as runSharedWebSearch,
@@ -66,6 +69,8 @@ type CodexTranslateOptions = {
   modelDefinition: ModelDefinition;
   /** Which integration owns the session (codex, codex-app, unreal). */
   agent?: string | undefined;
+  autoDecider?: AutoDeciderConfig | undefined;
+  autoSettings?: AutoSettings | undefined;
   debug?: boolean | undefined;
 };
 
@@ -82,7 +87,11 @@ export function toChatPayload(
   estimatedInputTokens: number,
 ): Record<string, unknown> {
   const messages = toChatMessages(body, options, toolTranslation);
-  const translatedReasoningEffort = reasoningEffort(body, requestModel.definition);
+  const translatedReasoningEffort = reasoningEffort(
+    body,
+    requestModel.definition,
+    requestModel.auto?.effort,
+  );
   const messagesWithNativePrompt =
     toolTranslation.nativeTools.length > 0
       ? withNativeToolSystemPrompt(messages, toolTranslation.nativeTools)
@@ -128,17 +137,14 @@ export function resolveCodexRequestModel(
   // translated into, so one set of rules covers every harness.
   const askedForAuto = isAutoModel(requestedModelId);
   if (askedForAuto || (!requestedModel && definition.id === AUTO_MODEL_ID)) {
+    const signals =
+      askedForAuto && !isCodexCompactionRequest(body) ? codexAutoSignals(body, options) : undefined;
     const auto = !askedForAuto
       ? AUTO_HARNESS_CALL
-      : isCodexCompactionRequest(body)
-        ? decideAuto({ prompt: "", toolErrors: 0, compaction: true })
-        : decideAuto({
-            ...chatAutoSignals({
-              messages: toChatMessages(body, options, EMPTY_CODEX_TOOL_TRANSLATION),
-            }),
-            effort: effortSignal(body, options),
-          });
-    const target = autoTargetModel(auto);
+      : signals
+        ? decideAuto(signals, options.autoSettings)
+        : decideAuto({ prompt: "", toolErrors: 0, compaction: true });
+    const target = autoTargetModel(auto, options.autoSettings, signals);
     return {
       requestedModelId: AUTO_MODEL_ID,
       targetModelId: target.id,
@@ -153,6 +159,36 @@ export function resolveCodexRequestModel(
     definition,
     memory: false,
   };
+}
+
+/** What a Codex-style request says about the current task. */
+function codexAutoSignals(body: ResponsesRequest, options: CodexTranslateOptions): AutoSignals {
+  const signals = chatAutoSignals({
+    messages: toChatMessages(body, options, EMPTY_CODEX_TOOL_TRANSLATION),
+  });
+  return {
+    ...signals,
+    effort: effortSignal(body, options),
+    difficulty: decidedDifficulty(options.autoDecider, signals.prompt),
+  };
+}
+
+/**
+ * The typed prompt an Auto request should be judged on, or undefined when the
+ * request is not one a decider should see: not asking for Auto, a compaction,
+ * or the harness's own background call.
+ */
+export function codexAutoPrompt(
+  body: ResponsesRequest,
+  options: CodexTranslateOptions,
+): string | undefined {
+  if (!isAutoModel(body.model ?? options.modelId) || isCodexCompactionRequest(body)) {
+    return undefined;
+  }
+  if (isCodexMemoryRequest(body, body.model ?? options.modelId)) {
+    return undefined;
+  }
+  return codexAutoSignals(body, options).prompt || undefined;
 }
 
 /**
@@ -690,12 +726,22 @@ function toChatResponseFormat(text: ResponsesTextConfig | undefined): unknown {
   return undefined;
 }
 
-function reasoningEffort(body: ResponsesRequest, model: ModelDefinition): string | undefined {
+function reasoningEffort(
+  body: ResponsesRequest,
+  model: ModelDefinition,
+  /** Effort Auto suggests for this request, when it routed it. */
+  autoEffort?: string,
+): string | undefined {
   const effort = body.reasoning?.effort;
   if (!model.reasoning) {
     return undefined;
   }
   if (acceptsReasoningEffort(model.id)) {
+    // Auto judged this task worth more thought. A user who picked high effort
+    // themselves still gets theirs, below.
+    if (autoEffort && effort !== "high" && effort !== "xhigh" && effort !== "max") {
+      return autoEffort;
+    }
     // Mirror the Claude proxy: GLM-5.2 and Kimi-K3 reason on every turn unless
     // told not to, which dominates latency. Honor an explicit effort, else
     // default to a fast "none" (overridable with NCONNECT_REASONING_EFFORT).

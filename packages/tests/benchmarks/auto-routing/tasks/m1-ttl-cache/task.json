@@ -1,0 +1,4 @@
+{
+  "level": "medium",
+  "prompt": "Implement the TTLCache class in cache.py. The docstring says how it should behave."
+}

@@ -802,8 +802,9 @@ describe("Claude proxy compatibility API", () => {
       const hard = await ask("debug the race condition in the session store");
       expect(hard.status).toBe(200);
       expect(bodies[1]?.model).toBe("moonshotai/Kimi-K3");
-      // Claude Code asked for Auto, so that is the model it is told answered.
-      expect(hard.body.model).toBe("nebius-auto");
+      // The response names the model that actually ran, so the user can see
+      // what Auto picked.
+      expect(hard.body.model).toBe("nebius-kimi-k3");
       // The placeholder id must never reach Nebius.
       expect(JSON.stringify(bodies)).not.toContain("nconnect/auto");
     });

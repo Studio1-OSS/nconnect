@@ -1,3 +1,5 @@
+import { autoSettingsFromEnv } from "../auto-model.js";
+import { autoDeciderFromEnv } from "../auto-decider.js";
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { mkdir, readFile, stat, unlink, writeFile } from "node:fs/promises";
@@ -242,14 +244,28 @@ export async function daemonFetch(url: string, init?: RequestInit): Promise<Resp
   }
 }
 
+let warnedAboutDecider = false;
+
 export async function registerDaemonSession(
   proxyUrl: string,
   registration: RegisterSessionRequest,
 ): Promise<void> {
+  // The decider for Auto is the launcher's choice, read from its environment
+  // at launch - not the daemon's, which was fixed when the daemon started.
+  const decider = registration.autoDecider ? {} : autoDeciderFromEnv();
+  if (decider.problem && !warnedAboutDecider) {
+    warnedAboutDecider = true;
+    process.stderr.write(`NConnect ▸ ${decider.problem}\n`);
+  }
   const response = await daemonFetch(`${proxyUrl}/internal/sessions`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(registration),
+    body: JSON.stringify({
+      ...registration,
+      ...(decider.config ? { autoDecider: decider.config } : {}),
+      // Auto's own settings travel the same way, for the same reason.
+      ...(registration.autoSettings ? {} : { autoSettings: autoSettingsFromEnv() }),
+    }),
   });
   if (!response.ok) {
     const detail = await response.text().catch(() => "");

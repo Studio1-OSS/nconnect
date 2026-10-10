@@ -1,5 +1,7 @@
+import type { AutoSettings } from "../auto-model.js";
+import type { AutoDeciderConfig } from "../auto-decider.js";
 import { findModelById, getDefaultModel, type ModelDefinition } from "@nconnect/models";
-import { decideAutoTier, type AutoDecision } from "./auto-routing.js";
+import { resolveClaudeAuto, type AutoDecision } from "./auto-routing.js";
 import { AUTO_HARNESS_CALL } from "../auto-routing.js";
 import { AUTO_MODEL_ID, autoCandidates, isAutoModel } from "./defaults.js";
 import { resolveTargetModel } from "./translate-response.js";
@@ -45,6 +47,8 @@ export type ClaudeRequestRoute = {
 
 type ClaudeModelOptions = Parameters<typeof resolveTargetModel>[1] & {
   isCompactionRequest?: boolean | undefined;
+  autoDecider?: AutoDeciderConfig | undefined;
+  autoSettings?: AutoSettings | undefined;
 };
 
 const CLASSIFIER_SYSTEM_MARKER = "monitor for autonomous AI coding agents";
@@ -120,7 +124,10 @@ export function resolveClaudeRequestRoute(
     if (background) {
       return { targetModel: background, kind };
     }
-    return { targetModel: isAuto ? selection(autoCandidates(env).fast) : requested, kind };
+    return {
+      targetModel: isAuto ? selection(autoCandidates(options.autoSettings ?? {}).fast) : requested,
+      kind,
+    };
   }
   if (!isAuto) {
     return { targetModel: requested, kind };
@@ -128,10 +135,36 @@ export function resolveClaudeRequestRoute(
   // Only a request that asks for Auto is routed by its task. One that named a
   // model Nebius does not serve, and so fell back to this Auto session, is the
   // harness's own call.
-  const auto = isAutoModel(body.model)
-    ? decideAutoTier(body, options.isCompactionRequest === true)
-    : AUTO_HARNESS_CALL;
-  return { targetModel: selection(autoCandidates(env)[auto.tier]), kind, auto };
+  if (!isAutoModel(body.model)) {
+    return {
+      targetModel: selection(autoCandidates(options.autoSettings ?? {}).fast),
+      kind,
+      auto: AUTO_HARNESS_CALL,
+    };
+  }
+  const { auto, model } = resolveClaudeAuto(
+    body,
+    options.isCompactionRequest === true,
+    options.autoDecider,
+    options.autoSettings ?? {},
+  );
+  return { targetModel: selection(model), kind, auto };
+}
+
+/**
+ * The model name a response reports. A request for Auto is answered with the
+ * name of the model that actually ran, so the harness - and the user reading
+ * its usage or status line - can see what Auto picked. Every other request
+ * keeps the name it asked for.
+ */
+export function servedModelName(
+  body: AnthropicMessagesRequest,
+  options: { modelId: string },
+  served: ResolvedClaudeModel,
+): string {
+  return isAutoModel(body.model) && served.definition.id !== AUTO_MODEL_ID
+    ? served.alias
+    : (body.model ?? options.modelId);
 }
 
 function selection(definition: ModelDefinition): ResolvedClaudeModel {

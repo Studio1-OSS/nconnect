@@ -1,3 +1,4 @@
+import { findModelById } from "@nconnect/models";
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import type { ModelDefinition } from "@nconnect/models";
@@ -265,6 +266,26 @@ export async function runProxiedSession(spec: ProxiedSessionSpec): Promise<Proxi
   return result;
 }
 
+/**
+ * One line naming each model a session ran on and what it cost, shown when it
+ * ran on more than one. Under Auto the harness only ever sees "Auto", so this
+ * is where the user finds out which models did the work.
+ */
+export function formatModelSplit(
+  totalsByModel: ReadonlyArray<{ model: string; costUsd: number }> | undefined,
+): string | undefined {
+  if (!totalsByModel || totalsByModel.length < 2) {
+    return undefined;
+  }
+  const parts = [...totalsByModel]
+    .sort((a, b) => b.costUsd - a.costUsd)
+    .map((row) => {
+      const name = (findModelById(row.model)?.name ?? row.model).split(" · ")[0];
+      return `${name} $${row.costUsd.toFixed(4)}`;
+    });
+  return `[nconnect cost] by model: ${parts.join(" · ")}`;
+}
+
 export async function printSessionCost(
   proxyUrl: string,
   authToken: string,
@@ -287,6 +308,10 @@ export async function printSessionCost(
       };
       if (summary) {
         process.stderr.write(`${summary}\n`);
+      }
+      const split = formatModelSplit(totalsByModel);
+      if (split) {
+        process.stderr.write(`${split}\n`);
       }
       return {
         ...(totals ? { usage: totals } : {}),

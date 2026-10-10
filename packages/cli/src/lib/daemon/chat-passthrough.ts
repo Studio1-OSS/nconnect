@@ -1,5 +1,6 @@
+import { decidedDifficulty, primeAutoDecider } from "../auto-decider.js";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { findModelById, type ModelDefinition } from "@nconnect/models";
+import { acceptsReasoningEffort, findModelById, type ModelDefinition } from "@nconnect/models";
 import { postChatCompletion, postChatCompletionStream } from "../nebius-client.js";
 import { readJsonBodyWithSize } from "../http-util.js";
 import type { SessionState } from "./state.js";
@@ -114,7 +115,7 @@ function billingModel(body: Record<string, unknown>, session: SessionState): Mod
  */
 export function resolveAutoRequest(
   body: Record<string, unknown>,
-  session: Pick<SessionState, "modelDefinition">,
+  session: Pick<SessionState, "modelDefinition" | "autoDecider" | "autoSettings">,
 ): { body: Record<string, unknown>; auto?: AutoDecision } {
   const requested = typeof body.model === "string" ? body.model : undefined;
   const unknown = requested === undefined || findModelById(requested) === undefined;
@@ -123,8 +124,32 @@ export function resolveAutoRequest(
   if (!isAuto) {
     return { body };
   }
-  const auto = isAutoModel(requested) ? decideAuto(chatAutoSignals(body)) : AUTO_HARNESS_CALL;
-  return { body: { ...body, model: autoTargetModel(auto).id }, auto };
+  const signals = chatAutoSignals(body);
+  // A request that offers the model no tools is not a turn of the coding
+  // agent: it is the harness's own utility call - a session title, a summary -
+  // made under whatever model the session uses. Seen with DeepSeek Harness,
+  // whose title request was judged like a task and sent to the middle tier.
+  const agentTurn = Array.isArray(body.tools) && body.tools.length > 0;
+  const auto =
+    isAutoModel(requested) && agentTurn
+      ? decideAuto(
+          { ...signals, difficulty: decidedDifficulty(session.autoDecider, signals.prompt) },
+          session.autoSettings,
+        )
+      : AUTO_HARNESS_CALL;
+  const target = autoTargetModel(auto, session.autoSettings, agentTurn ? signals : undefined);
+  return {
+    body: {
+      ...body,
+      model: target.id,
+      // Auto's suggested effort, only where the harness set none and the
+      // model takes one. An explicit choice by the harness is left alone.
+      ...(auto.effort && body.reasoning_effort === undefined && acceptsReasoningEffort(target.id)
+        ? { reasoning_effort: auto.effort }
+        : {}),
+    },
+    auto,
+  };
 }
 
 /** Add Auto to a model listing, for a harness that checks its model exists. */
@@ -178,7 +203,21 @@ export async function handleChatPassthrough(
   }
 
   const { body: parsed } = await readJsonBodyWithSize(req);
-  const routed = resolveAutoRequest((parsed ?? {}) as Record<string, unknown>, session);
+  const incoming = (parsed ?? {}) as Record<string, unknown>;
+  // Auto with a decider: ask it about a newly typed prompt before routing.
+  if (
+    session.autoDecider &&
+    isAutoModel(typeof incoming.model === "string" ? incoming.model : "") &&
+    Array.isArray(incoming.tools) &&
+    incoming.tools.length > 0
+  ) {
+    await primeAutoDecider(session.autoDecider, chatAutoSignals(incoming).prompt, {
+      nebiusApiKey: session.apiKey,
+      nebiusBaseUrl: session.baseUrl,
+      debug: session.debug,
+    });
+  }
+  const routed = resolveAutoRequest(incoming, session);
   const body = withUsageReporting(routed.body);
   const model = billingModel(body, session);
   if (routed.auto) {

@@ -1,4 +1,11 @@
-import { isUserModelChoice, resolveClaudeRequestRoute } from "./request-routing.js";
+import type { AutoSettings } from "../auto-model.js";
+import { claudeAutoSignals } from "./auto-routing.js";
+import { primeAutoDecider, type AutoDeciderConfig } from "../auto-decider.js";
+import {
+  isUserModelChoice,
+  resolveClaudeRequestRoute,
+  servedModelName,
+} from "./request-routing.js";
 import { NATIVE_IMAGE_LIMIT, sendsImagesNatively } from "./native-images.js";
 import { type IncomingMessage, type ServerResponse } from "node:http";
 import {
@@ -48,6 +55,10 @@ export type ClaudeProxyOptions = {
   authToken: string;
   /** Which integration owns the session; model choices are remembered per agent. */
   agent?: string | undefined;
+  /** Optional model-based judgement for Auto routing on this session. */
+  autoDecider?: AutoDeciderConfig | undefined;
+  /** How Auto behaves for this session. */
+  autoSettings?: AutoSettings | undefined;
   claudeCodeMaxOutputTokens?: number | undefined;
   claudeCodeMaxOutputTokensUserSet?: boolean | undefined;
   debug?: boolean | undefined;
@@ -207,6 +218,22 @@ export async function handleProxyRequest(
   if (compactionTuning.detected) {
     debugLog(options, "claude compaction request tuned", compactionTuning);
   }
+  // Auto with a decider: ask it about a newly typed prompt before routing.
+  // Tool-calling turns carry the same prompt and reuse the cached answer.
+  if (
+    options.autoDecider &&
+    isAutoModel(body.model) &&
+    isUserModelChoice(body) &&
+    !compactionTuning.detected
+  ) {
+    await perf.span("auto_decider", () =>
+      primeAutoDecider(options.autoDecider, claudeAutoSignals(body).prompt, {
+        nebiusApiKey: options.apiKey,
+        nebiusBaseUrl: options.baseUrl,
+        debug: options.debug,
+      }),
+    );
+  }
   const route = resolveClaudeRequestRoute(body, {
     ...options,
     isCompactionRequest: compactionTuning.detected,
@@ -299,7 +326,7 @@ export async function handleProxyRequest(
     }
   }
   const anthropicMessage = perf.spanSync("response_map", () =>
-    toAnthropicMessage(openAiResponse, body.model ?? options.modelId),
+    toAnthropicMessage(openAiResponse, servedModelName(body, options, route.targetModel)),
   );
 
   const delta = options.costTracker?.requestDelta;

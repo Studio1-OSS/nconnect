@@ -1,0 +1,4 @@
+{
+  "level": "easy",
+  "prompt": "Rename the function calc_area to rectangle_area everywhere in this project."
+}

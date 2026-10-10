@@ -1,0 +1,9 @@
+{
+  "level": "repo",
+  "commit": "0365c9b",
+  "tests": [
+    "packages/tests/src/ClaudeApi.test.ts",
+    "packages/tests/src/claude-auto-routing.test.ts"
+  ],
+  "prompt": "Two problems reported against Auto routing for Claude Code.\n\n1. On a default install, Auto sends every Claude Code request to the strong model. Claude Code sends `output_config.effort: \"high\"` on every request when the user has set nothing, and Auto reads that as the user asking for more thought. Only a level above that default (`xhigh` or `max`, whether it arrives as `effort` or as `output_config.effort`) should count as asking for the strong model. With the default level, the task itself must still decide: \"Reply with exactly: OK\" is routine and goes to the fast tier, \"debug the crash\" is still a hard task.\n\n2. The bounded compaction prompt we send upstream asks only for coding state, so a summary can drop things the user told the agent to remember. Add one more numbered item to that prompt, beginning with the words \"Standing instructions from the user\".\n\nThis is a pnpm monorepo. Run one test file with `cd packages/tests && node_modules/.bin/vitest run src/<file>.test.ts`; do not run the whole suite. packages/cli imports @nconnect/models from its build output, so after changing packages/models run `node_modules/.bin/tsc -p packages/models/tsconfig.json` from the repository root. Dependencies are already installed: never run pnpm, npm or any install command. Do not bump versions or edit CHANGELOG or the site/ folder."
+}

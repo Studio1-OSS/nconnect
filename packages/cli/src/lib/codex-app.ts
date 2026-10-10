@@ -1,3 +1,5 @@
+import { autoSettingsFromEnv } from "./auto-model.js";
+import { autoDeciderFromEnv } from "./auto-decider.js";
 import { constants as fsConstants } from "node:fs";
 import { access, copyFile, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -88,6 +90,7 @@ export async function runCodexAppCommand(ctx: HarnessContext): Promise<HarnessRe
   const agentProxyUrl = daemonSessionUrl(proxyUrl, sessionToken);
   const catalogPath = await writePersistentModelCatalog(ctx.home);
 
+  const decider = autoDeciderFromEnv().config;
   const registration: RegisterSessionRequest = {
     token: sessionToken,
     authToken,
@@ -98,6 +101,10 @@ export async function runCodexAppCommand(ctx: HarnessContext): Promise<HarnessRe
     targetModelId: selectedModel.definition.id,
     modelName: selectedModel.definition.name,
     modelDefinition: selectedModel.definition,
+    // Kept in the persisted registration too, so the route still has its
+    // decider after the daemon restarts and rebuilds it from disk.
+    ...(decider ? { autoDecider: decider } : {}),
+    autoSettings: autoSettingsFromEnv(),
     ...(process.env.NCONNECT_DEBUG === "1" ? { debug: true } : {}),
   };
   await registerDaemonSession(proxyUrl, registration);

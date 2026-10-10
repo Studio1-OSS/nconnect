@@ -3,6 +3,50 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
+## 0.23.0 - 2026-10-09
+
+### Added
+
+- Auto has three tiers instead of two: fast (GLM 5.3 Flash), balanced
+  (GLM 5.3) and strong (Kimi K3). A moderate task no longer has to choose
+  between the cheapest model and the most expensive one.
+- Auto can let a model judge how hard a task is, instead of keyword rules. Set
+  `NCONNECT_AUTO_DECIDER` to `nebius` (a small Nebius model answering in one
+  token, nothing else to set up), `jev` (TypeSafe's hosted Jev model, with
+  `TYPESAFE_API_KEY`) or `laya` (the open Laya model run locally with
+  `laya-serve`). The decider is asked once per typed prompt, the tool calls
+  that follow reuse its answer, and the keyword rules take over when it is
+  slow, down or unsure. On 34 labelled prompts across the three tiers the
+  keyword rules picked the right tier 11 times; the Nebius model and Jev each
+  picked it 31 times.
+- Each Auto tier is now a list of candidates, and Auto uses the first one that
+  can do what the task needs. A balanced task that carries an image goes to
+  Kimi K2.6 rather than the text-only GLM 5.3. The tier settings accept
+  lists and wildcards (`*flash*`, `moonshotai/*`), `NCONNECT_AUTO_MODELS` is
+  an allow list, and `NCONNECT_AUTO_EXCLUDED_MODELS` an exclude list that
+  always wins.
+- A benchmark for Auto lives in `packages/tests/benchmarks/auto-routing`:
+  twelve coding tasks with hidden tests, run on fast-only, strong-only and
+  Auto. On its first run the fast model alone matched Auto's pass rate at a
+  sixteenth of the cost; see its README before relying on Auto to save money.
+- `NCONNECT_AUTO_COST_TIER` (`low`, `medium`, `high`) sets how readily Auto
+  pays for a bigger model.
+- `NCONNECT_AUTO_PER_TURN=on` lets the follow-up turns of a task run one tier
+  down once it is under way, and back up after a failed tool call. Off by
+  default.
+- Auto raises the reasoning effort on the first turn of a harder task, for
+  models that take one. `NCONNECT_AUTO_EFFORT=off` turns that off.
+- The cost line printed when a session ends lists each model it ran on, so
+  you can see what Auto picked. Responses also name the model that ran.
+
+### Changed
+
+- With the default keyword rules, a long prompt now earns the balanced tier
+  rather than the strong one.
+- Auto's settings, including the tier models, are read from the environment
+  you launch from and travel with the session. They used to be read from the
+  daemon's environment, which could be stale.
+
 ## 0.22.3 - 2026-10-08
 
 ### Fixed

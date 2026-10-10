@@ -1,0 +1,4 @@
+{
+  "level": "easy",
+  "prompt": "Implement slugify in textutil.py as its docstring describes."
+}

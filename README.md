@@ -130,7 +130,7 @@ The default coding model is **GLM 5.3 Flash** (Z.ai): a 1M-context hybrid reason
 
 ### Auto: a model per task
 
-`nconnect --model auto <harness>` lets NConnect pick the model for each task instead of using one model for everything. It works with every harness: Claude Code, Codex, ChatGPT Desktop, OpenCode, Pi, Prime, Hermes, DeepSeek Harness, Grok Build and Unreal Agent.
+`nconnect --model auto <harness>` lets NConnect pick the model for each task instead of using one model for everything. It works with every harness: Claude Code, Codex, ChatGPT Desktop, Claude Desktop, OpenCode, Pi, Prime, Hermes, DeepSeek Harness, Grok Build and Unreal Agent.
 
 ```bash
 nconnect --model auto claude
@@ -138,17 +138,81 @@ nconnect --model auto codex
 nconnect --model auto opencode
 ```
 
-Routine work runs on the fast default (GLM 5.3 Flash). Work that needs it runs on the strong model (Kimi K3), which costs about 20x more per token. Claude Code, Codex and Unreal remember the choice, so later launches stay on Auto until you pass another `--model`.
+Auto chooses between three tiers:
 
-A task is everything since your last prompt, so the tool calls that follow a prompt stay on the model that prompt was routed to. A task goes to the strong model when:
+| Tier     | Model         | Input price per M tokens | Used for                       |
+| -------- | ------------- | ------------------------ | ------------------------------ |
+| Fast     | GLM 5.3 Flash | $0.15                    | Routine work                   |
+| Balanced | GLM 5.3       | $1.40                    | Work that takes some thought   |
+| Strong   | Kimi K3       | $3.00                    | Work that is hard to get right |
 
-- You raise the effort level above the default (max in Claude Code, high in Codex), or ask for deep thinking ("ultrathink", "think hard").
-- The prompt names hard work: debugging, root-cause analysis, architecture, refactors, migrations, concurrency, security or performance work.
-- The prompt is long, such as a pasted spec or stack trace.
-- The task is stuck: three or more tool calls have failed since the prompt.
-- Claude Code is in plan mode. Other harnesses do not report their mode.
+A task is everything since your last prompt, so the tool calls that follow a prompt stay on the tier that prompt earned. Claude Code, Codex and Unreal remember Auto, so later launches stay on it until you pass another `--model`.
 
-Routing is decided locally inside the NConnect daemon, with no extra model call. A harness's own background calls, such as Codex's memory agent, always use the fast model. OpenCode, Pi, Prime, Hermes, DeepSeek Harness and Grok Build normally talk to Nebius directly; on Auto they go through the daemon, so it must be running. Set `NCONNECT_AUTO_FAST_MODEL` or `NCONNECT_AUTO_STRONG_MODEL` to change either model. `nconnect usage` shows the spend split by model.
+How a task gets its tier:
+
+- **You asked outright.** Plan mode in Claude Code, an effort level above the default (max in Claude Code, high in Codex), or asking for deep thinking ("ultrathink", "think hard") goes to the strong tier.
+- **Keyword rules** (the default). A hard-work word such as debug, root cause, refactor, migrate or race condition earns the strong tier. A long prompt, such as a pasted spec, earns the balanced tier.
+- **A model's judgement**, if you turn on a decider (next section). It is far more accurate than keywords.
+- **A stuck task** escalates: three or more failed tool calls since the prompt.
+
+Options, all set in the environment you launch from:
+
+| Setting                                                                                  | What it does                                                                                                                                                                                                                               |
+| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `NCONNECT_AUTO_COST_TIER`                                                                | `low`, `medium` (default) or `high`. `low` asks for more evidence before paying for a bigger model; `high` asks for less.                                                                                                                  |
+| `NCONNECT_AUTO_PER_TURN=on`                                                              | Off by default. Once a task is two turns in and nothing is failing, its follow-up turns run one tier down: a strong model reads the problem and plans, a cheaper one carries the plan out. A failed tool call sends the next turn back up. |
+| `NCONNECT_AUTO_EFFORT=off`                                                               | By default Auto also raises the reasoning effort on the first turn of a harder task, for models that take one. This turns that off.                                                                                                        |
+| `NCONNECT_AUTO_FAST_MODEL`, `NCONNECT_AUTO_BALANCED_MODEL`, `NCONNECT_AUTO_STRONG_MODEL` | The candidates for a tier, most preferred first: a model id, a wildcard such as `*flash*` or `moonshotai/*`, or several separated by commas.                                                                                               |
+| `NCONNECT_AUTO_MODELS`                                                                   | Allow list. Only models matching one of these patterns may be picked. Ignored for a tier it would leave empty.                                                                                                                             |
+| `NCONNECT_AUTO_EXCLUDED_MODELS`                                                          | Exclude list. Models matching one of these patterns are never picked. Always wins.                                                                                                                                                         |
+
+Each tier is a short list of candidates, not a single model. Auto uses the first one that can do what the task needs. The balanced tier's first choice, GLM 5.3, cannot read images, so a balanced task that carries an image goes to Kimi K2.6, which costs about the same and can. If nothing in a tier fits, Auto looks one tier up.
+
+```bash
+# Keep Auto on one provider's models, and never use Kimi K2.6
+NCONNECT_AUTO_MODELS="zai-org/*" NCONNECT_AUTO_EXCLUDED_MODELS="moonshotai/Kimi-K2.6" nconnect --model auto claude
+
+# Your own strong tier, in order of preference
+NCONNECT_AUTO_STRONG_MODEL="moonshotai/Kimi-K3,deepseek-ai/DeepSeek-V4-Pro-0813" nconnect --model auto codex
+```
+
+To see what Auto picked: the cost line printed when a session ends lists each model it ran on (`[nconnect cost] by model: Kimi K3 $0.0840 · GLM 5.3 $0.0815`), and `nconnect usage` shows the same split over time. Responses also carry the name of the model that ran, though Claude Code keeps showing "Auto" in its own display.
+
+Routing is decided inside the NConnect daemon. A harness's own background calls, such as Codex's memory agent, always use the fast model. OpenCode, Pi, Prime, Hermes, DeepSeek Harness and Grok Build normally talk to Nebius directly; on Auto they go through the daemon, so it must be running.
+
+#### Smarter Auto: let a model judge the task (optional)
+
+By default Auto guesses how hard a task is from keywords and prompt length. That misses most hard tasks, which rarely contain a word like "debug", and it cannot tell a moderate task from a routine one. You can have a model make that one judgement instead. It applies to Auto only, and your explicit signals (plan mode, a raised effort level, asking to think hard) still win.
+
+| `NCONNECT_AUTO_DECIDER` | What judges the task                                                          | Needs                                                | Where your prompt goes              |
+| ----------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------------- |
+| unset                   | Keyword rules                                                                 | nothing                                              | nowhere                             |
+| `nebius`                | A small Nebius model, answering in one token                                  | nothing extra                                        | Nebius, as the request already does |
+| `jev`                   | [Jev](https://typesafe.ai), TypeSafe's hosted decision model                  | `TYPESAFE_API_KEY`                                   | TypeSafe                            |
+| `laya`                  | [Laya](https://github.com/NandhaKishorM/laya), an open model you run yourself | `pip install "laya[serve]"` and `laya-serve` running | stays on your machine               |
+
+```bash
+NCONNECT_AUTO_DECIDER=nebius nconnect --model auto claude
+TYPESAFE_API_KEY=... NCONNECT_AUTO_DECIDER=jev nconnect --model auto codex
+NCONNECT_AUTO_DECIDER=laya nconnect --model auto opencode
+```
+
+The decider is asked once per prompt you type. The tool calls that follow reuse the answer, so only a task's first request waits. If the decider is down or has no answer, the keyword rules decide. If it is merely slow (over 2.5 seconds), the first turn goes by the keyword rules and the answer is used from the next turn on.
+
+On a set of 34 labelled prompts (12 routine, 10 moderate, 12 hard), written to include cases keywords get wrong:
+
+| Decider                | Exact tier, of 34        | Off by two tiers | Typical wait |
+| ---------------------- | ------------------------ | ---------------- | ------------ |
+| Keyword rules          | 11                       | 13               | none         |
+| `nebius` (Gemma 3 27B) | 31                       | 1                | about 0.5 s  |
+| `jev` (1.13.0)         | 31                       | 0                | about 0.4 s  |
+| `laya`                 | not measured on this set | not measured     | about 50 ms  |
+
+Laya is asked a two-way question, routine or hard, because given three options it called nearly everything moderate. On an earlier two-way set it got 25 of 28; its answers sit close to the middle, so expect it to use the balanced tier often.
+
+That is a small set and it measures agreement with labels, not whether routing saves money on real work. A confident claim inside a prompt ("this is a trivial one-line change") can talk every model-based decider into a cheaper tier.
+
+Other settings: `NCONNECT_AUTO_DECIDER_MODEL` (the Nebius model, Jev model or Laya checkpoint), `NCONNECT_AUTO_DECIDER_URL` (the Jev or Laya endpoint; Laya defaults to `http://127.0.0.1:8000/v1/systemone`), `NCONNECT_AUTO_DECIDER_TIMEOUT_MS` (default 2500), and `LAYA_API_KEY` for a protected Laya server.
 
 | Model                         | Best for                     | Context | Vision |
 | ----------------------------- | ---------------------------- | ------- | ------ |
@@ -221,8 +285,15 @@ Claude Code and Codex expose a native `web_search` tool. Nebius has no hosted se
 | `NCONNECT_MODELS_DEV`           | `off` to stop enriching the model catalog with [models.dev](https://models.dev/providers/nebius) metadata (tool/reasoning flags, release dates for ordering). The live Nebius list is always the source of what exists.                                                                                                  |
 | `NCONNECT_BACKGROUND_MODEL`     | Model for Claude Code's background calls - the auto-mode safety classifier (one per shell command, normally sent to the expensive Sonnet tier) and the session title. Default: the catalog default (GLM 5.3 Flash); `off` keeps Claude Code's own choice. Read when the daemon starts (`nconnect daemon stop` to apply). |
 | `NCONNECT_CLAUDE_IMAGES`        | `describe` makes Claude Code always turn images into a text description from a vision model, even when the selected model can see. By default, vision-capable models receive images directly.                                                                                                                            |
-| `NCONNECT_AUTO_FAST_MODEL`      | Model that `--model auto` uses for routine tasks. Default: the catalog default, GLM 5.3 Flash.                                                                                                                                                                                                                           |
-| `NCONNECT_AUTO_STRONG_MODEL`    | Model that `--model auto` uses for hard tasks. Default: Kimi K3.                                                                                                                                                                                                                                                         |
+| `NCONNECT_AUTO_DECIDER`         | `nebius`, `jev` or `laya`: let a model judge how hard each Auto task is, instead of keyword rules. See "Smarter Auto" above.                                                                                                                                                                                             |
+| `NCONNECT_AUTO_FAST_MODEL`      | Candidates for Auto's fast tier: ids, wildcards, comma-separated. Default: GLM 5.3 Flash, then DeepSeek V4.1 Flash.                                                                                                                                                                                                      |
+| `NCONNECT_AUTO_BALANCED_MODEL`  | Candidates for Auto's balanced tier. Default: GLM 5.3, then Kimi K2.6.                                                                                                                                                                                                                                                   |
+| `NCONNECT_AUTO_STRONG_MODEL`    | Candidates for Auto's strong tier. Default: Kimi K3.                                                                                                                                                                                                                                                                     |
+| `NCONNECT_AUTO_MODELS`          | Allow list of model patterns for Auto.                                                                                                                                                                                                                                                                                   |
+| `NCONNECT_AUTO_EXCLUDED_MODELS` | Exclude list of model patterns for Auto. Always wins.                                                                                                                                                                                                                                                                    |
+| `NCONNECT_AUTO_COST_TIER`       | `low`, `medium` (default) or `high`: how readily Auto pays for a bigger model.                                                                                                                                                                                                                                           |
+| `NCONNECT_AUTO_PER_TURN`        | `on` lets the follow-up turns of a task run one tier down. Off by default.                                                                                                                                                                                                                                               |
+| `NCONNECT_AUTO_EFFORT`          | `off` stops Auto raising reasoning effort on the first turn of a harder task.                                                                                                                                                                                                                                            |
 | `NCONNECT_REASONING_HISTORY`    | `full` (default) \| `interleaved` \| `off`. How much of previous turns' reasoning is replayed each turn. `off` is cheapest on long sessions; current-turn reasoning is never affected.                                                                                                                                   |
 | `NCONNECT_CODEX_MEMORY_MODEL`   | Model used to summarize Codex task traces for durable memory. Defaults to MiniMax M3.                                                                                                                                                                                                                                    |
 

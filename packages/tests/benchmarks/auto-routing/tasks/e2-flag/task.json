@@ -1,0 +1,4 @@
+{
+  "level": "easy",
+  "prompt": "Add an --upper flag to cli.py that makes the greeting uppercase."
+}

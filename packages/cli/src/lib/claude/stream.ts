@@ -1,3 +1,4 @@
+import { servedModelName } from "./request-routing.js";
 import { sendsImagesNatively } from "./native-images.js";
 import { resolveClaudeRequestRoute } from "./request-routing.js";
 import { randomUUID } from "node:crypto";
@@ -76,7 +77,8 @@ export async function streamAnthropicFromNebius(
   // rather than duplicating the whole translation body across the spanSync and
   // fallback branches. Behavior is unchanged.
   const run = () => {
-    const targetModel = resolveClaudeRequestRoute(body, options).targetModel;
+    const route = resolveClaudeRequestRoute(body, options);
+    const targetModel = route.targetModel;
     const messages = toOpenAIMessages(
       body,
       targetModel.definition,
@@ -89,7 +91,7 @@ export async function streamAnthropicFromNebius(
     const tools = toOpenAITools(body.tools, options);
     const reasoningEffort = options.isCompactionRequest
       ? undefined
-      : nebiusReasoningEffort(body, targetModel.definition);
+      : nebiusReasoningEffort(body, targetModel.definition, route.auto?.effort);
     const maxTokens = clampClaudeClientMaxTokens(body.max_tokens, targetModel.definition, options);
     return {
       targetModel,
@@ -193,7 +195,7 @@ export async function streamAnthropicFromNebius(
   res.socket?.setNoDelay(true);
 
   const messageId = `msg_${randomUUID().replaceAll("-", "")}`;
-  const model = body.model ?? options.modelId;
+  const model = servedModelName(body, options, targetModel);
   // Start the stream with an empty message; content blocks are added as the
   // upstream emits them. usage is filled in from the final usage chunk (or
   // stays 0 if Nebius omits it despite include_usage).

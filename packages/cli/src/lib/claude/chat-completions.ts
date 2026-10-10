@@ -55,7 +55,8 @@ export async function callNebiusChatCompletions(
 ): Promise<OpenAIChatResponse> {
   const translated =
     perf?.spanSync("translate_request", () => {
-      const targetModel = resolveClaudeRequestRoute(body, options).targetModel;
+      const route = resolveClaudeRequestRoute(body, options);
+      const targetModel = route.targetModel;
       const nativeTools = nativeServerTools(body.tools);
       const messages = toOpenAIMessages(
         body,
@@ -64,10 +65,11 @@ export async function callNebiusChatCompletions(
         sendsImagesNatively(targetModel.definition),
       );
       const tools = toOpenAITools(body.tools, options);
-      return { targetModel, nativeTools, messages, tools };
+      return { targetModel, nativeTools, messages, tools, autoEffort: route.auto?.effort };
     }) ??
     (() => {
-      const targetModel = resolveClaudeRequestRoute(body, options).targetModel;
+      const route = resolveClaudeRequestRoute(body, options);
+      const targetModel = route.targetModel;
       const nativeTools = nativeServerTools(body.tools);
       const messages = toOpenAIMessages(
         body,
@@ -76,9 +78,9 @@ export async function callNebiusChatCompletions(
         sendsImagesNatively(targetModel.definition),
       );
       const tools = toOpenAITools(body.tools, options);
-      return { targetModel, nativeTools, messages, tools };
+      return { targetModel, nativeTools, messages, tools, autoEffort: route.auto?.effort };
     })();
-  const { targetModel, nativeTools, messages, tools } = translated;
+  const { targetModel, nativeTools, messages, tools, autoEffort } = translated;
   const nativeToolNames = new Set(nativeTools.map((tool) => tool.name));
   const nativeToolUses = new Map<string, number>();
   const nativeWebSearches: ClaudeNativeWebSearchRecord[] = [];
@@ -86,7 +88,7 @@ export async function callNebiusChatCompletions(
   for (let turn = 0; turn < 5; turn += 1) {
     const reasoningEffort = options.isCompactionRequest
       ? undefined
-      : nebiusReasoningEffort(body, targetModel.definition);
+      : nebiusReasoningEffort(body, targetModel.definition, autoEffort);
     const maxTokens = clampClaudeClientMaxTokens(body.max_tokens, targetModel.definition, options);
     const payload = {
       model: targetModel.definition.id,

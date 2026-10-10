@@ -8,7 +8,12 @@ import {
   findModelById,
 } from "@nconnect/models";
 
-import { AUTO_MODEL_ALIAS, autoModelDefinition, isAutoModel } from "../auto-model.js";
+import {
+  AUTO_MODEL_ALIAS,
+  autoModelDefinition,
+  isAutoModel,
+  type AutoSettings,
+} from "../auto-model.js";
 
 export {
   AUTO_FAST_MODEL_ENV,
@@ -55,8 +60,8 @@ export function getClaudeSupportedModels(): readonly ClaudeModelSelection[] {
  * the real models but kept out of `getClaudeSupportedModels`, so it never
  * fills one of Claude Code's tiers.
  */
-export function autoModelSelection(env: NodeJS.ProcessEnv = process.env): ClaudeModelSelection {
-  return { alias: AUTO_MODEL_ALIAS, definition: autoModelDefinition(env) };
+export function autoModelSelection(settings?: AutoSettings): ClaudeModelSelection {
+  return { alias: AUTO_MODEL_ALIAS, definition: autoModelDefinition(settings) };
 }
 
 export function resolveClaudeModel(value: string | undefined): ClaudeModelSelection {

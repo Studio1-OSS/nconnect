@@ -1,0 +1,4 @@
+{
+  "level": "hard",
+  "prompt": "resolve() in resolver.py sometimes puts a package before something it depends on, and it blows up on circular dependencies instead of reporting them. Fix it so it matches the docstrings."
+}

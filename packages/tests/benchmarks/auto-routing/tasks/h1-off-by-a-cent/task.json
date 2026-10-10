@@ -1,0 +1,4 @@
+{
+  "level": "hard",
+  "prompt": "The checkout total is sometimes off by a cent for carts with percentage discounts. Find out what is going on and fix it. README.md has the pricing rules."
+}
