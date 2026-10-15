@@ -309,6 +309,18 @@ describe("per-turn stepping (opt-in)", () => {
       ],
     });
     expect(signals).toMatchObject({ prompt: "implement the parser", taskTurns: 2, toolErrors: 1 });
+    const empty = claudeAutoSignals({
+      messages: [
+        { role: "user", content: "add a flag" },
+        { role: "assistant", content: "" },
+        {
+          role: "user",
+          content:
+            "[Your previous response had no visible output. Please continue and produce a user-visible response.]",
+        },
+      ],
+    });
+    expect(empty).toMatchObject({ prompt: "add a flag", taskTurns: 1 });
   });
 
   test("a call the permission rules refused does not count as a failure", () => {

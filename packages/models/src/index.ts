@@ -268,10 +268,16 @@ export const REASONING_EFFORT_MODEL_IDS: ReadonlySet<string> = new Set([
  * GLM 5.3 ignores "none" and reasons in full (1,682 reasoning tokens on a
  * small coding prompt, against 2,249 with no effort sent); "low" all but
  * stops it (6). Measured on Nebius, 2026-10-15.
+ *
+ * DeepSeek V4 Flash 0731 does stop reasoning at "none", but then degenerates
+ * on agentic turns: in Claude Code it invented context and looped for 17k and
+ * 28k output tokens in a single reply, ending in tool calls written as text.
+ * "low" reasons briefly (about 300 tokens) and stays on task.
  */
 const MIN_REASONING_EFFORT: Record<string, string> = {
   "zai-org/GLM-5.3-Flash": "low",
   "zai-org/GLM-5.3": "low",
+  "deepseek-ai/DeepSeek-V4-Flash-0731": "low",
 };
 
 /**

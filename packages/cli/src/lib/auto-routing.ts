@@ -257,11 +257,13 @@ const USER_QUERY = /<user_query>([\s\S]*?)<\/user_query>/g;
 
 /**
  * Turns a harness sends on its own to keep a task going. Claude Code sends the
- * first when a reply runs out of output tokens (verified on 2.1.299). Read as
- * a prompt, it started a new task: the decider was asked about the nudge
- * instead of the task, and the task could change model halfway through.
+ * first when a reply runs out of output tokens and the second after a reply
+ * with no visible text (both verified on 2.1.299). Read as a prompt, either
+ * started a new task: the decider was asked about the nudge instead of the
+ * task, and the task could change model halfway through.
  */
-const HARNESS_CONTINUATION = /^Output token limit hit\. Resume directly\b/;
+const HARNESS_CONTINUATION =
+  /^(?:Output token limit hit\. Resume directly\b|\[Your previous response had no visible output\. Please continue\b)/;
 
 /** What the user typed, with injected context blocks removed. */
 export function typedPromptText(text: string): string {
