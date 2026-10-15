@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import {
   acceptsReasoningEffort,
   minimumReasoningEffort,
+  noReasoningTemplateArgs,
   findModelById,
   MINIMAX_M3,
   type ModelDefinition,
@@ -107,7 +108,10 @@ export function toChatPayload(
     tool_choice: toChatToolChoice(body.tool_choice, toolTranslation),
     response_format: toChatResponseFormat(body.text),
     ...(translatedReasoningEffort ? { reasoning_effort: translatedReasoningEffort } : {}),
-    chat_template_kwargs: { clear_thinking: currentReasoningHistoryPolicy().clearThinking },
+    chat_template_kwargs: {
+      clear_thinking: currentReasoningHistoryPolicy().clearThinking,
+      ...noReasoningTemplateArgs(requestModel.targetModelId, translatedReasoningEffort),
+    },
     stream,
     ...(stream ? { stream_options: { include_usage: true } } : {}),
   };

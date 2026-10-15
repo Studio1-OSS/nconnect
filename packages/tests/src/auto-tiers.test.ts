@@ -288,6 +288,58 @@ describe("per-turn stepping (opt-in)", () => {
     });
     expect(claude).toMatchObject({ taskTurns: 2, toolErrors: 1, lastTurnFailed: true });
   });
+
+  test("Claude Code's output-limit nudge continues the task instead of starting one", () => {
+    const signals = claudeAutoSignals({
+      messages: [
+        { role: "user", content: "implement the parser" },
+        { role: "assistant", content: [{ type: "tool_use", id: "a", name: "Bash", input: {} }] },
+        {
+          role: "user",
+          content: [
+            { type: "tool_result", tool_use_id: "a", content: "Exit code 1", is_error: true },
+          ],
+        },
+        { role: "assistant", content: "partial" },
+        {
+          role: "user",
+          content:
+            "Output token limit hit. Resume directly — no apology, no recap of what you were doing. Pick up mid-thought if that is where the cut happened. Break remaining work into smaller pieces.",
+        },
+      ],
+    });
+    expect(signals).toMatchObject({ prompt: "implement the parser", taskTurns: 2, toolErrors: 1 });
+  });
+
+  test("a call the permission rules refused does not count as a failure", () => {
+    const refusals = [
+      "This command requires approval",
+      "This Bash command contains multiple operations. The following part requires approval: npm test",
+      "Claude requested permissions to write to /tmp/x.ts, but you haven't granted it yet.",
+      "Contains brace with quote character (expansion obfuscation)",
+    ];
+    const messages: AnthropicMessage[] = [{ role: "user", content: "task" }];
+    refusals.forEach((content, i) => {
+      messages.push({
+        role: "assistant",
+        content: [{ type: "tool_use", id: `r${i}`, name: "Bash", input: {} }],
+      });
+      messages.push({
+        role: "user",
+        content: [{ type: "tool_result", tool_use_id: `r${i}`, content, is_error: true }],
+      });
+    });
+    expect(claudeAutoSignals({ messages }).toolErrors).toBe(0);
+    expect(
+      chatAutoSignals({
+        messages: [
+          { role: "user", content: "task" },
+          { role: "tool", content: "Error: This command requires approval" },
+          { role: "tool", content: "This command requires approval" },
+        ],
+      }).toolErrors,
+    ).toBe(1);
+  });
 });
 
 describe("showing what Auto picked", () => {

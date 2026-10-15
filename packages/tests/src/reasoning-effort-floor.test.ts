@@ -4,6 +4,7 @@ import {
   findModelById,
   getDefaultModel,
   minimumReasoningEffort,
+  noReasoningTemplateArgs,
 } from "../../models/src/index.js";
 import { nebiusReasoningEffort } from "../../cli/src/lib/claude/translate-request.js";
 import type { AnthropicMessagesRequest } from "../../cli/src/lib/claude/wire-types.js";
@@ -23,6 +24,17 @@ describe("reasoning-effort floor", () => {
   test("the default model declares a floor above none", () => {
     expect(minimumReasoningEffort(FLASH)).toBe("low");
     expect(getDefaultModel().id).toBe(FLASH);
+  });
+
+  test("GLM 5.3 ignores none, so it is raised to low, which does stop it", () => {
+    expect(acceptsReasoningEffort("zai-org/GLM-5.3")).toBe(true);
+    expect(minimumReasoningEffort("zai-org/GLM-5.3")).toBe("low");
+  });
+
+  test("Kimi K2.6 turns reasoning off through its template at effort none", () => {
+    expect(noReasoningTemplateArgs("moonshotai/Kimi-K2.6", "none")).toEqual({ thinking: false });
+    expect(noReasoningTemplateArgs("moonshotai/Kimi-K2.6", "high")).toEqual({});
+    expect(noReasoningTemplateArgs("moonshotai/Kimi-K3", "none")).toEqual({});
   });
 
   test("models without the quirk are unconstrained", () => {

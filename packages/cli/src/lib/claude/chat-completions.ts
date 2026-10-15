@@ -1,7 +1,7 @@
 import { sendsImagesNatively } from "./native-images.js";
 import { resolveClaudeRequestRoute } from "./request-routing.js";
 import { randomUUID } from "node:crypto";
-import { type ModelDefinition } from "@nconnect/models";
+import { noReasoningTemplateArgs, type ModelDefinition } from "@nconnect/models";
 import type { WebSearchOutcome } from "../tavily-search.js";
 import { runNativeWebSearchCall } from "../native-web-search.js";
 import { writeProxyDebugLog } from "../proxy-debug.js";
@@ -109,6 +109,9 @@ export async function callNebiusChatCompletions(
       chat_template_kwargs: {
         clear_thinking:
           options.isCompactionRequest === true || currentReasoningHistoryPolicy().clearThinking,
+        ...(options.isCompactionRequest
+          ? {}
+          : noReasoningTemplateArgs(targetModel.definition.id, reasoningEffort)),
       },
       stream: false,
     };
