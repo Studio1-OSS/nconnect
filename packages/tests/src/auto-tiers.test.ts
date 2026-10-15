@@ -321,6 +321,26 @@ describe("per-turn stepping (opt-in)", () => {
       ],
     });
     expect(empty).toMatchObject({ prompt: "add a flag", taskTurns: 1 });
+    // Claude Code merges the nudges into the message that holds the prompt.
+    const merged = claudeAutoSignals({
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "add a flag" },
+            {
+              type: "text",
+              text: "[Your previous response had no visible output. Please continue and produce a user-visible response.]",
+            },
+            {
+              type: "text",
+              text: "Output token limit hit. Resume directly — no apology, no recap of what you were doing.",
+            },
+          ],
+        },
+      ],
+    });
+    expect(merged.prompt).toBe("add a flag");
   });
 
   test("a call the permission rules refused does not count as a failure", () => {

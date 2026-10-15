@@ -258,17 +258,21 @@ const USER_QUERY = /<user_query>([\s\S]*?)<\/user_query>/g;
 /**
  * Turns a harness sends on its own to keep a task going. Claude Code sends the
  * first when a reply runs out of output tokens and the second after a reply
- * with no visible text (both verified on 2.1.299). Read as a prompt, either
- * started a new task: the decider was asked about the nudge instead of the
- * task, and the task could change model halfway through.
+ * with no visible text (both verified on 2.1.299), and it merges them into the
+ * user message that holds the prompt. Read as part of the prompt, either one
+ * made a new task: the decider was asked again, and the task could change
+ * model halfway through.
  */
 const HARNESS_CONTINUATION =
-  /^(?:Output token limit hit\. Resume directly\b|\[Your previous response had no visible output\. Please continue\b)/;
+  /Output token limit hit\. Resume directly\b[^\n]*|\[Your previous response had no visible output\.[^\]\n]*\]/g;
 
-/** What the user typed, with injected context blocks removed. */
+/** What the user typed, with injected context blocks and harness nudges removed. */
 export function typedPromptText(text: string): string {
-  const typed = text.replace(INJECTED_BLOCK, "").replace(USER_QUERY, "$1").trim();
-  return HARNESS_CONTINUATION.test(typed) ? "" : typed;
+  return text
+    .replace(INJECTED_BLOCK, "")
+    .replace(USER_QUERY, "$1")
+    .replace(HARNESS_CONTINUATION, "")
+    .trim();
 }
 
 /**
