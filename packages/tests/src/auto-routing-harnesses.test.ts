@@ -14,7 +14,7 @@ import { resolveAutoRequest } from "../../cli/src/lib/daemon/chat-passthrough.js
 import { buildOpencodeConfigJson } from "../../cli/src/lib/opencode/core.js";
 
 const KIMI_K3_ID = "moonshotai/Kimi-K3";
-const FAST_ID = getDefaultModel().id;
+const FAST_ID = "deepseek-ai/DeepSeek-V4-Flash-0731";
 const autoSession = { modelDefinition: autoModelDefinition() };
 const plainSession = { modelDefinition: GLM_5_2 };
 const decide = (messages: unknown[], extra: Record<string, unknown> = {}) =>
@@ -227,7 +227,7 @@ describe("Codex, ChatGPT Desktop and Unreal on Auto", () => {
 
   test("offers Auto in the Codex picker, after the default", () => {
     const slugs = codexModelCatalog().models.map((model) => model.slug);
-    expect(slugs[0]).toBe(FAST_ID);
+    expect(slugs[0]).toBe(getDefaultModel().id);
     expect(slugs.filter((slug) => slug === AUTO_MODEL_ID)).toHaveLength(1);
   });
 });

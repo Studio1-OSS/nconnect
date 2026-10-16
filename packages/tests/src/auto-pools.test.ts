@@ -14,7 +14,8 @@ import { claudeAutoSignals } from "../../cli/src/lib/claude/auto-routing.js";
 import { resolveClaudeRequestRoute } from "../../cli/src/lib/claude/request-routing.js";
 import { resolveAutoRequest } from "../../cli/src/lib/daemon/chat-passthrough.js";
 
-const FAST = getDefaultModel().id;
+const FAST = "deepseek-ai/DeepSeek-V4-Flash-0731";
+const GLM_FLASH = getDefaultModel().id;
 const GLM_53 = "zai-org/GLM-5.3";
 const K26 = "moonshotai/Kimi-K2.6";
 const K3 = "moonshotai/Kimi-K3";
@@ -23,14 +24,15 @@ const ids = (pool: Array<{ id: string }>) => pool.map((model) => model.id);
 describe("Auto's model pools", () => {
   test("each tier has a first choice and an alternate for what it cannot do", () => {
     const pools = autoPools({});
-    expect(pools.fast[0]?.id).toBe(FAST);
-    // GLM 5.3 reads no images; Kimi K2.6 costs about the same and does.
-    expect(ids(pools.balanced)).toEqual([GLM_53, K26]);
-    expect(pools.balanced[0]?.attachment).toBe(false);
-    expect(pools.balanced[1]?.attachment).toBe(true);
+    // DeepSeek V4 Flash 0731 reads no images; GLM 5.3 Flash does.
+    expect(ids(pools.fast)).toEqual([FAST, GLM_FLASH]);
+    expect(pools.fast[0]?.attachment).toBe(false);
+    expect(pools.fast[1]?.attachment).toBe(true);
+    // Kimi K2.6 holds 262K tokens; GLM 5.3 holds 1M.
+    expect(ids(pools.balanced)).toEqual([K26, GLM_53]);
+    expect(pools.balanced[0]?.limit.context).toBeLessThan(pools.balanced[1]?.limit.context ?? 0);
     expect(ids(pools.strong)).toEqual([K3]);
-    // The first choices are unchanged, so Auto's advertised limits are too.
-    expect(autoCandidates({}).balanced.id).toBe(GLM_53);
+    expect(autoCandidates({}).balanced.id).toBe(K26);
   });
 
   test("a tier takes a list of ids, aliases and wildcards, in the order given", () => {
@@ -48,8 +50,8 @@ describe("Auto's model pools", () => {
 
   test("a tier whose list matches nothing keeps its defaults", () => {
     expect(ids(autoPools({ balancedModel: "nope/none, also-*-nothing" }).balanced)).toEqual([
-      GLM_53,
       K26,
+      GLM_53,
     ]);
   });
 
@@ -59,12 +61,14 @@ describe("Auto's model pools", () => {
       expect(pool.some((model) => model.id.startsWith("zai-org/"))).toBe(false);
       expect(pool.length).toBeGreaterThan(0);
     }
+    // The fast tier loses its image alternate, and keeps its first choice.
+    expect(ids(pools.fast)).toEqual([FAST]);
     // The balanced tier's first choice is excluded, so its alternate takes over.
-    expect(pools.balanced[0]?.id).toBe(K26);
+    expect(autoPools({ excludedModels: K26 }).balanced[0]?.id).toBe(GLM_53);
     // Excluding everything still leaves a model to serve the request.
-    expect(autoPools({ excludedModels: "*" }).fast[0]?.id).toBe(FAST);
+    expect(autoPools({ excludedModels: "*" }).fast[0]?.id).toBe(GLM_FLASH);
     // Excluding a tier's only model leaves it to borrow from its neighbour.
-    expect(autoPools({ excludedModels: K3 }).strong[0]?.id).toBe(GLM_53);
+    expect(autoPools({ excludedModels: K3 }).strong[0]?.id).toBe(K26);
   });
 
   test("the allow list narrows a tier, and is ignored where it would empty one", () => {
@@ -93,10 +97,10 @@ describe("Auto's model pools", () => {
 
 describe("picking a model for what the request needs", () => {
   test("a task with images gets a model that can see, in the same tier", () => {
-    expect(pickAutoModel("balanced", {}).id).toBe(GLM_53);
+    expect(pickAutoModel("fast", {}).id).toBe(FAST);
+    expect(pickAutoModel("fast", {}, { vision: true }).id).toBe(GLM_FLASH);
+    // The balanced and strong first choices already see: nothing changes.
     expect(pickAutoModel("balanced", {}, { vision: true }).id).toBe(K26);
-    // The fast and strong first choices already see: nothing changes.
-    expect(pickAutoModel("fast", {}, { vision: true }).id).toBe(FAST);
     expect(pickAutoModel("strong", {}, { vision: true }).id).toBe(K3);
   });
 
@@ -109,11 +113,13 @@ describe("picking a model for what the request needs", () => {
   });
 
   test("a conversation too large for a candidate skips it", () => {
-    const small = autoPools({}).balanced[1]?.limit.context ?? 0;
+    const small = autoPools({}).balanced[0]?.limit.context ?? 0;
     expect(small).toBeLessThan(1_000_000);
-    // K2.6 can see but its window is too small for this conversation.
+    // K2.6's window is too small for this conversation; GLM 5.3's is not.
+    expect(pickAutoModel("balanced", {}, { contextTokens: small + 1 }).id).toBe(GLM_53);
+    expect(pickAutoModel("balanced", {}, { contextTokens: small - 1 }).id).toBe(K26);
+    // With images too, nothing in the tier fits, so it looks a tier up.
     expect(pickAutoModel("balanced", {}, { vision: true, contextTokens: small + 1 }).id).toBe(K3);
-    expect(pickAutoModel("balanced", {}, { vision: true, contextTokens: small - 1 }).id).toBe(K26);
   });
 });
 
@@ -182,7 +188,7 @@ describe("end to end", () => {
   };
   const moderate = `implement this spec ${"detail ".repeat(600)}`;
 
-  test("Claude Code: a balanced-tier image task goes to the model that can see", () => {
+  test("Claude Code: an image task goes to a model that can see", () => {
     const route = (content: unknown, autoSettings = {}) =>
       resolveClaudeRequestRoute(
         {
@@ -193,10 +199,15 @@ describe("end to end", () => {
         { ...session, autoSettings },
         {},
       );
-    expect(route(moderate).targetModel.definition.id).toBe(GLM_53);
+    expect(route(moderate).targetModel.definition.id).toBe(K26);
     const withImage = route([{ type: "text", text: moderate }, image]);
     expect(withImage.auto?.tier).toBe("balanced");
     expect(withImage.targetModel.definition.id).toBe(K26);
+    // On the fast tier the first choice reads no images, so its alternate runs.
+    expect(route("rename foo to bar").targetModel.definition.id).toBe(FAST);
+    const quickImage = route([{ type: "text", text: "rename foo to bar" }, image]);
+    expect(quickImage.auto?.tier).toBe("fast");
+    expect(quickImage.targetModel.definition.id).toBe(GLM_FLASH);
     // The user's own pool is honoured.
     expect(
       route(moderate, { balancedModel: "deepseek-ai/DeepSeek-V4-Pro-0813" }).targetModel.definition

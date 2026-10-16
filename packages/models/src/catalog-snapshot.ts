@@ -15,6 +15,14 @@ import type { NebiusApiModel } from "./index.js";
 export const CATALOG_SNAPSHOT: readonly NebiusApiModel[] = [
   // Verified against Nebius GET /v1/models?verbose=true on 2026-10-16.
   {
+    id: "deepseek-ai/DeepSeek-V4-Flash-0731",
+    name: "DeepSeek-V4-Flash-0731",
+    context_length: 1024000,
+    architecture: { modality: "text->text" },
+    pricing: { prompt: "0.00000014", completion: "0.00000028", image: "0" },
+    supported_features: ["tools", "json_mode", "structured_outputs", "reasoning"],
+  },
+  {
     id: "meta-models/muse-spark-open",
     name: "Muse Spark Open",
     description:

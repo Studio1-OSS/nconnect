@@ -218,8 +218,9 @@ export function decideAuto(signals: AutoSignals, settings: AutoSettings = {}): A
 
   // Effort: more thought where the task is hard, and only on the turn that
   // reads the problem. Reasoning on every tool-calling turn is what makes a
-  // session crawl, so follow-up turns keep the model's default.
-  if (settings.effort !== false && firstTurn && decision.tier !== "fast") {
+  // session crawl, so follow-up turns keep the model's default. Opt-in: on
+  // the benchmark it made hard tasks take longer paths without passing more.
+  if (settings.effort === true && firstTurn && decision.tier !== "fast") {
     const veryHard = USER_ASKED.has(decision.reason) || (signals.difficulty ?? 0) >= 0.9;
     return {
       ...decision,

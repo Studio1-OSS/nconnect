@@ -793,11 +793,13 @@ describe("Claude proxy compatibility API", () => {
         }),
       });
 
-    test("sends a routine task to the default model and a hard one to Kimi K3", async () => {
+    test("sends a routine task to the fast model and a hard one to Kimi K3", async () => {
       const bodies = stubUpstream();
 
       expect((await ask("rename foo to bar")).status).toBe(200);
-      expect(bodies[0]?.model).toBe(getDefaultModel().id);
+      expect(bodies[0]?.model).toBe("deepseek-ai/DeepSeek-V4-Flash-0731");
+      // Floored at low: at "none" it degenerates on agentic turns.
+      expect(bodies[0]?.reasoning_effort).toBe("low");
 
       const hard = await ask("debug the race condition in the session store");
       expect(hard.status).toBe(200);

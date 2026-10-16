@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { GLM_5_2, getDefaultModel } from "../../models/src/index.js";
+import { GLM_5_2 } from "../../models/src/index.js";
 import {
   autoDeciderFromEnv,
   clearAutoDeciderCache,
@@ -24,7 +24,7 @@ import { resolveAutoRequest } from "../../cli/src/lib/daemon/chat-passthrough.js
 import { buildSession } from "../../cli/src/lib/daemon/state.js";
 
 const KIMI_K3_ID = "moonshotai/Kimi-K3";
-const FAST_ID = getDefaultModel().id;
+const FAST_ID = "deepseek-ai/DeepSeek-V4-Flash-0731";
 const context = { nebiusApiKey: "nebius-key", nebiusBaseUrl: "https://nebius.test/v1/" };
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status });
 const nebiusAnswer = (a: number, b: number, c: number) =>

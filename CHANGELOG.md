@@ -3,6 +3,26 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
+## 0.26.0 - 2026-10-16
+
+### Changed
+
+- Auto's default tiers are now DeepSeek V4 Flash 0731 (fast), Kimi K2.6
+  (balanced) and Kimi K3 (strong), the lineup measured in the 0.24.0
+  benchmark. With Jev deciding, it cost 24% less than fixed Kimi K3 on 50
+  coding tasks (40 against 42 passed) and 93% less on 30 extraction,
+  classification, lookup and policy tasks.
+- A fast task with an image goes to GLM 5.3 Flash, since DeepSeek V4 Flash
+  0731 reads no images. A balanced conversation over 262K tokens goes to
+  GLM 5.3. Auto now tells harnesses it holds 262K tokens rather than 1M, so
+  they compact in time for Kimi K2.6.
+- Auto no longer raises the reasoning effort on a harder task's first turn
+  unless `NCONNECT_AUTO_EFFORT=on`. On the benchmark it sent hard tasks down
+  longer paths without passing more of them.
+- DeepSeek V4 Flash 0731 is in the bundled catalog (Claude alias
+  `nebius-deepseek-v4-flash-0731`), so Auto can use it before the live
+  catalog loads.
+
 ## 0.25.0 - 2026-10-16
 
 ### Added

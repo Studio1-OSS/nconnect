@@ -18,6 +18,8 @@ export const AUTO_FAST_MODEL_ENV = "NCONNECT_AUTO_FAST_MODEL";
 export const AUTO_STRONG_MODEL_ENV = "NCONNECT_AUTO_STRONG_MODEL";
 /** Kimi K3: the frontier coding model in the lineup, and its most expensive. */
 const AUTO_STRONG_DEFAULT_ID = "moonshotai/Kimi-K3";
+/** DeepSeek V4 Flash 0731: the cheapest capable model, $0.14 / $0.28 per M. */
+const AUTO_FAST_DEFAULT_ID = "deepseek-ai/DeepSeek-V4-Flash-0731";
 
 export function isAutoModel(value: string | undefined | null): boolean {
   const name = value?.trim().toLowerCase();
@@ -41,8 +43,8 @@ export const AUTO_EFFORT_ENV = "NCONNECT_AUTO_EFFORT";
 export const AUTO_PER_TURN_ENV = "NCONNECT_AUTO_PER_TURN";
 export const AUTO_MODELS_ENV = "NCONNECT_AUTO_MODELS";
 export const AUTO_EXCLUDED_MODELS_ENV = "NCONNECT_AUTO_EXCLUDED_MODELS";
-/** GLM 5.3: about a tenth of Kimi K3's input price, ten times the default's. */
-const AUTO_BALANCED_DEFAULT_ID = "zai-org/GLM-5.3";
+/** Kimi K2.6: about a third of Kimi K3's price, and reads images. */
+const AUTO_BALANCED_DEFAULT_ID = "moonshotai/Kimi-K2.6";
 
 export type AutoCostTier = "low" | "medium" | "high";
 
@@ -65,7 +67,7 @@ export type AutoSettings = {
   allowModels?: string | undefined;
   /** Models matching one of these patterns are never picked. Always wins. */
   excludedModels?: string | undefined;
-  /** False turns off Auto's own choice of reasoning effort. */
+  /** True turns on Auto's own choice of reasoning effort. Off by default. */
   effort?: boolean | undefined;
   /** True lets follow-up turns of a task step down a tier. Off by default. */
   perTurn?: boolean | undefined;
@@ -95,7 +97,9 @@ export function autoSettingsFromEnv(env: NodeJS.ProcessEnv = process.env): AutoS
       settings[key] = value;
     }
   }
-  if (off(env[AUTO_EFFORT_ENV])) {
+  if (on(env[AUTO_EFFORT_ENV])) {
+    settings.effort = true;
+  } else if (off(env[AUTO_EFFORT_ENV])) {
     settings.effort = false;
   }
   if (on(env[AUTO_PER_TURN_ENV])) {
@@ -141,12 +145,14 @@ export type AutoCandidates = Record<AutoTierName, ModelDefinition>;
 /**
  * Each tier's candidates when the user names none, most preferred first. The
  * first is the tier's model. The rest are there for what the first cannot do:
- * GLM 5.3 reads no images, so an image task on the balanced tier goes to
- * Kimi K2.6, which costs about the same and can.
+ * DeepSeek V4 Flash 0731 reads no images, so an image task on the fast tier
+ * goes to GLM 5.3 Flash; Kimi K2.6 holds 262K tokens, so a longer balanced
+ * task goes to GLM 5.3 (1M). This is the lineup measured against fixed
+ * Kimi K3 on the 50-task benchmark (24% cheaper overall).
  */
 const DEFAULT_POOLS: Record<AutoTierName, readonly string[]> = {
-  fast: ["@default", "deepseek-ai/DeepSeek-V4.1-Flash"],
-  balanced: [AUTO_BALANCED_DEFAULT_ID, "moonshotai/Kimi-K2.6"],
+  fast: [AUTO_FAST_DEFAULT_ID, "@default"],
+  balanced: [AUTO_BALANCED_DEFAULT_ID, "zai-org/GLM-5.3"],
   strong: [AUTO_STRONG_DEFAULT_ID],
 };
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { GLM_5_2, getDefaultModel } from "../../models/src/index.js";
+import { GLM_5_2 } from "../../models/src/index.js";
 import {
   AUTO_MODEL_ALIAS,
   AUTO_MODEL_ID,
@@ -26,8 +26,8 @@ import { buildSession } from "../../cli/src/lib/daemon/state.js";
 import { formatModelSplit } from "../../cli/src/lib/proxied-session.js";
 import type { AnthropicMessage } from "../../cli/src/lib/claude/wire-types.js";
 
-const FAST = getDefaultModel().id;
-const BALANCED = "zai-org/GLM-5.3";
+const FAST = "deepseek-ai/DeepSeek-V4-Flash-0731";
+const BALANCED = "moonshotai/Kimi-K2.6";
 const STRONG = "moonshotai/Kimi-K3";
 const base: AutoSignals = { prompt: "do the thing", toolErrors: 0 };
 
@@ -130,16 +130,27 @@ describe("cost preference", () => {
 });
 
 describe("reasoning effort", () => {
+  // Off by default since 0.26.0: on the benchmark the raise sent hard tasks
+  // down longer paths without passing more of them. NCONNECT_AUTO_EFFORT=on.
+  const effortOn = { effort: true };
+
+  test("is off unless turned on", () => {
+    expect(decideAuto({ ...base, difficulty: 0.95 }).effort).toBeUndefined();
+    expect(autoSettingsFromEnv({}).effort).toBeUndefined();
+    expect(autoSettingsFromEnv({ NCONNECT_AUTO_EFFORT: "on" }).effort).toBe(true);
+    expect(autoSettingsFromEnv({ NCONNECT_AUTO_EFFORT: "off" }).effort).toBe(false);
+  });
+
   test("is suggested on the first turn of a harder task, by tier", () => {
-    expect(decideAuto({ ...base, difficulty: 0.5 }).effort).toBe("low");
-    expect(decideAuto({ ...base, difficulty: 0.75 }).effort).toBe("medium");
-    expect(decideAuto({ ...base, difficulty: 0.95 }).effort).toBe("high");
-    expect(decideAuto({ ...base, planMode: true }).effort).toBe("high");
-    expect(decideAuto({ ...base, difficulty: 0.05 }).effort).toBeUndefined();
+    expect(decideAuto({ ...base, difficulty: 0.5 }, effortOn).effort).toBe("low");
+    expect(decideAuto({ ...base, difficulty: 0.75 }, effortOn).effort).toBe("medium");
+    expect(decideAuto({ ...base, difficulty: 0.95 }, effortOn).effort).toBe("high");
+    expect(decideAuto({ ...base, planMode: true }, effortOn).effort).toBe("high");
+    expect(decideAuto({ ...base, difficulty: 0.05 }, effortOn).effort).toBeUndefined();
   });
 
   test("is left alone on follow-up turns, so the tool loop stays fast", () => {
-    expect(decideAuto({ ...base, difficulty: 0.95, taskTurns: 1 })).toEqual({
+    expect(decideAuto({ ...base, difficulty: 0.95, taskTurns: 1 }, effortOn)).toEqual({
       tier: "strong",
       reason: "decider_hard",
     });
@@ -165,6 +176,7 @@ describe("reasoning effort", () => {
       targetModelId: AUTO_MODEL_ID,
       modelName: "Auto",
       modelDefinition: autoModelDefinition({}),
+      autoSettings: effortOn,
     };
     const request = (extra: Partial<ResponsesRequest> = {}) =>
       ({
@@ -192,7 +204,7 @@ describe("reasoning effort", () => {
   });
 
   test("reaches passthrough harnesses only where they set none", () => {
-    const session = { modelDefinition: autoModelDefinition({}) };
+    const session = { modelDefinition: autoModelDefinition({}), autoSettings: effortOn };
     const body = {
       model: AUTO_MODEL_ID,
       tools: [{ type: "function", function: { name: "bash" } }],
@@ -417,7 +429,9 @@ describe("the end-of-session cost line", () => {
         { model: STRONG, costUsd: 0.0412 },
         { model: BALANCED, costUsd: 0.0031 },
       ]),
-    ).toBe("[nconnect cost] by model: Kimi K3 $0.0412 · GLM 5.3 $0.0031 · GLM 5.3 Flash $0.0008");
+    ).toBe(
+      "[nconnect cost] by model: Kimi K3 $0.0412 · Kimi K2.6 $0.0031 · DeepSeek V4 Flash 0731 $0.0008",
+    );
   });
 
   test("says nothing for a session on a single model", () => {
