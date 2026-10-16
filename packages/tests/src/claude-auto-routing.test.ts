@@ -18,6 +18,7 @@ import type {
 } from "../../cli/src/lib/claude/wire-types.js";
 
 const KIMI_K3_ID = "moonshotai/Kimi-K3";
+const AUTO_FAST_ID = "deepseek-ai/DeepSeek-V4-Flash-0731";
 const reminder = (text: string) => `<system-reminder>\n${text}\n</system-reminder>`;
 const user = (text: string): AnthropicMessage => ({ role: "user", content: text });
 const toolCall = (id: string, name = "Bash"): AnthropicMessage => ({
@@ -239,8 +240,8 @@ describe("the Auto model", () => {
 
   test("chooses between three models, and fits any of them", () => {
     const { fast, balanced, strong } = autoCandidates({});
-    expect(fast.id).toBe(getDefaultModel().id);
-    expect(balanced.id).toBe("zai-org/GLM-5.3");
+    expect(fast.id).toBe(AUTO_FAST_ID);
+    expect(balanced.id).toBe(KIMI_K2_6.id);
     expect(strong.id).toBe(KIMI_K3_ID);
     const auto = autoModelSelection({}).definition;
     expect(auto.name).toBe("Auto");
@@ -260,7 +261,7 @@ describe("the Auto model", () => {
     expect(strong.id).toBe(KIMI_K2_6.id);
     // An unknown name falls back rather than breaking every request.
     expect(autoCandidates({ strongModel: "nope/none" }).strong.id).toBe(KIMI_K3_ID);
-    expect(autoCandidates({ balancedModel: "nope/none" }).balanced.id).toBe("zai-org/GLM-5.3");
+    expect(autoCandidates({ balancedModel: "nope/none" }).balanced.id).toBe(KIMI_K2_6.id);
   });
 
   test("a request for Auto is always routed to a real model", () => {
@@ -268,7 +269,7 @@ describe("the Auto model", () => {
     const tools = [{ name: "Bash", input_schema: {} }];
 
     const easy = route({ model: AUTO_MODEL_ALIAS, tools, messages: [user("fix the typo")] });
-    expect(easy.targetModel.definition.id).toBe(getDefaultModel().id);
+    expect(easy.targetModel.definition.id).toBe(AUTO_FAST_ID);
     expect(easy.auto).toEqual({ tier: "fast", reason: "routine" });
 
     const hard = route({ model: AUTO_MODEL_ALIAS, tools, messages: [user("debug the crash")] });
@@ -279,7 +280,7 @@ describe("the Auto model", () => {
     // Auto. That is the harness's own call, not the user's task: fast model,
     // whatever its prompt says.
     const unknown = route({ model: "claude-unknown", tools, messages: [user("debug the crash")] });
-    expect(unknown.targetModel.definition.id).toBe(getDefaultModel().id);
+    expect(unknown.targetModel.definition.id).toBe(AUTO_FAST_ID);
     expect(unknown.auto).toEqual({ tier: "fast", reason: "harness_call" });
   });
 
@@ -300,14 +301,17 @@ describe("the Auto model", () => {
       system: "You are naming a coding session so the user can pick it out.",
       messages: [user("<session>debug the crash</session>")],
     };
+    // Offloading sends it to the catalog default; without it, Auto's fast tier.
     const on = resolveClaudeRequestRoute(title, session, {});
     expect(on.targetModel.definition.id).toBe(getDefaultModel().id);
     const off = resolveClaudeRequestRoute(title, session, { NCONNECT_BACKGROUND_MODEL: "off" });
-    expect(off.targetModel.definition.id).toBe(getDefaultModel().id);
+    expect(off.targetModel.definition.id).toBe(AUTO_FAST_ID);
     expect(off.targetModel.definition.id).not.toBe(AUTO_MODEL_ID);
   });
 
-  test("launching with Auto selects it in Claude Code with the 1M hint", () => {
+  // Auto budgets against its smallest tier: Kimi K2.6 holds 262K, so Claude
+  // Code is not told to expect 1M and compacts in time for any tier.
+  test("launching with Auto selects it in Claude Code, sized for its smallest tier", () => {
     const env = buildClaudeEnv({
       apiKey: "k",
       baseUrl: "https://example.test/v1",
@@ -316,7 +320,7 @@ describe("the Auto model", () => {
       proxyUrl: "http://127.0.0.1:7878/session/t",
       authToken: "tok",
     });
-    expect(env.ANTHROPIC_MODEL).toBe(`${AUTO_MODEL_ALIAS}[1m]`);
+    expect(env.ANTHROPIC_MODEL).toBe(AUTO_MODEL_ALIAS);
     expect(env.ANTHROPIC_CUSTOM_MODEL_OPTION).toBe(AUTO_MODEL_ALIAS);
     expect(env.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME).toBe("Auto");
     expect(env.ANTHROPIC_DEFAULT_OPUS_MODEL).not.toContain(AUTO_MODEL_ALIAS);

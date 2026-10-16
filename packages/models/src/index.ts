@@ -145,6 +145,11 @@ const CURATED_OVERRIDES: Record<string, ModelOverride> = {
     anthropicAlias: "nebius-deepseek-v4-pro-0813",
     order: 3,
   },
+  "deepseek-ai/DeepSeek-V4-Flash-0731": {
+    name: "DeepSeek V4 Flash 0731",
+    anthropicAlias: "nebius-deepseek-v4-flash-0731",
+    order: 6,
+  },
   "meta-models/muse-spark-open": {
     name: "Muse Spark Open",
     anthropicAlias: "nebius-muse-spark-open",
@@ -235,6 +240,7 @@ const CURATED_OVERRIDES: Record<string, ModelOverride> = {
 const BUNDLED_FALLBACK_MODEL_IDS: ReadonlySet<string> = new Set([
   "zai-org/GLM-5.3",
   "meta-models/muse-spark-open",
+  "deepseek-ai/DeepSeek-V4-Flash-0731",
   "deepseek-ai/DeepSeek-V4-Pro-0813",
   "deepseek-ai/DeepSeek-V4-Flash",
   "deepseek-ai/DeepSeek-V4-Pro",
@@ -581,6 +587,9 @@ export const DEEPSEEK_V4_PRO_0813: ModelDefinition = fromSnapshot(
   "deepseek-ai/DeepSeek-V4-Pro-0813",
 );
 export const MUSE_SPARK_OPEN: ModelDefinition = fromSnapshot("meta-models/muse-spark-open");
+export const DEEPSEEK_V4_FLASH_0731: ModelDefinition = fromSnapshot(
+  "deepseek-ai/DeepSeek-V4-Flash-0731",
+);
 export const KIMI_K2_6: ModelDefinition = fromSnapshot("moonshotai/Kimi-K2.6");
 export const KIMI_K2_7_CODE: ModelDefinition = fromSnapshot("moonshotai/Kimi-K2.7-Code");
 export const MINIMAX_M3: ModelDefinition = fromSnapshot("MiniMaxAI/MiniMax-M3");
