@@ -141,6 +141,14 @@ export const models: Array<{
     logo: "/zai-logo.svg",
   },
   {
+    name: "Muse Spark Open",
+    id: "meta-models/muse-spark-open",
+    bestFor: "Meta's open MoE for coding + agentic",
+    context: "1M",
+    vision: true,
+    logo: "/logos/meta.svg",
+  },
+  {
     name: "DeepSeek V4 Pro 0813",
     id: "deepseek-ai/DeepSeek-V4-Pro-0813",
     bestFor: "Reasoning and agentic coding",

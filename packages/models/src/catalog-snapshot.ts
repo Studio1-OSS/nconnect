@@ -13,6 +13,17 @@
 import type { NebiusApiModel } from "./index.js";
 
 export const CATALOG_SNAPSHOT: readonly NebiusApiModel[] = [
+  // Verified against Nebius GET /v1/models?verbose=true on 2026-10-16.
+  {
+    id: "meta-models/muse-spark-open",
+    name: "Muse Spark Open",
+    description:
+      "Meta\u2019s 816B-parameter mixture-of-experts model for coding and agentic workflows, with about 42B active parameters, image and video input, reasoning and tool use.",
+    context_length: 1048576,
+    architecture: { modality: "text+image->text" },
+    pricing: { prompt: "0.00000125", completion: "0.00000425", image: "0" },
+    supported_features: ["tools", "reasoning"],
+  },
   // Verified against Nebius GET /v1/models?verbose=true on 2026-09-11.
   // Max output is not published there; retain the catalog's conservative default.
   {

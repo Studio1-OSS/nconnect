@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import "../styles/landing.css";
 import { ProviderBrand } from "../components/ProviderBrand";
+import { LaunchBanner, museSparkOpenPlaygroundUrl } from "../components/LaunchBanner";
 import { ThinkingState, useSequence } from "../components/ThinkingState";
 import { TaskRows, SpinnerRing, Badge, CheckIcon, TaskRow } from "../components/TaskRows";
 import { pageHead, siteUrl, structuredData } from "../lib/seo";
@@ -200,8 +201,29 @@ const features = [
   },
 ];
 
-const modelHighlights = [
-  { name: "GLM 5.3 Flash", note: "default · 1M context", logo: "/zai-logo.svg" },
+const endpointsUrl = "https://tokenfactory.nebius.com/endpoints";
+
+const modelHighlights: Array<{
+  name: string;
+  note: string;
+  logo?: string;
+  mark?: ReactNode;
+  href?: string;
+  isNew?: boolean;
+}> = [
+  {
+    name: "Muse Spark Open",
+    note: "Meta · 1M context · vision",
+    logo: "/logos/meta.svg",
+    href: museSparkOpenPlaygroundUrl,
+    isNew: true,
+  },
+  {
+    name: "GLM 5.3 Flash",
+    note: "default · 1M context",
+    logo: "/zai-logo.svg",
+    href: glmFlashUrl,
+  },
   { name: "GLM 5.3", note: "coding and tool use", logo: "/zai-logo.svg" },
   { name: "DeepSeek V4 Pro 0813", note: "979K context", mark: <DeepSeekMark /> },
   { name: "Kimi K3", note: "frontier coding", logo: "/logos/kimi.png" },
@@ -282,6 +304,7 @@ function Home() {
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
+      <LaunchBanner />
       <div className="relay-nav-container">
         <header className="relay-nav wrap">
           <a className="relay-brand" href="/" aria-label="NConnect home">
@@ -561,7 +584,7 @@ function Home() {
           <div className="model-list">
             {modelHighlights.map((model, i) => (
               <a
-                href={i === 0 ? glmFlashUrl : "https://tokenfactory.nebius.com/endpoints"}
+                href={model.href ?? endpointsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 key={model.name}
@@ -592,7 +615,10 @@ function Home() {
                 ) : (
                   <Cpu size={20} color="#a1a1aa" className="model-logo" />
                 )}
-                <h3>{model.name}</h3>
+                <h3>
+                  {model.name}
+                  {model.isNew && <span className="model-new">New</span>}
+                </h3>
                 <span>{model.note}</span>
                 <ArrowUpRight size={18} />
               </a>

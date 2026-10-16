@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { LaunchBanner } from "./LaunchBanner";
 
 export const githubUrl = "https://github.com/Studio1-OSS/nconnect";
 
@@ -13,25 +14,28 @@ export function SiteHeader({
   cta?: { href: string; label: string };
 }) {
   return (
-    <div className="relay-nav-container">
-      <header className="relay-nav wrap">
-        <a className="relay-brand" href="/" aria-label="NConnect home">
-          <img src="/hero/logo.png" alt="NConnect" />
-        </a>
-        <nav aria-label="Main navigation">
-          <a href="/#agents">Agents</a>
-          <a href="/docs">Docs</a>
-          <a href="/docs/tutorials">Tutorials</a>
-          <a className="github-link" href={githubUrl} target="_blank" rel="noopener noreferrer">
-            <GitHubIcon />
-            GitHub
+    <>
+      <LaunchBanner />
+      <div className="relay-nav-container">
+        <header className="relay-nav wrap">
+          <a className="relay-brand" href="/" aria-label="NConnect home">
+            <img src="/hero/logo.png" alt="NConnect" />
           </a>
-          <a className="button button-dark" href={cta.href}>
-            {cta.label} <ArrowRight size={16} />
-          </a>
-        </nav>
-      </header>
-    </div>
+          <nav aria-label="Main navigation">
+            <a href="/#agents">Agents</a>
+            <a href="/docs">Docs</a>
+            <a href="/docs/tutorials">Tutorials</a>
+            <a className="github-link" href={githubUrl} target="_blank" rel="noopener noreferrer">
+              <GitHubIcon />
+              GitHub
+            </a>
+            <a className="button button-dark" href={cta.href}>
+              {cta.label} <ArrowRight size={16} />
+            </a>
+          </nav>
+        </header>
+      </div>
+    </>
   );
 }
 

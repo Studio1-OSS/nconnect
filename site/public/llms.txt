@@ -137,6 +137,7 @@ Featured flagship models (any live Nebius id also works with `--model`):
 - `zai-org/GLM-5.3-Flash` - GLM 5.3 Flash. The default coding model, accepts images, 1M context.
 - `zai-org/GLM-5.3` - GLM 5.3. Text-only, coding and tool use, 1,024,000 context. Bundled since 0.15.4; Claude alias: `nebius-glm-5-3`.
 - `deepseek-ai/DeepSeek-V4-Pro-0813` - DeepSeek V4 Pro 0813. Text-only, reasoning and agentic coding, 979,000 context. Bundled since 0.15.4; Claude alias: `nebius-deepseek-v4-pro-0813`.
+- `meta-models/muse-spark-open` - Muse Spark Open (Meta, new). 816B-parameter mixture of experts with about 42B active, for coding and agentic work. Accepts images, reasoning and tool use, 1M context. $1.25 / $4.25 per M input/output tokens. Takes `reasoning_effort` low to xhigh only: NConnect raises `none` to `low` and sends `xhigh` for `max`. Claude alias: `nebius-muse-spark-open`. Try it in the playground: https://tokenfactory.nebius.com/playground?models=meta-models/muse-spark-open
 - `moonshotai/Kimi-K3` - Kimi K3. Accepts images, reasoning + agentic coding, 1M context.
 - `moonshotai/Kimi-K2.6` - Kimi K2.6. Vision + reasoning, 262K context. The vision flagship. Ignores `reasoning_effort`; at effort `none` NConnect turns its thinking off through the chat template.
 - `moonshotai/Kimi-K2.7-Code` - Kimi K2.7 Code. Text-only coding model, 262K context.

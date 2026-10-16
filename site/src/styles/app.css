@@ -56,3 +56,76 @@
     color: #ffffff;
   }
 }
+
+/* Launch announcement bar, above the nav on the landing page and docs. */
+.launch-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: var(--color-surface);
+  color: #e6e9f2;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  position: relative;
+  z-index: 21;
+}
+.launch-banner:hover .launch-banner-cta {
+  color: #fff;
+}
+.launch-banner:hover .launch-banner-cta svg {
+  transform: translateX(2px);
+}
+.launch-banner:focus-visible {
+  outline: 2px solid var(--color-lime);
+  outline-offset: -4px;
+}
+.launch-banner img {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.launch-banner strong {
+  color: #fff;
+  font-weight: 600;
+}
+.launch-banner code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-lime);
+}
+.launch-banner-tag {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--color-lime);
+  color: #17210c;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex: none;
+}
+.launch-banner-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--color-lime);
+  flex: none;
+}
+.launch-banner-cta svg {
+  transition: transform 0.2s ease;
+}
+@media (max-width: 768px) {
+  .launch-banner-detail {
+    display: none;
+  }
+}
