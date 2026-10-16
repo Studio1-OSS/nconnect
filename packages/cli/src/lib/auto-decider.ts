@@ -76,12 +76,17 @@ const CACHE_ENTRIES = 500;
 
 const INSTRUCTIONS =
   "You route coding requests to a model tier. Judge only how hard the request is to get right.";
+// Routine covers new code a spec spells out. The earlier wording ("one
+// obvious change") left Jev calling every specified task moderate: in a
+// 50-task Claude Code run it never answered routine, so the cheap tier sat
+// idle. Checked on 15 tasks kept apart from that run (2026-10-15): easy and
+// medium now read routine, hard reads hard.
 const ROUTINE =
-  "Small, well specified, low risk. One obvious change, a lookup, a rename, running a command.";
+  "Small or well specified work. A rename, a flag, a typo or crash with an obvious local cause, running a command; or new code whose behaviour a spec, examples or tests spell out, in files the request names.";
 const MODERATE =
-  "A contained piece of work that takes some thought but whose approach is clear: a new function or endpoint, a multi-step edit in one area, tests with several cases.";
+  "The goal is clear but the approach is not: real design choices are left open, or changes must stay consistent across several files.";
 const HARD =
-  "Needs investigation, diagnosis, design, or reasoning across several files; the cause or the approach is not given.";
+  "The cause or the approach is unknown: diagnosing a symptom, investigating, cross-cutting design, or subtle concurrency, state or correctness reasoning.";
 
 /**
  * Read the decider choice from the launcher's environment. Returns undefined

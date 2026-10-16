@@ -4,6 +4,7 @@ import type { AutoSettings } from "../auto-model.js";
 import {
   autoTargetModel,
   decideAuto,
+  isPermissionRefusal,
   typedPromptText,
   type AutoDecision,
   type AutoSignals,
@@ -25,6 +26,18 @@ const PLAN_EXIT_TOOL = "ExitPlanMode";
 
 function blocksOf(content: string | AnthropicContentBlock[]): AnthropicContentBlock[] {
   return typeof content === "string" ? [{ type: "text", text: content }] : content;
+}
+
+function toolResultText(content: unknown): string {
+  if (typeof content === "string") {
+    return content;
+  }
+  return Array.isArray(content)
+    ? content
+        .map((part) => (part as { text?: unknown } | null)?.text)
+        .filter((text): text is string => typeof text === "string")
+        .join("\n")
+    : "";
 }
 
 function hasPlanMarker(text: string): boolean {
@@ -133,7 +146,9 @@ export function claudeAutoSignals(
         }
       } else if (block.type === "tool_result") {
         if (block.is_error) {
-          toolErrors += 1;
+          if (!isPermissionRefusal(toolResultText(block.content))) {
+            toolErrors += 1;
+          }
         } else if (planExitCalls.has(block.tool_use_id)) {
           // The user approved the plan; a rejected exit comes back as an error.
           planExitAt = index;

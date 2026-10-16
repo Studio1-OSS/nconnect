@@ -106,7 +106,8 @@ describe("resolveModelByKeys", () => {
       expect(model.attachment).toBe(false);
       expect(model.tool_call).toBe(true);
       expect(model.reasoning).toBe(true);
-      expect(acceptsReasoningEffort(model.id)).toBe(false);
+      // GLM 5.3 takes an effort (verified on Nebius 2026-10-15); V4 Pro 0813 is unverified.
+      expect(acceptsReasoningEffort(model.id)).toBe(model.id === GLM_5_3.id);
       expect(buildCatalog([]).byId.get(model.id)).toEqual(model);
     },
   );

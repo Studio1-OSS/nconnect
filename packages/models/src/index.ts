@@ -249,7 +249,9 @@ export const DEFAULT_MODEL_ID = "zai-org/GLM-5.3-Flash";
  */
 export const REASONING_EFFORT_MODEL_IDS: ReadonlySet<string> = new Set([
   "zai-org/GLM-5.3-Flash",
+  "zai-org/GLM-5.3",
   "zai-org/GLM-5.2",
+  "deepseek-ai/DeepSeek-V4-Flash-0731",
   "moonshotai/Kimi-K2.6",
   "moonshotai/Kimi-K3",
 ]);
@@ -262,10 +264,30 @@ export const REASONING_EFFORT_MODEL_IDS: ReadonlySet<string> = new Set([
  * terminated by a stray `</think>` - so the user reads the model's private
  * reasoning as if it were the answer. "low" is clean and actually spends FEWER
  * reasoning tokens (11 vs 27 measured), so flooring costs nothing.
+ *
+ * GLM 5.3 ignores "none" and reasons in full (1,682 reasoning tokens on a
+ * small coding prompt, against 2,249 with no effort sent); "low" all but
+ * stops it (6). Measured on Nebius, 2026-10-15.
+ *
+ * DeepSeek V4 Flash 0731 does stop reasoning at "none", but then degenerates
+ * on agentic turns: in Claude Code it invented context and looped for 17k and
+ * 28k output tokens in a single reply, ending in tool calls written as text.
+ * "low" reasons briefly (about 300 tokens) and stays on task.
  */
 const MIN_REASONING_EFFORT: Record<string, string> = {
   "zai-org/GLM-5.3-Flash": "low",
+  "zai-org/GLM-5.3": "low",
+  "deepseek-ai/DeepSeek-V4-Flash-0731": "low",
 };
+
+/**
+ * Models that ignore `reasoning_effort` and switch reasoning off only through
+ * their chat template. Kimi K2.6 reasoned at length at every effort level
+ * (11k characters at "none", once running out of tokens before answering);
+ * `chat_template_kwargs: { thinking: false }` stopped it. Measured on Nebius,
+ * 2026-10-15.
+ */
+const TEMPLATE_THINKING_SWITCH_MODEL_IDS: ReadonlySet<string> = new Set(["moonshotai/Kimi-K2.6"]);
 
 /** The lowest `reasoning_effort` this model handles correctly, if constrained. */
 export function minimumReasoningEffort(modelId: string): string | undefined {
@@ -275,6 +297,19 @@ export function minimumReasoningEffort(modelId: string): string | undefined {
 /** Whether a model accepts the `reasoning_effort` parameter. */
 export function acceptsReasoningEffort(modelId: string): boolean {
   return REASONING_EFFORT_MODEL_IDS.has(modelId);
+}
+
+/**
+ * The chat-template arguments that turn reasoning off for a request sent at
+ * effort "none", for models where the effort alone does not.
+ */
+export function noReasoningTemplateArgs(
+  modelId: string,
+  effort: string | undefined,
+): { thinking?: false } {
+  return effort === "none" && TEMPLATE_THINKING_SWITCH_MODEL_IDS.has(modelId)
+    ? { thinking: false }
+    : {};
 }
 
 const ORDER_FALLBACK = 1_000;

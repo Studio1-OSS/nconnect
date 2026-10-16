@@ -210,7 +210,21 @@ On a set of 34 labelled prompts (12 routine, 10 moderate, 12 hard), written to i
 
 Laya is asked a two-way question, routine or hard, because given three options it called nearly everything moderate. On an earlier two-way set it got 25 of 28; its answers sit close to the middle, so expect it to use the balanced tier often.
 
-That is a small set and it measures agreement with labels, not whether routing saves money on real work. A confident claim inside a prompt ("this is a trivial one-line change") can talk every model-based decider into a cheaper tier.
+That is a small set and it measures agreement with labels, not whether routing saves money on real work. On real work, one lineup measured against fixed Kimi K3 through Claude Code was:
+
+```bash
+TYPESAFE_API_KEY=... \
+NCONNECT_AUTO_DECIDER=jev \
+NCONNECT_AUTO_FAST_MODEL=deepseek-ai/DeepSeek-V4-Flash-0731 \
+NCONNECT_AUTO_BALANCED_MODEL=moonshotai/Kimi-K2.6 \
+NCONNECT_AUTO_STRONG_MODEL=moonshotai/Kimi-K3 \
+NCONNECT_AUTO_EFFORT=off \
+nconnect --model auto claude
+```
+
+It cost 24% less on 50 coding tasks with hidden tests (40 passed, against 42), and 93% less on 30 extraction, classification, lookup and policy tasks (29 passed, against 24). Most of the coding saving came from the 35 tasks that never needed Kimi K3; tasks escalated to Kimi K3 partway through cost more than running Kimi K3 from the start.
+
+A confident claim inside a prompt ("this is a trivial one-line change") can talk every model-based decider into a cheaper tier.
 
 Other settings: `NCONNECT_AUTO_DECIDER_MODEL` (the Nebius model, Jev model or Laya checkpoint), `NCONNECT_AUTO_DECIDER_URL` (the Jev or Laya endpoint; Laya defaults to `http://127.0.0.1:8000/v1/systemone`), `NCONNECT_AUTO_DECIDER_TIMEOUT_MS` (default 2500), and `LAYA_API_KEY` for a protected Laya server.
 

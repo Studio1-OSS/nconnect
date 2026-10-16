@@ -3,6 +3,35 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
+## 0.24.0 - 2026-10-16
+
+### Added
+
+- DeepSeek V4 Flash 0731 takes a reasoning effort, with `low` as its floor: at
+  `none` it could loop for tens of thousands of tokens in one Claude Code
+  reply.
+- Kimi K2.6 ignores `reasoning_effort`, so at effort `none` NConnect now turns
+  its thinking off through its chat template instead.
+
+### Changed
+
+- GLM 5.3 takes a reasoning effort, with `low` as its floor. It ignored
+  `none` and reasoned about 1,700 tokens per call; `low` keeps it short.
+- Auto no longer treats Claude Code's "Output token limit hit" and empty-reply
+  nudges as new prompts, so a task no longer asks the decider again or changes
+  model halfway through.
+- Permission refusals ("This command requires approval" and similar) no longer
+  count as failed tool calls, so a locked-down session no longer escalates a
+  task to the strong tier.
+- The decider's routine tier now covers new code whose behaviour a spec,
+  examples or tests spell out. Jev had been calling almost every coding task
+  moderate.
+- With `NCONNECT_AUTO_DECIDER=jev`, DeepSeek V4 Flash 0731 as the fast tier,
+  Kimi K2.6 as balanced, Kimi K3 as strong and `NCONNECT_AUTO_EFFORT=off`,
+  Auto cost 24% less than fixed Kimi K3 on a 50-task coding benchmark (40
+  against 42 passed), and 93% less on 30 extraction, classification, lookup
+  and policy tasks (29 against 24 passed).
+
 ## 0.23.0 - 2026-10-09
 
 ### Added

@@ -255,9 +255,36 @@ const INJECTED_BLOCK =
 /** Grok Build wraps the user's own words in this tag; the words are the prompt. */
 const USER_QUERY = /<user_query>([\s\S]*?)<\/user_query>/g;
 
-/** What the user typed, with injected context blocks removed. */
+/**
+ * Turns a harness sends on its own to keep a task going. Claude Code sends the
+ * first when a reply runs out of output tokens and the second after a reply
+ * with no visible text (both verified on 2.1.299), and it merges them into the
+ * user message that holds the prompt. Read as part of the prompt, either one
+ * made a new task: the decider was asked again, and the task could change
+ * model halfway through.
+ */
+const HARNESS_CONTINUATION =
+  /Output token limit hit\. Resume directly\b[^\n]*|\[Your previous response had no visible output\.[^\]\n]*\]/g;
+
+/** What the user typed, with injected context blocks and harness nudges removed. */
 export function typedPromptText(text: string): string {
-  return text.replace(INJECTED_BLOCK, "").replace(USER_QUERY, "$1").trim();
+  return text
+    .replace(INJECTED_BLOCK, "")
+    .replace(USER_QUERY, "$1")
+    .replace(HARNESS_CONTINUATION, "")
+    .trim();
+}
+
+/**
+ * Whether a failed tool call was refused by the harness's permission rules
+ * rather than run. A refusal says nothing about whether the model is stuck on
+ * the task, so it does not count toward escalation. Wording from Claude Code
+ * 2.1.299.
+ */
+export function isPermissionRefusal(content: string): boolean {
+  return /^(?:This command requires approval|This Bash command contains multiple operations\. The following parts? requires? approval|Claude requested permissions to|[^\n]{0,120}cannot be auto-allowed|Contains [^\n]{0,80}\(expansion obfuscation\)|Newline followed by # inside a quoted argument|The user doesn't want to proceed|Permission to use \S+ has been denied)/.test(
+    content.trim().slice(0, 300),
+  );
 }
 
 type ChatMessage = { role?: unknown; content?: unknown };
@@ -349,7 +376,8 @@ export function chatAutoSignals(body: {
         lastTurnFailed = false;
         inResults = true;
       }
-      if (looksLikeToolError(chatText(message.content))) {
+      const result = chatText(message.content);
+      if (looksLikeToolError(result) && !isPermissionRefusal(result)) {
         toolErrors += 1;
         lastTurnFailed = true;
       }
