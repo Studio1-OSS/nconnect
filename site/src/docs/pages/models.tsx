@@ -6,7 +6,7 @@ export const modelsPage: DocPage = {
   slug: "models",
   title: "Models",
   description:
-    "Every model Nebius Token Factory serves is available in NConnect: GLM 5.3, Kimi K3, DeepSeek V4, Qwen 3.5, MiniMax M3 and more. Compare context windows and vision support.",
+    "Every model Nebius Token Factory serves is available in NConnect: GLM 5.3, Kimi K3, Meta's new Muse Spark Open, DeepSeek V4, Qwen 3.5, MiniMax M3 and more. Compare context windows and vision support.",
   group: "Models",
   Content() {
     return (
@@ -44,6 +44,7 @@ export const modelsPage: DocPage = {
         </P>
         <CodeBlock>{`nconnect --model zai-org/GLM-5.3 codex
 nconnect --model deepseek-ai/DeepSeek-V4-Pro-0813 codex
+nconnect --model meta-models/muse-spark-open claude
 nconnect --model moonshotai/Kimi-K3 hermes`}</CodeBlock>
         <P>
           Proxied harnesses remember the model you last switched to inside a session and use it as

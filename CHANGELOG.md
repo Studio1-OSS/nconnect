@@ -3,6 +3,21 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
+## 0.25.0 - 2026-10-16
+
+### Added
+
+- Muse Spark Open (`meta-models/muse-spark-open`), Meta's new open model on
+  Nebius Token Factory: an 816B-parameter mixture of experts with about 42B
+  active, for coding and agentic work, with image input, reasoning, tool use
+  and a 1M-token context, at $1.25 / $4.25 per million input/output tokens.
+  Pick it with `nconnect --model meta-models/muse-spark-open <harness>`; the
+  Claude Code alias is `nebius-muse-spark-open`. It stays selectable even
+  before Nebius's default catalog lists it.
+- Muse Spark Open accepts only `low`, `medium`, `high` and `xhigh` as a
+  reasoning effort and answers `none` and `max` with an error. NConnect sends
+  it `low` in place of `none` (the default) and `xhigh` in place of `max`.
+
 ## 0.24.0 - 2026-10-16
 
 ### Added

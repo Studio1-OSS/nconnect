@@ -1,5 +1,6 @@
 import {
   acceptsReasoningEffort,
+  maximumReasoningEffort,
   minimumReasoningEffort,
   type ModelDefinition,
 } from "@nconnect/models";
@@ -35,7 +36,7 @@ type DebugOptions = {
   debug?: boolean | undefined;
 };
 
-type NebiusReasoningEffort = "none" | "low" | "medium" | "high" | "max";
+type NebiusReasoningEffort = "none" | "low" | "medium" | "high" | "max" | "xhigh";
 
 const NCONNECT_IDENTITY_PROMPT =
   "You are a Nebius Token Factory model routed through nconnect, not Anthropic Claude.";
@@ -76,33 +77,36 @@ export function nebiusReasoningEffort(
     body.reasoning_effort ?? body.effort ?? body.thinking?.effort,
   );
   if (explicitEffort) {
-    return applyEffortFloor(explicitEffort, targetModel);
+    return applyEffortBounds(explicitEffort, targetModel);
   }
   // Auto judged this task worth more thought. It sets this on a task's first
   // turn only, so the tool-calling turns after it stay fast.
   if (autoEffort) {
-    return autoEffort;
+    return applyEffortBounds(autoEffort, targetModel);
   }
 
   // Otherwise keep turns fast: send an explicit low/no effort so GLM-5.2 does
   // not fall back to reasoning on every turn.
-  return applyEffortFloor(defaultReasoningEffort(), targetModel);
+  return applyEffortBounds(defaultReasoningEffort(), targetModel);
 }
 
 /**
- * Raise "none" to a model's minimum when its template mishandles it. GLM 5.3
- * Flash leaks its whole chain-of-thought into `content` at "none" (see
- * minimumReasoningEffort), which the user then reads as the answer.
+ * Raise "none" to a model's minimum when its template mishandles it, and
+ * lower "max" to the name a model takes for its top effort. GLM 5.3 Flash
+ * leaks its whole chain-of-thought into `content` at "none" (see
+ * minimumReasoningEffort); Muse Spark Open rejects both "none" and "max".
  */
-function applyEffortFloor(
+function applyEffortBounds(
   effort: NebiusReasoningEffort,
   targetModel: ModelDefinition,
 ): NebiusReasoningEffort {
-  if (effort !== "none") {
-    return effort;
-  }
-  const floor = minimumReasoningEffort(targetModel.id);
-  return (floor as NebiusReasoningEffort | undefined) ?? effort;
+  const bound =
+    effort === "none"
+      ? minimumReasoningEffort(targetModel.id)
+      : effort === "max"
+        ? maximumReasoningEffort(targetModel.id)
+        : undefined;
+  return (bound as NebiusReasoningEffort | undefined) ?? effort;
 }
 
 function normalizeNebiusReasoningEffort(value: unknown): NebiusReasoningEffort | undefined {

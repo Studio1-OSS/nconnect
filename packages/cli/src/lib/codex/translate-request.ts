@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import {
   acceptsReasoningEffort,
+  maximumReasoningEffort,
   minimumReasoningEffort,
   noReasoningTemplateArgs,
   findModelById,
@@ -744,14 +745,14 @@ function reasoningEffort(
     // Auto judged this task worth more thought. A user who picked high effort
     // themselves still gets theirs, below.
     if (autoEffort && effort !== "high" && effort !== "xhigh" && effort !== "max") {
-      return autoEffort;
+      return boundReasoningEffort(autoEffort, model);
     }
     // Mirror the Claude proxy: GLM-5.2 and Kimi-K3 reason on every turn unless
     // told not to, which dominates latency. Honor an explicit effort, else
     // default to a fast "none" (overridable with NCONNECT_REASONING_EFFORT).
     // See the note on defaultReasoningEffort in claude/translate-request.ts.
     if (effort === "high" || effort === "xhigh" || effort === "max") {
-      return "max";
+      return boundReasoningEffort("max", model);
     }
     if (effort === "medium") {
       return "medium";
@@ -760,9 +761,9 @@ function reasoningEffort(
       return "low";
     }
     if (effort === "minimal" || effort === "none") {
-      return floorReasoningEffort("none", model);
+      return boundReasoningEffort("none", model);
     }
-    return floorReasoningEffort(glmDefaultReasoningEffort(), model);
+    return boundReasoningEffort(glmDefaultReasoningEffort(), model);
   }
   if (effort === "low" || effort === "medium" || effort === "high" || effort === "max") {
     return effort;
@@ -774,12 +775,19 @@ function reasoningEffort(
 }
 
 /**
- * Raise "none" to the model's minimum where its template mishandles it. GLM 5.3
- * Flash emits its entire chain-of-thought into `content` at "none", ending with
- * a stray `</think>`, so the user reads the reasoning as the answer.
+ * Raise "none" to the model's minimum where its template mishandles it, and
+ * lower "max" to the name a model takes for its top effort. GLM 5.3 Flash
+ * emits its entire chain-of-thought into `content` at "none", ending with a
+ * stray `</think>`; Muse Spark Open rejects both "none" and "max".
  */
-function floorReasoningEffort(effort: string, model: ModelDefinition): string {
-  return effort === "none" ? (minimumReasoningEffort(model.id) ?? effort) : effort;
+function boundReasoningEffort(effort: string, model: ModelDefinition): string {
+  if (effort === "none") {
+    return minimumReasoningEffort(model.id) ?? effort;
+  }
+  if (effort === "max") {
+    return maximumReasoningEffort(model.id) ?? effort;
+  }
+  return effort;
 }
 
 /** Env-overridable default reasoning effort for GLM-5.2 (fast "none" by default). */

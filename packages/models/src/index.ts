@@ -145,6 +145,13 @@ const CURATED_OVERRIDES: Record<string, ModelOverride> = {
     anthropicAlias: "nebius-deepseek-v4-pro-0813",
     order: 3,
   },
+  "meta-models/muse-spark-open": {
+    name: "Muse Spark Open",
+    anthropicAlias: "nebius-muse-spark-open",
+    // The API row reports 1,048,576 directly; floor it like the other 1M models.
+    minContext: 1_048_576,
+    order: 4,
+  },
   "zai-org/GLM-5.2": {
     name: "GLM 5.2",
     anthropicAlias: "nebius-glm-5-2",
@@ -227,6 +234,7 @@ const CURATED_OVERRIDES: Record<string, ModelOverride> = {
  */
 const BUNDLED_FALLBACK_MODEL_IDS: ReadonlySet<string> = new Set([
   "zai-org/GLM-5.3",
+  "meta-models/muse-spark-open",
   "deepseek-ai/DeepSeek-V4-Pro-0813",
   "deepseek-ai/DeepSeek-V4-Flash",
   "deepseek-ai/DeepSeek-V4-Pro",
@@ -252,6 +260,7 @@ export const REASONING_EFFORT_MODEL_IDS: ReadonlySet<string> = new Set([
   "zai-org/GLM-5.3",
   "zai-org/GLM-5.2",
   "deepseek-ai/DeepSeek-V4-Flash-0731",
+  "meta-models/muse-spark-open",
   "moonshotai/Kimi-K2.6",
   "moonshotai/Kimi-K3",
 ]);
@@ -273,11 +282,23 @@ export const REASONING_EFFORT_MODEL_IDS: ReadonlySet<string> = new Set([
  * on agentic turns: in Claude Code it invented context and looped for 17k and
  * 28k output tokens in a single reply, ending in tool calls written as text.
  * "low" reasons briefly (about 300 tokens) and stays on task.
+ *
+ * Muse Spark Open rejects "none" with a 400 ("Expected one of: low, medium,
+ * high, xhigh"). Measured on Nebius, 2026-10-16.
  */
 const MIN_REASONING_EFFORT: Record<string, string> = {
   "zai-org/GLM-5.3-Flash": "low",
   "zai-org/GLM-5.3": "low",
   "deepseek-ai/DeepSeek-V4-Flash-0731": "low",
+  "meta-models/muse-spark-open": "low",
+};
+
+/**
+ * Models that reject the top effort the proxies send ("max") and take a lower
+ * name for it. Muse Spark Open answers "max" with a 400 and accepts "xhigh".
+ */
+const MAX_REASONING_EFFORT: Record<string, string> = {
+  "meta-models/muse-spark-open": "xhigh",
 };
 
 /**
@@ -292,6 +313,11 @@ const TEMPLATE_THINKING_SWITCH_MODEL_IDS: ReadonlySet<string> = new Set(["moonsh
 /** The lowest `reasoning_effort` this model handles correctly, if constrained. */
 export function minimumReasoningEffort(modelId: string): string | undefined {
   return MIN_REASONING_EFFORT[modelId];
+}
+
+/** The effort to send in place of "max" for this model, if it rejects "max". */
+export function maximumReasoningEffort(modelId: string): string | undefined {
+  return MAX_REASONING_EFFORT[modelId];
 }
 
 /** Whether a model accepts the `reasoning_effort` parameter. */
@@ -554,6 +580,7 @@ export const GLM_5_3: ModelDefinition = fromSnapshot("zai-org/GLM-5.3");
 export const DEEPSEEK_V4_PRO_0813: ModelDefinition = fromSnapshot(
   "deepseek-ai/DeepSeek-V4-Pro-0813",
 );
+export const MUSE_SPARK_OPEN: ModelDefinition = fromSnapshot("meta-models/muse-spark-open");
 export const KIMI_K2_6: ModelDefinition = fromSnapshot("moonshotai/Kimi-K2.6");
 export const KIMI_K2_7_CODE: ModelDefinition = fromSnapshot("moonshotai/Kimi-K2.7-Code");
 export const MINIMAX_M3: ModelDefinition = fromSnapshot("MiniMaxAI/MiniMax-M3");
