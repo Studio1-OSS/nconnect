@@ -3,6 +3,19 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
+## 0.26.1 - 2026-10-19
+
+### Fixed
+
+- Auto can now escalate a task to Reflection Beam (`reflection/beam`). Beam
+  rejects a request when any earlier assistant turn arrives without its
+  reasoning, and under Auto those earlier turns can come from DeepSeek or Kimi,
+  which leave none. The first escalation to Beam then failed with
+  `The assistant turn at messages[N] is missing its reasoning`. nconnect now
+  sends Beam's own reasoning back whatever the reasoning-history setting, and
+  gives a turn that has none an explicit label saying no reasoning was
+  recorded for it. Fixed Beam was not affected.
+
 ## 0.26.0 - 2026-10-16
 
 ### Changed

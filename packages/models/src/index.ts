@@ -326,6 +326,17 @@ export function maximumReasoningEffort(modelId: string): string | undefined {
   return MAX_REASONING_EFFORT[modelId];
 }
 
+/**
+ * Models that reject a request when any earlier assistant turn arrives without
+ * `reasoning_content` ("The assistant turn at messages[N] is missing its
+ * reasoning"). Reflection Beam does this, and offers no flag to waive it.
+ */
+const REQUIRES_REASONING_ON_ASSISTANT_TURNS = new Set<string>(["reflection/beam"]);
+
+export function requiresReasoningOnAssistantTurns(modelId: string): boolean {
+  return REQUIRES_REASONING_ON_ASSISTANT_TURNS.has(modelId);
+}
+
 /** Whether a model accepts the `reasoning_effort` parameter. */
 export function acceptsReasoningEffort(modelId: string): boolean {
   return REASONING_EFFORT_MODEL_IDS.has(modelId);

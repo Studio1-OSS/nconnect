@@ -3,6 +3,7 @@ import {
   maximumReasoningEffort,
   minimumReasoningEffort,
   type ModelDefinition,
+  requiresReasoningOnAssistantTurns,
 } from "@nconnect/models";
 import {
   nativeToolMaxUses as sharedNativeToolMaxUses,
@@ -268,6 +269,10 @@ function imagePart(block: unknown): OpenAIContentPart | undefined {
  * carried in the user message that follows the tool results, labelled with the
  * call it came from. Leave it off for text-only models and for token counting.
  */
+/** Sent as the reasoning of an assistant turn that has none, for models that require one. */
+export const NO_REASONING_RECORDED =
+  "[nconnect: no reasoning was recorded for this turn, for example because a different model produced it.]";
+
 export function toOpenAIMessages(
   body: AnthropicMessagesRequest,
   targetModel?: ModelDefinition,
@@ -278,6 +283,10 @@ export function toOpenAIMessages(
     reasoningMode === undefined
       ? currentReasoningHistoryPolicy()
       : reasoningHistoryPolicy(reasoningMode);
+  // Some models refuse a request whose earlier assistant turns lack reasoning. Send theirs back
+  // whatever the history setting, and label turns that have none, such as turns another model
+  // produced before Auto escalated to this one. The label states a fact; it is not reasoning.
+  const reasoningRequired = targetModel ? requiresReasoningOnAssistantTurns(targetModel.id) : false;
   const systemParts = [
     targetModel
       ? `${NCONNECT_IDENTITY_PROMPT} Backend: ${targetModel.name} (${targetModel.id}).`
@@ -355,9 +364,12 @@ export function toOpenAIMessages(
       messages.push({
         role: message.role,
         content: hasImage ? parts : content || null,
-        ...(reasoningParts.length > 0 && historyPolicy.includeHistoricalReasoning
+        ...(reasoningParts.length > 0 &&
+        (historyPolicy.includeHistoricalReasoning || reasoningRequired)
           ? { reasoning_content: reasoningParts.join("\n") }
-          : {}),
+          : reasoningRequired && message.role === "assistant"
+            ? { reasoning_content: NO_REASONING_RECORDED }
+            : {}),
         ...(toolCalls.length > 0 ? { tool_calls: toolCalls } : {}),
       });
     }
