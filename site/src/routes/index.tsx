@@ -1167,8 +1167,8 @@ function Step3Graphic() {
 
 function FeatureGraphic0() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center">
-      <div className="w-[115%] max-w-[420px] aspect-square opacity-90 flex items-center justify-center">
+    <div className="feature-orbit-stage absolute inset-0 flex items-center justify-center">
+      <div className="feature-orbit w-[115%] max-w-[420px] aspect-square opacity-90 flex items-center justify-center">
         <CofounderGraphic />
       </div>
     </div>
@@ -1270,10 +1270,7 @@ const UPDATE_ROWS = [
 
 function FeatureGraphic3() {
   return (
-    <div
-      className="absolute inset-0 flex items-center justify-center"
-      style={{ padding: "20px 24px" }}
-    >
+    <div className="absolute inset-0 flex items-center justify-center px-6 py-5 max-sm:px-3 max-sm:py-4">
       <TaskRows rows={UPDATE_ROWS} className="w-full" />
     </div>
   );

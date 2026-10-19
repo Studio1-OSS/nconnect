@@ -264,7 +264,7 @@ export function TaskRows({
         return (
           <div
             key={row.key}
-            className={`self-stretch overflow-hidden transition-[border-radius,background-color] duration-300 hover:bg-black/5 ${
+            className={`@container self-stretch overflow-hidden transition-[border-radius,background-color] duration-300 hover:bg-black/5 ${
               list ? "border-b border-[var(--relay-line)] last:border-0" : "bg-[#fcfcfb] shadow-sm"
             }`}
             style={{
@@ -287,10 +287,14 @@ export function TaskRows({
               <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-[var(--relay-ink)]">
                 {row.label}
               </span>
-              <span className="text-[13px] text-[var(--relay-muted)] tabular-nums">
+              <span
+                className={`shrink-0 whitespace-nowrap text-[13px] text-[var(--relay-muted)] tabular-nums${
+                  pillFor(row) ? " @max-[22rem]:hidden" : " @max-[18rem]:hidden"
+                }`}
+              >
                 {row.amount}
               </span>
-              {pillFor(row)}
+              <span className="contents @max-[18rem]:hidden">{pillFor(row)}</span>
               <span
                 aria-hidden="true"
                 className="-ml-1 flex w-8 h-8 shrink-0 items-center justify-center rounded-full text-gray-500"
@@ -327,7 +331,7 @@ export function TaskRows({
                     {row.details.map((d, j) => (
                       <div
                         key={d.label}
-                        className="flex items-center justify-between"
+                        className="flex items-center justify-between gap-3"
                         style={
                           open
                             ? {
@@ -337,7 +341,7 @@ export function TaskRows({
                         }
                       >
                         <span className="text-[14px] text-[var(--relay-muted)]">{d.label}</span>
-                        <span className="font-mono text-[13px] text-gray-500 tabular-nums">
+                        <span className="shrink-0 font-mono text-[13px] text-gray-500 tabular-nums">
                           {d.meta}
                         </span>
                       </div>

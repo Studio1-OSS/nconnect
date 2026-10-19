@@ -1902,6 +1902,24 @@
   min-height: 240px !important;
   align-self: stretch !important;
 }
+/* Orbit graphic: on stacked layouts, size the square to fit its box instead of clipping */
+@media (max-width: 1024px) {
+  .feature-card-0 .feature-graphic-container {
+    min-height: 400px !important;
+  }
+  .feature-orbit-stage {
+    container-type: size;
+  }
+  .feature-orbit {
+    width: min(calc(100cqw - 24px), calc(100cqh - 24px), 420px);
+  }
+}
+@media (max-width: 768px) {
+  .feature-card-0 .feature-graphic-container {
+    min-height: 0 !important;
+    aspect-ratio: 1 / 1;
+  }
+}
 @media (max-width: 768px) {
   .feature-grid > article.feature-card-horizontal {
     flex-direction: column !important;
