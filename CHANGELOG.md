@@ -3,6 +3,39 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
+## Unreleased
+
+### Added
+
+- New Nebius models with names and Claude aliases: DeepSeek V4.1 Flash 1017,
+  DeepSeek V4.1 Flash, MiniMax M3.1 Flash, Reflection Beam, Qwen 3.8 27B,
+  Nemotron 3.5 Super VL and Nemotron 3.5 Lightning. All are in the bundled
+  catalog, so they can be picked offline too.
+
+### Changed
+
+- Costs now use the cached-input price Nebius publishes, so a session with
+  many cache hits reports less than before. `NCONNECT_CACHE_READ_RATIO` now
+  applies only to a model with no published cached price.
+- Reflection Beam now gets a reasoning effort: `low` by default, since it
+  rejects `none`. Before, no effort was sent, so effort settings had no effect.
+- Qwen 3.8 27B gets `xhigh` when `max` is asked for, since it rejects `max`.
+- Nemotron 3.5 Super VL is the vision fallback after Kimi K2.6.
+- The bundled catalog is refreshed from Nebius. GLM 5.2, GLM 5.3, DeepSeek V4
+  Pro 0813 and MiniMax M3 now show a 1M context.
+
+### Fixed
+
+- Qwen 3.5 397B and Qwen 3.8 27B no longer fail in Claude Code and Codex with
+  `System message must be at the beginning`. Models that take one system
+  message now get all of it at the start. Gemma 3 27B gets the same handling.
+
+### Removed
+
+- `deepseek-ai/DeepSeek-V4-Flash` and `Qwen/Qwen2.5-VL-72B-Instruct`, which
+  Nebius no longer serves. DeepSeek V4 Flash 0731 and DeepSeek V4.1 Flash are
+  the fast alternatives.
+
 ## 0.26.1 - 2026-10-19
 
 ### Fixed

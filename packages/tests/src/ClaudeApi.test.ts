@@ -3,6 +3,7 @@ import { Readable } from "node:stream";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   GLM_5_2,
+  KIMI_K2_7_CODE,
   KIMI_K2_6,
   NEBIUS_BASE_URL,
   type ModelDefinition,
@@ -439,15 +440,15 @@ describe("Claude proxy compatibility API", () => {
       const env = buildClaudeEnv({
         apiKey: "test-together-key",
         baseUrl: NEBIUS_BASE_URL,
-        modelId: GLM_5_2.anthropicAlias ?? GLM_5_2.id,
-        modelName: GLM_5_2.name,
+        modelId: KIMI_K2_6.anthropicAlias ?? KIMI_K2_6.id,
+        modelName: KIMI_K2_6.name,
         proxyUrl: "http://127.0.0.1:7878/session/test",
         authToken: "local-token",
       });
 
-      expect(env.ANTHROPIC_MODEL).toBe(GLM_5_2.anthropicAlias);
+      expect(env.ANTHROPIC_MODEL).toBe(KIMI_K2_6.anthropicAlias);
       expect(env.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe(EXPECTED_HAIKU_MODEL_ID);
-      expect(env.ANTHROPIC_DEFAULT_HAIKU_MODEL).not.toBe(GLM_5_2.anthropicAlias);
+      expect(env.ANTHROPIC_DEFAULT_HAIKU_MODEL).not.toBe(KIMI_K2_6.anthropicAlias);
       expect(env.CLAUDE_CODE_MAX_OUTPUT_TOKENS).toBe("32000");
 
       // The Fable tier (Claude Code 2.1.289+) must be a Nebius model, not
@@ -508,13 +509,13 @@ describe("Claude proxy compatibility API", () => {
       method: "POST",
       url: "/v1/messages/count_tokens",
       body: JSON.stringify({
-        model: GLM_5_2.anthropicAlias,
+        model: KIMI_K2_7_CODE.anthropicAlias,
         messages: [{ role: "user", content: hugePrompt }],
       }),
     });
 
     expect(response.status).toBe(200);
-    expect(response.body.input_tokens).toBeGreaterThan(GLM_5_2.limit.context - 4096);
+    expect(response.body.input_tokens).toBeGreaterThan(KIMI_K2_7_CODE.limit.context - 4096);
   });
 
   test("trims Claude compaction-sized input before sacrificing the summary budget", async () => {
@@ -549,7 +550,7 @@ describe("Claude proxy compatibility API", () => {
       method: "POST",
       url: "/v1/messages",
       body: JSON.stringify({
-        model: GLM_5_2.anthropicAlias,
+        model: KIMI_K2_7_CODE.anthropicAlias,
         max_tokens: 32_000,
         messages: [{ role: "user", content: nearFullContext }],
       }),

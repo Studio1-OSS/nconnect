@@ -135,20 +135,26 @@ Auto decider (optional): by default Auto judges task difficulty with keyword rul
 Featured flagship models (any live Nebius id also works with `--model`):
 
 - `zai-org/GLM-5.3-Flash` - GLM 5.3 Flash. The default coding model, accepts images, 1M context.
-- `zai-org/GLM-5.3` - GLM 5.3. Text-only, coding and tool use, 1,024,000 context. Bundled since 0.15.4; Claude alias: `nebius-glm-5-3`.
-- `deepseek-ai/DeepSeek-V4-Pro-0813` - DeepSeek V4 Pro 0813. Text-only, reasoning and agentic coding, 979,000 context. Bundled since 0.15.4; Claude alias: `nebius-deepseek-v4-pro-0813`.
+- `zai-org/GLM-5.3` - GLM 5.3. Text-only, coding and tool use, 1M context. Bundled since 0.15.4; Claude alias: `nebius-glm-5-3`.
+- `deepseek-ai/DeepSeek-V4-Pro-0813` - DeepSeek V4 Pro 0813. Text-only, reasoning and agentic coding, 1M context. Bundled since 0.15.4; Claude alias: `nebius-deepseek-v4-pro-0813`.
 - `meta-models/muse-spark-open` - Muse Spark Open (Meta, new). 816B-parameter mixture of experts with about 42B active, for coding and agentic work. Accepts images, reasoning and tool use, 1M context. $1.25 / $4.25 per M input/output tokens. Takes `reasoning_effort` low to xhigh only: NConnect raises `none` to `low` and sends `xhigh` for `max`. Claude alias: `nebius-muse-spark-open`. Try it in the playground: https://tokenfactory.nebius.com/playground?models=meta-models/muse-spark-open
 - `moonshotai/Kimi-K3` - Kimi K3. Accepts images, reasoning + agentic coding, 1M context.
 - `moonshotai/Kimi-K2.6` - Kimi K2.6. Vision + reasoning, 262K context. The vision flagship. Ignores `reasoning_effort`; at effort `none` NConnect turns its thinking off through the chat template.
 - `moonshotai/Kimi-K2.7-Code` - Kimi K2.7 Code. Text-only coding model, 262K context.
-- `MiniMaxAI/MiniMax-M3` - MiniMax M3. Text-only, 196K context, fast and cheap.
+- `MiniMaxAI/MiniMax-M3` - MiniMax M3. Text-only, 1M context, fast and cheap.
 - `Qwen/Qwen3.5-397B-A17B` - Qwen 3.5 397B. Text-only, 262K context, general/coding flagship.
 - `deepseek-ai/DeepSeek-V4-Pro` - DeepSeek V4 Pro. Text-only, 1M context, long-context reasoning.
-- `Qwen/Qwen2.5-VL-72B-Instruct` - Qwen2.5-VL 72B. Vision, 32K context. The vision fallback.
+- `deepseek-ai/DeepSeek-V4.1-Flash-1017` - DeepSeek V4.1 Flash 1017 (new). Accepts images, reasoning and tool use, 1M context. Claude alias: `nebius-deepseek-v4-1-flash-1017`.
+- `deepseek-ai/DeepSeek-V4.1-Flash` - DeepSeek V4.1 Flash. Accepts images, reasoning and tool use, 1M context. Claude alias: `nebius-deepseek-v4-1-flash`.
+- `MiniMaxAI/MiniMax-M3.1-Flash` - MiniMax M3.1 Flash (new). Accepts images, reasoning and tool use, 1M context. Claude alias: `nebius-minimax-m3-1-flash`.
+- `reflection/beam` - Reflection Beam (new). Text-only, coding and agentic work, 1M context. Rejects effort `none`, so NConnect sends `low` instead. Claude alias: `nebius-reflection-beam`.
+- `Qwen/Qwen3.8-27B` - Qwen 3.8 27B (new). Accepts images, reasoning and tool use, 262K context. Rejects effort `max`, so NConnect sends `xhigh` instead. Claude alias: `nebius-qwen-3-8-27b`.
+- `nvidia/Nemotron-3.5-Super-VL` - Nemotron 3.5 Super VL (new). Accepts images, reasoning and tool use, 1M context. The vision fallback. Claude alias: `nebius-nemotron-3-5-super-vl`.
+- `nvidia/Nemotron-3_5-Lightning` - Nemotron 3.5 Lightning (new). Text-only, reasoning and tool use, 1M context. Claude alias: `nebius-nemotron-3-5-lightning`.
 
-Note: `zai-org/GLM-5.2` was the previous default but Nebius removed it from the live catalog (2026-07-27); `zai-org/GLM-5.1` is available in its place.
+Note: `zai-org/GLM-5.2` was the previous default. `deepseek-ai/DeepSeek-V4-Flash` and `Qwen/Qwen2.5-VL-72B-Instruct` are no longer served by Nebius.
 
-Vision-capable models (those whose API modality includes image input, e.g. GLM 5.3 Flash, Kimi K3, Kimi K2.6 and Qwen2.5-VL) accept image attachments directly in Claude Code and Codex. For a text-only model, the Claude Code proxy replaces images with a text description from a vision model (Kimi K2.6, then Qwen2.5-VL). With a vision-capable model it keeps the 8 most recent images as images and describes older ones; `NCONNECT_CLAUDE_IMAGES=describe` always describes. OpenCode routes images for text-only models to the `@vision` subagent.
+Vision-capable models (those whose API modality includes image input, e.g. GLM 5.3 Flash, Kimi K3, Kimi K2.6 and Nemotron 3.5 Super VL) accept image attachments directly in Claude Code and Codex. For a text-only model, the Claude Code proxy replaces images with a text description from a vision model (Kimi K2.6, then Qwen2.5-VL). With a vision-capable model it keeps the 8 most recent images as images and describes older ones; `NCONNECT_CLAUDE_IMAGES=describe` always describes. OpenCode routes images for text-only models to the `@vision` subagent.
 
 ## Claude Desktop (beta)
 

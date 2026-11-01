@@ -4,6 +4,7 @@ import {
   minimumReasoningEffort,
   type ModelDefinition,
   requiresReasoningOnAssistantTurns,
+  requiresSingleSystemMessage,
 } from "@nconnect/models";
 import {
   nativeToolMaxUses as sharedNativeToolMaxUses,
@@ -12,6 +13,7 @@ import {
   withNativeToolSystemPrompt as withSharedNativeToolSystemPrompt,
   type WebSearchOutcome,
 } from "../tavily-search.js";
+import { foldSystemMessages } from "../system-messages.js";
 import { writeProxyDebugLog } from "../proxy-debug.js";
 import {
   formatToolResultContent,
@@ -375,7 +377,9 @@ export function toOpenAIMessages(
     }
   }
 
-  return messages;
+  return targetModel && requiresSingleSystemMessage(targetModel.id)
+    ? foldSystemMessages(messages)
+    : messages;
 }
 
 function mergeLeadingSystemMessages(messages: OpenAIMessage[]): OpenAIMessage[] {

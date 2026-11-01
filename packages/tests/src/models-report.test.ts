@@ -76,15 +76,15 @@ describe("nconnect models", () => {
   });
 
   test("a bundled fallback absent from Nebius's list is flagged, not reported as live", () => {
-    // DeepSeek V4 Flash is a bundled fallback; this live list does not have it.
+    // DeepSeek V4 Pro is a bundled fallback; this live list does not have it.
     applyCatalog(buildCatalog([row("zai-org/GLM-5.3-Flash")]) as never);
     const rows = buildModelRows();
-    const fallback = rows.find((r) => r.id === "deepseek-ai/DeepSeek-V4-Flash");
+    const fallback = rows.find((r) => r.id === "deepseek-ai/DeepSeek-V4-Pro");
     expect(fallback).toBeDefined();
     expect(fallback!.inPicker).toBe(true);
     expect(fallback!.inCatalog).toBe(false);
     expect(formatModelsReport(rows)).toMatch(
-      /deepseek-ai\/DeepSeek-V4-Flash.*not in Nebius's live catalog/,
+      /deepseek-ai\/DeepSeek-V4-Pro.*not in Nebius's live catalog/,
     );
     expect(rows.find((r) => r.id === "zai-org/GLM-5.3-Flash")!.inCatalog).toBe(true);
   });

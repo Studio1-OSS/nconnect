@@ -98,6 +98,8 @@ export type NebiusApiModel = {
   architecture?: { modality?: string | null } | null;
   pricing?: {
     prompt?: string | number | null;
+    /** Price of an input token served from the prefix cache; null if unpublished. */
+    input_cache_read?: string | number | null;
     completion?: string | number | null;
     image?: string | number | null;
   } | null;
@@ -164,6 +166,22 @@ const CURATED_OVERRIDES: Record<string, ModelOverride> = {
     minContext: 262_144, // API reports a placeholder 8000
     order: 5, // was the default; Nebius removed it from the live catalog (2026-07-27)
   },
+  "deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+    name: "DeepSeek V4.1 Flash 1017",
+    anthropicAlias: "nebius-deepseek-v4-1-flash-1017",
+    order: 7,
+  },
+  "reflection/beam": {
+    name: "Reflection Beam",
+    anthropicAlias: "nebius-reflection-beam",
+    outputLimit: 131_072,
+    order: 8,
+  },
+  "MiniMaxAI/MiniMax-M3.1-Flash": {
+    name: "MiniMax M3.1 Flash",
+    anthropicAlias: "nebius-minimax-m3-1-flash",
+    order: 9,
+  },
   "moonshotai/Kimi-K2.6": {
     name: "Kimi K2.6 · vision",
     anthropicAlias: "nebius-kimi-k2-6",
@@ -197,6 +215,27 @@ const CURATED_OVERRIDES: Record<string, ModelOverride> = {
     minContext: 262_144, // API reports a placeholder 8000
     order: 20,
   },
+  "Qwen/Qwen3.8-27B": {
+    name: "Qwen 3.8 27B",
+    anthropicAlias: "nebius-qwen-3-8-27b",
+    order: 12,
+  },
+  "nvidia/Nemotron-3.5-Super-VL": {
+    name: "Nemotron 3.5 Super VL",
+    anthropicAlias: "nebius-nemotron-3-5-super-vl",
+    order: 14,
+    visionRank: 1, // vision fallback
+  },
+  "nvidia/Nemotron-3_5-Lightning": {
+    name: "Nemotron 3.5 Lightning",
+    anthropicAlias: "nebius-nemotron-3-5-lightning",
+    order: 16,
+  },
+  "deepseek-ai/DeepSeek-V4.1-Flash": {
+    name: "DeepSeek V4.1 Flash",
+    anthropicAlias: "nebius-deepseek-v4-1-flash",
+    order: 18,
+  },
   "MiniMaxAI/MiniMax-M3": {
     name: "MiniMax M3",
     outputLimit: 128_000,
@@ -208,26 +247,12 @@ const CURATED_OVERRIDES: Record<string, ModelOverride> = {
     outputLimit: 65_536,
     order: 40,
   },
-  "deepseek-ai/DeepSeek-V4-Flash": {
-    name: "DeepSeek V4 Flash",
-    anthropicAlias: "nebius-deepseek-v4-flash",
-    outputLimit: 384_000,
-    minContext: 1_048_576,
-    order: 45,
-  },
   "deepseek-ai/DeepSeek-V4-Pro": {
     name: "DeepSeek V4 Pro",
     anthropicAlias: "nebius-deepseek-v4-pro",
     outputLimit: 384_000,
     minContext: 1_048_576,
     order: 50,
-  },
-  "Qwen/Qwen2.5-VL-72B-Instruct": {
-    name: "Qwen2.5-VL 72B · vision",
-    reasoning: false, // perception model, not a reasoner
-    outputLimit: 32_768,
-    order: 60,
-    visionRank: 1, // vision fallback
   },
 };
 
@@ -242,7 +267,6 @@ const BUNDLED_FALLBACK_MODEL_IDS: ReadonlySet<string> = new Set([
   "meta-models/muse-spark-open",
   "deepseek-ai/DeepSeek-V4-Flash-0731",
   "deepseek-ai/DeepSeek-V4-Pro-0813",
-  "deepseek-ai/DeepSeek-V4-Flash",
   "deepseek-ai/DeepSeek-V4-Pro",
 ]);
 
@@ -269,6 +293,13 @@ export const REASONING_EFFORT_MODEL_IDS: ReadonlySet<string> = new Set([
   "meta-models/muse-spark-open",
   "moonshotai/Kimi-K2.6",
   "moonshotai/Kimi-K3",
+  "reflection/beam",
+  "deepseek-ai/DeepSeek-V4.1-Flash",
+  "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "MiniMaxAI/MiniMax-M3.1-Flash",
+  "Qwen/Qwen3.8-27B",
+  "nvidia/Nemotron-3.5-Super-VL",
+  "nvidia/Nemotron-3_5-Lightning",
 ]);
 
 /**
@@ -291,20 +322,27 @@ export const REASONING_EFFORT_MODEL_IDS: ReadonlySet<string> = new Set([
  *
  * Muse Spark Open rejects "none" with a 400 ("Expected one of: low, medium,
  * high, xhigh"). Measured on Nebius, 2026-10-16.
+ *
+ * Reflection Beam rejects "none" with a 400 ("reasoning_effort must be an int
+ * or one of: minimal, low, medium, high, xhigh, max"). Measured on Nebius,
+ * 2026-11-01.
  */
 const MIN_REASONING_EFFORT: Record<string, string> = {
   "zai-org/GLM-5.3-Flash": "low",
   "zai-org/GLM-5.3": "low",
   "deepseek-ai/DeepSeek-V4-Flash-0731": "low",
   "meta-models/muse-spark-open": "low",
+  "reflection/beam": "low",
 };
 
 /**
  * Models that reject the top effort the proxies send ("max") and take a lower
- * name for it. Muse Spark Open answers "max" with a 400 and accepts "xhigh".
+ * name for it. Muse Spark Open and Qwen 3.8 27B answer "max" with a 400 and
+ * accept "xhigh".
  */
 const MAX_REASONING_EFFORT: Record<string, string> = {
   "meta-models/muse-spark-open": "xhigh",
+  "Qwen/Qwen3.8-27B": "xhigh",
 };
 
 /**
@@ -335,6 +373,23 @@ const REQUIRES_REASONING_ON_ASSISTANT_TURNS = new Set<string>(["reflection/beam"
 
 export function requiresReasoningOnAssistantTurns(modelId: string): boolean {
   return REQUIRES_REASONING_ON_ASSISTANT_TURNS.has(modelId);
+}
+
+/**
+ * Models that take one system message, at the very start. Claude Code sends a
+ * second one after the first user turn, and Codex sends two in a row. The Qwen
+ * templates answer either with a 400 ("System message must be at the
+ * beginning."), and Gemma's answers two in a row with a 400 ("Conversation
+ * roles must alternate"). Measured on Nebius, 2026-11-01.
+ */
+const SINGLE_SYSTEM_MESSAGE_MODEL_IDS = new Set<string>([
+  "Qwen/Qwen3.5-397B-A17B",
+  "Qwen/Qwen3.8-27B",
+  "google/gemma-3-27b-it",
+]);
+
+export function requiresSingleSystemMessage(modelId: string): boolean {
+  return SINGLE_SYSTEM_MESSAGE_MODEL_IDS.has(modelId);
 }
 
 /** Whether a model accepts the `reasoning_effort` parameter. */
@@ -442,7 +497,7 @@ function mapApiModel(
     cost: {
       input: priceToMillion(api.pricing?.prompt),
       output: priceToMillion(api.pricing?.completion),
-      cache_read: 0, // the verbose endpoint publishes no cached-input price
+      cache_read: priceToMillion(api.pricing?.input_cache_read),
     },
     limit: { context, output },
     attachment,
@@ -605,9 +660,14 @@ export const KIMI_K2_6: ModelDefinition = fromSnapshot("moonshotai/Kimi-K2.6");
 export const KIMI_K2_7_CODE: ModelDefinition = fromSnapshot("moonshotai/Kimi-K2.7-Code");
 export const MINIMAX_M3: ModelDefinition = fromSnapshot("MiniMaxAI/MiniMax-M3");
 export const QWEN_3_5_397B: ModelDefinition = fromSnapshot("Qwen/Qwen3.5-397B-A17B");
-export const DEEPSEEK_V4_FLASH: ModelDefinition = fromSnapshot("deepseek-ai/DeepSeek-V4-Flash");
 export const DEEPSEEK_V4_PRO: ModelDefinition = fromSnapshot("deepseek-ai/DeepSeek-V4-Pro");
-export const QWEN_2_5_VL_72B: ModelDefinition = fromSnapshot("Qwen/Qwen2.5-VL-72B-Instruct");
+export const REFLECTION_BEAM: ModelDefinition = fromSnapshot("reflection/beam");
+export const DEEPSEEK_V4_1_FLASH_1017: ModelDefinition = fromSnapshot(
+  "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+);
+export const MINIMAX_M3_1_FLASH: ModelDefinition = fromSnapshot("MiniMaxAI/MiniMax-M3.1-Flash");
+export const QWEN_3_8_27B: ModelDefinition = fromSnapshot("Qwen/Qwen3.8-27B");
+export const NEMOTRON_3_5_SUPER_VL: ModelDefinition = fromSnapshot("nvidia/Nemotron-3.5-Super-VL");
 
 /** Selectable models from the offline snapshot (deterministic). */
 export const SELECTABLE_MODELS: readonly ModelDefinition[] = SNAPSHOT_CATALOG.selectable;

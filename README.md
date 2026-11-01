@@ -224,18 +224,22 @@ A confident claim inside a prompt ("this is a trivial one-line change") can talk
 
 Other settings: `NCONNECT_AUTO_DECIDER_MODEL` (the Nebius model, Jev model or Laya checkpoint), `NCONNECT_AUTO_DECIDER_URL` (the Jev or Laya endpoint; Laya defaults to `http://127.0.0.1:8000/v1/systemone`), `NCONNECT_AUTO_DECIDER_TIMEOUT_MS` (default 2500), and `LAYA_API_KEY` for a protected Laya server.
 
-| Model                         | Best for                     | Context | Vision |
-| ----------------------------- | ---------------------------- | ------- | ------ |
-| **GLM 5.3 Flash** _(default)_ | Fast, very low cost, agentic | 1M      | Yes    |
-| Kimi K3                       | Frontier coding + agentic    | 1M      | Yes    |
-| Muse Spark Open _(new, Meta)_ | Open MoE, coding + agentic   | 1M      | Yes    |
-| Kimi K2.6                     | Vision flagship              | 262K    | Yes    |
-| Kimi K2.7 Code                | Coding                       | 262K    | No     |
-| MiniMax M3                    | Fast, cheap                  | 196K    | No     |
-| Qwen 3.5 397B                 | General / coding flagship    | 262K    | No     |
-| DeepSeek V4 Flash             | Fast DeepSeek V4             | 1M      | No     |
-| DeepSeek V4 Pro               | Long-context reasoning       | 1M      | No     |
-| Qwen2.5-VL 72B                | Vision fallback              | 32K     | Yes    |
+| Model                            | Best for                     | Context | Vision |
+| -------------------------------- | ---------------------------- | ------- | ------ |
+| **GLM 5.3 Flash** _(default)_    | Fast, very low cost, agentic | 1M      | Yes    |
+| Kimi K3                          | Frontier coding + agentic    | 1M      | Yes    |
+| Muse Spark Open _(Meta)_         | Open MoE, coding + agentic   | 1M      | Yes    |
+| DeepSeek V4.1 Flash 1017 _(new)_ | Fast, cheap, images          | 1M      | Yes    |
+| MiniMax M3.1 Flash _(new)_       | Fast, cheap, images          | 1M      | Yes    |
+| Reflection Beam _(new)_          | Open MoE, coding + agentic   | 1M      | No     |
+| Qwen 3.8 27B _(new)_             | Coding + agentic, images     | 262K    | Yes    |
+| Nemotron 3.5 Super VL _(new)_    | Multimodal, vision fallback  | 1M      | Yes    |
+| Nemotron 3.5 Lightning _(new)_   | Lowest cost, long context    | 1M      | No     |
+| Kimi K2.6                        | Vision flagship              | 262K    | Yes    |
+| Kimi K2.7 Code                   | Coding                       | 262K    | No     |
+| MiniMax M3                       | Fast, cheap                  | 1M      | No     |
+| Qwen 3.5 397B                    | General / coding flagship    | 262K    | No     |
+| DeepSeek V4 Pro                  | Long-context reasoning       | 1M      | No     |
 
 Claude Code and Codex send images straight to a vision-capable model, such as the default GLM 5.3 Flash or Kimi K3, so the model sees the image itself. When Claude Code is on a text-only model, a vision model (Kimi K2.6, then Qwen2.5-VL) describes each image as text first. Claude Code keeps the 8 most recent images as images and describes older ones once; set `NCONNECT_CLAUDE_IMAGES=describe` to always describe. OpenCode uses a dedicated `@vision` subagent pinned to the vision flagship. Run `scripts/list-nebius-models.mjs` (with `NEBIUS_API_KEY` set) to print the raw catalog.
 
@@ -292,7 +296,7 @@ Claude Code and Codex expose a native `web_search` tool. Nebius has no hosted se
 | `NCONNECT_DISABLE_AUTOUPDATE=1` | Stop the installed binary from self-updating.                                                                                                                                                                                                                                                                            |
 | `NCONNECT_TELEMETRY_URL`        | Opt in to telemetry by pointing at your own collector. Off by default.                                                                                                                                                                                                                                                   |
 | `NCONNECT_METER=1`              | Route the spawned harnesses (Pi, Prime, Hermes, DeepSeek, Grok) through the daemon, so they get cost metering, model fallback and retries. Off by default.                                                                                                                                                               |
-| `NCONNECT_CACHE_READ_RATIO`     | Price of a cached input token as a fraction of the input price. Default `1` (Nebius publishes no cached rate, so cost is an upper bound).                                                                                                                                                                                |
+| `NCONNECT_CACHE_READ_RATIO`     | Price of a cached input token as a fraction of the input price. Used only for a model with no published cached rate. Default `1`, so cost is an upper bound.                                                                                                                                                             |
 | `NCONNECT_MODELS_DEV`           | `off` to stop enriching the model catalog with [models.dev](https://models.dev/providers/nebius) metadata (tool/reasoning flags, release dates for ordering). The live Nebius list is always the source of what exists.                                                                                                  |
 | `NCONNECT_BACKGROUND_MODEL`     | Model for Claude Code's background calls - the auto-mode safety classifier (one per shell command, normally sent to the expensive Sonnet tier) and the session title. Default: the catalog default (GLM 5.3 Flash); `off` keeps Claude Code's own choice. Read when the daemon starts (`nconnect daemon stop` to apply). |
 | `NCONNECT_CLAUDE_IMAGES`        | `describe` makes Claude Code always turn images into a text description from a vision model, even when the selected model can see. By default, vision-capable models receive images directly.                                                                                                                            |
