@@ -38,6 +38,12 @@ export type ModelCost = {
   output: number;
   /** USD per 1M cached input tokens (Nebius shared prefix cache). 0 if none. */
   cache_read: number;
+  /**
+   * Whether Nebius published `cache_read`, so a 0 means free rather than
+   * unknown. Absent on hand-built definitions, where only a rate above 0
+   * counts as published.
+   */
+  cache_read_published?: boolean;
 };
 
 export type ModelLimit = {
@@ -431,6 +437,15 @@ function priceToMillion(value: string | number | null | undefined): number {
   return perToken * TOKENS_PER_MILLION;
 }
 
+/** Whether a price field holds a real number, 0 included, rather than null or junk. */
+function isPublishedPrice(value: string | number | null | undefined): boolean {
+  if (value === null || value === undefined || value === "") {
+    return false;
+  }
+  const parsed = typeof value === "string" ? Number.parseFloat(value) : value;
+  return Number.isFinite(parsed) && parsed >= 0;
+}
+
 /**
  * Parse a Nebius `architecture.modality` string ("text+image->text",
  * "text->text", "text->embedding") into input/output modality lists.
@@ -498,6 +513,7 @@ function mapApiModel(
       input: priceToMillion(api.pricing?.prompt),
       output: priceToMillion(api.pricing?.completion),
       cache_read: priceToMillion(api.pricing?.input_cache_read),
+      cache_read_published: isPublishedPrice(api.pricing?.input_cache_read),
     },
     limit: { context, output },
     attachment,

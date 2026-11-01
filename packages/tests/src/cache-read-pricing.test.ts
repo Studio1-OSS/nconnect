@@ -36,7 +36,10 @@ describe("cached tokens are billed", () => {
 
   test("with no published rate, a fully-cached prompt still costs money", () => {
     const published = getDefaultModel();
-    const model = { ...published, cost: { ...published.cost, cache_read: 0 } };
+    const model = {
+      ...published,
+      cost: { ...published.cost, cache_read: 0, cache_read_published: false },
+    };
     const tracker = new CostTracker(model);
     tracker.addUsage(10_000, 10_000, 0, model);
     const totals = tracker.totals;

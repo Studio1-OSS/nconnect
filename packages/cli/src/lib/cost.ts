@@ -46,6 +46,11 @@ export function cacheReadRatio(env: NodeJS.ProcessEnv = process.env): number {
   return parsed;
 }
 
+/** Whether a model's cached-input price is known, so the ratio fallback does not apply. */
+export function hasPublishedCacheRead(model: ModelDefinition): boolean {
+  return model.cost.cache_read_published ?? model.cost.cache_read > 0;
+}
+
 function pricingFor(model: ModelDefinition): {
   inputPerToken: number;
   cachedInputPerToken: number;
@@ -57,7 +62,9 @@ function pricingFor(model: ModelDefinition): {
   const publishedCached = costPerToken(model.cost.cache_read);
   return {
     inputPerToken,
-    cachedInputPerToken: publishedCached > 0 ? publishedCached : inputPerToken * cacheReadRatio(),
+    cachedInputPerToken: hasPublishedCacheRead(model)
+      ? publishedCached
+      : inputPerToken * cacheReadRatio(),
     outputPerToken: costPerToken(model.cost.output),
   };
 }

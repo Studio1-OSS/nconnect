@@ -18,6 +18,8 @@ import {
 } from "../../models/src/index.js";
 import { CATALOG_SNAPSHOT } from "../../models/src/catalog-snapshot.js";
 import { foldSystemMessages } from "../../cli/src/lib/system-messages.js";
+import { CostTracker, hasPublishedCacheRead } from "../../cli/src/lib/cost.js";
+import { formatUsageReport, summarizeUsage } from "../../cli/src/lib/usage-report.js";
 import {
   nebiusReasoningEffort,
   toOpenAIMessages,
@@ -81,6 +83,39 @@ describe("cached-input pricing", () => {
     ]);
     expect(catalog.byId.get("lab/unpriced")?.cost.cache_read).toBe(0);
     expect(catalog.byId.get("lab/absent")?.cost.cache_read).toBe(0);
+  });
+
+  test("a published rate of 0 means free cached input, not an unknown rate", () => {
+    const catalog = buildCatalog([
+      { id: "lab/free-cache", pricing: { prompt: "0.000001", input_cache_read: "0" } },
+      { id: "lab/unpriced", pricing: { prompt: "0.000001", input_cache_read: null } },
+    ]);
+    const free = catalog.byId.get("lab/free-cache")!;
+    const unpriced = catalog.byId.get("lab/unpriced")!;
+    expect(hasPublishedCacheRead(free)).toBe(true);
+    expect(hasPublishedCacheRead(unpriced)).toBe(false);
+
+    const tracker = new CostTracker(free);
+    tracker.addUsage(10_000, 10_000, 0, free);
+    expect(tracker.totals.costUsd).toBe(0);
+  });
+
+  test("the usage report warns only about cache hits priced by the fallback", () => {
+    const row = (model: string) => ({
+      model,
+      sessions: 1,
+      promptTokens: 1000,
+      cachedTokens: 800,
+      completionTokens: 10,
+      costUsd: 0.01,
+    });
+    const report = (model: string) =>
+      formatUsageReport(
+        { ...summarizeUsage([], 0), sessions: 1, cachedTokens: 800, byModel: [row(model)] },
+        "7d",
+      );
+    expect(report(REFLECTION_BEAM.name)).not.toContain("upper bound");
+    expect(report("Auto")).toContain("upper bound");
   });
 
   test("the bundled snapshot carries cached rates", () => {
