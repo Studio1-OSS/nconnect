@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  DEEPSEEK_V4_FLASH,
   DEEPSEEK_V4_PRO,
   DEEPSEEK_V4_PRO_0813,
   GLM_5_3,
@@ -57,10 +56,7 @@ describe("resolveModelByKeys", () => {
     ).toBe(GLM_5_2.id);
   });
 
-  it("includes DeepSeek V4 Flash and Pro aliases with long-context limits", () => {
-    expect(DEEPSEEK_V4_FLASH.anthropicAlias).toBe("nebius-deepseek-v4-flash");
-    expect(DEEPSEEK_V4_FLASH.limit.context).toBe(1_048_576);
-    expect(DEEPSEEK_V4_FLASH.limit.output).toBe(384_000);
+  it("includes the DeepSeek V4 Pro alias with long-context limits", () => {
     expect(DEEPSEEK_V4_PRO.anthropicAlias).toBe("nebius-deepseek-v4-pro");
     expect(DEEPSEEK_V4_PRO.limit.context).toBe(1_048_576);
     expect(DEEPSEEK_V4_PRO.limit.output).toBe(384_000);
@@ -78,7 +74,6 @@ describe("resolveModelByKeys", () => {
     ]);
 
     expect(catalog.byId.has("example/Only-Live-Model")).toBe(true);
-    expect(catalog.byId.get(DEEPSEEK_V4_FLASH.id)?.limit.context).toBe(1_048_576);
     expect(catalog.byId.get(DEEPSEEK_V4_PRO.id)?.limit.output).toBe(384_000);
   });
 
@@ -89,8 +84,8 @@ describe("resolveModelByKeys", () => {
   });
 
   it.each([
-    [GLM_5_3, "nebius-glm-5-3", 1_024_000, 1.4, 4.4],
-    [DEEPSEEK_V4_PRO_0813, "nebius-deepseek-v4-pro-0813", 979_000, 1.32, 3.96],
+    [GLM_5_3, "nebius-glm-5-3", 1_048_576, 1.4, 4.4],
+    [DEEPSEEK_V4_PRO_0813, "nebius-deepseek-v4-pro-0813", 1_048_576, 1.32, 3.96],
   ] as const)(
     "selects $0.id by exact ID and alias with verified metadata",
     (model, alias, context, input, output) => {

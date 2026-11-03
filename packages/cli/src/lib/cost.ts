@@ -19,14 +19,14 @@ import { APPROX_CHARS_PER_TOKEN } from "./claude/context-budget.js";
 /**
  * What a cached input token costs, as a fraction of the normal input price.
  *
- * Nebius serves cached prompts - `prompt_tokens_details.cached_tokens` comes
- * back populated - but its catalog publishes no cached-input price, so we have
- * no rate to read. Assuming they are free (the old behavior, `cache_read: 0`)
- * silently under-reports spend, and on a long agentic session most input
- * tokens are cache hits, so the error is not small. Default to charging them
- * at the normal input rate: an upper bound is a safer thing to show someone
- * watching their budget than a free lunch we cannot verify. Anyone who knows
- * their actual rate can set it - e.g. 0.1 for a 90%-off cache.
+ * Nebius now publishes `pricing.input_cache_read` for its chat models, and that
+ * rate wins. This ratio is only the fallback for a model with no published
+ * rate. Assuming those are free would silently under-report spend, and on a
+ * long agentic session most input tokens are cache hits, so the error is not
+ * small. Default to charging them at the normal input rate: an upper bound is
+ * a safer thing to show someone watching their budget than a free lunch we
+ * cannot verify. Anyone who knows their actual rate can set it - e.g. 0.1 for
+ * a 90%-off cache.
  */
 export const CACHE_READ_RATIO_ENV = "NCONNECT_CACHE_READ_RATIO";
 const DEFAULT_CACHE_READ_RATIO = 1;
@@ -46,6 +46,11 @@ export function cacheReadRatio(env: NodeJS.ProcessEnv = process.env): number {
   return parsed;
 }
 
+/** Whether a model's cached-input price is known, so the ratio fallback does not apply. */
+export function hasPublishedCacheRead(model: ModelDefinition): boolean {
+  return model.cost.cache_read_published ?? model.cost.cache_read > 0;
+}
+
 function pricingFor(model: ModelDefinition): {
   inputPerToken: number;
   cachedInputPerToken: number;
@@ -57,7 +62,9 @@ function pricingFor(model: ModelDefinition): {
   const publishedCached = costPerToken(model.cost.cache_read);
   return {
     inputPerToken,
-    cachedInputPerToken: publishedCached > 0 ? publishedCached : inputPerToken * cacheReadRatio(),
+    cachedInputPerToken: hasPublishedCacheRead(model)
+      ? publishedCached
+      : inputPerToken * cacheReadRatio(),
     outputPerToken: costPerToken(model.cost.output),
   };
 }

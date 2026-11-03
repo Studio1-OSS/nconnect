@@ -1,6 +1,6 @@
 import { createSessionStore, type TrackedUsageSession } from "./daemon/storage.js";
-import { findModelById } from "@nconnect/models";
-import { CACHE_READ_RATIO_ENV, cacheReadRatio } from "./cost.js";
+import { findModelById, getAllModels } from "@nconnect/models";
+import { CACHE_READ_RATIO_ENV, cacheReadRatio, hasPublishedCacheRead } from "./cost.js";
 
 /**
  * Local spend reporting for `nconnect usage`.
@@ -52,6 +52,21 @@ type Share = Pick<
 
 function modelLabel(id: string): string {
   return findModelById(id)?.name ?? id;
+}
+
+/**
+ * Whether any cached tokens in the report were priced through the ratio
+ * fallback: on a model with no published cached price, or one the catalog
+ * does not know (such as an Auto session's launch label).
+ */
+export function hasFallbackPricedCache(summary: UsageSummary): boolean {
+  return summary.byModel.some((row) => {
+    if (row.cachedTokens <= 0) {
+      return false;
+    }
+    const model = getAllModels().find((m) => m.name === row.model || m.id === row.model);
+    return !model || !hasPublishedCacheRead(model);
+  });
 }
 
 /**
@@ -223,11 +238,11 @@ export function formatUsageReport(summary: UsageSummary, windowLabel: string): s
     }
   }
 
-  if (summary.cachedTokens > 0 && cacheReadRatio() === 1) {
+  if (cacheReadRatio() === 1 && hasFallbackPricedCache(summary)) {
     lines.push("");
-    lines.push("Cached input is priced at the full input rate: Nebius serves cached prompts");
+    lines.push("Some cached input is priced at the full input rate, for models with no");
     lines.push(
-      `but publishes no cached price, so this total is an upper bound. Set ${CACHE_READ_RATIO_ENV}`,
+      `published cached price, so this total is an upper bound. Set ${CACHE_READ_RATIO_ENV}`,
     );
     lines.push("to your actual discount (e.g. 0.1) if you know it.");
   }

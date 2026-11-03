@@ -3,9 +3,9 @@ import { CACHE_READ_RATIO_ENV, CostTracker, cacheReadRatio } from "../../cli/src
 import { getDefaultModel } from "../../models/src/index.js";
 
 describe("cached-token price ratio", () => {
-  // Nebius publishes no cached-input price. Billing cache hits at zero - the
-  // old behavior - under-reports spend, and on a long session most input
-  // tokens are cache hits, so the error compounds.
+  // For a model with no published cached price. Billing cache hits at zero - the
+  // old behavior - under-reports spend, and on a long session most input tokens
+  // are cache hits, so the error compounds.
   test("defaults to the full input rate, not free", () => {
     expect(cacheReadRatio({})).toBe(1);
   });
@@ -25,8 +25,21 @@ describe("cached-token price ratio", () => {
 });
 
 describe("cached tokens are billed", () => {
-  test("a fully-cached prompt still costs money", () => {
+  test("a published cached rate is what a cache hit costs", () => {
     const model = getDefaultModel();
+    expect(model.cost.cache_read).toBeGreaterThan(0);
+    const tracker = new CostTracker(model);
+    tracker.addUsage(10_000, 10_000, 0, model);
+
+    expect(tracker.totals.costUsd).toBeCloseTo((10_000 * model.cost.cache_read) / 1_000_000, 10);
+  });
+
+  test("with no published rate, a fully-cached prompt still costs money", () => {
+    const published = getDefaultModel();
+    const model = {
+      ...published,
+      cost: { ...published.cost, cache_read: 0, cache_read_published: false },
+    };
     const tracker = new CostTracker(model);
     tracker.addUsage(10_000, 10_000, 0, model);
     const totals = tracker.totals;

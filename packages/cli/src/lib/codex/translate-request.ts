@@ -4,10 +4,12 @@ import {
   maximumReasoningEffort,
   minimumReasoningEffort,
   noReasoningTemplateArgs,
+  requiresSingleSystemMessage,
   findModelById,
   MINIMAX_M3,
   type ModelDefinition,
 } from "@nconnect/models";
+import { foldSystemMessages } from "../system-messages.js";
 import { writeProxyDebugLog } from "../proxy-debug.js";
 import { isCodexCompactionRequest, normalizeCompactionInput } from "./compaction.js";
 import { AUTO_MODEL_ID, isAutoModel } from "../auto-model.js";
@@ -100,7 +102,9 @@ export function toChatPayload(
       : messages;
   return {
     model: requestModel.targetModelId,
-    messages: messagesWithNativePrompt,
+    messages: requiresSingleSystemMessage(requestModel.targetModelId)
+      ? foldSystemMessages(messagesWithNativePrompt)
+      : messagesWithNativePrompt,
     max_tokens:
       body.max_output_tokens ??
       defaultMaxOutputTokens(requestModel.definition, estimatedInputTokens),

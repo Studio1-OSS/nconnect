@@ -5,7 +5,7 @@ import {
   getDefaultModel,
   GLM_5_2,
   MINIMAX_M3,
-  QWEN_2_5_VL_72B,
+  NEMOTRON_3_5_SUPER_VL,
   QWEN_3_5_397B,
   NEBIUS_BASE_URL,
 } from "@nconnect/models";
@@ -1917,7 +1917,7 @@ describe("Codex Responses proxy tool compatibility", () => {
 
   test("allows Codex memory extraction model override from env", async () => {
     const requests: unknown[] = [];
-    vi.stubEnv("NCONNECT_CODEX_MEMORY_MODEL", QWEN_2_5_VL_72B.id);
+    vi.stubEnv("NCONNECT_CODEX_MEMORY_MODEL", NEMOTRON_3_5_SUPER_VL.id);
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url: string, init?: RequestInit) => {
@@ -1936,7 +1936,7 @@ describe("Codex Responses proxy tool compatibility", () => {
     });
 
     const upstream = requests[0] as { model?: string };
-    expect(upstream.model).toBe(QWEN_2_5_VL_72B.id);
+    expect(upstream.model).toBe(NEMOTRON_3_5_SUPER_VL.id);
   });
 
   test("renames top-level `items` key in tool-call arguments for all models", async () => {
