@@ -157,6 +157,14 @@ export const models: Array<{
     logo: <DeepSeekMark />,
   },
   {
+    name: "Kimi K3.1 Pro",
+    id: "moonshotai/Kimi-K3.1-Pro",
+    bestFor: "Frontier coding + agentic",
+    context: "1M",
+    vision: true,
+    logo: "/logos/kimi.png",
+  },
+  {
     name: "Kimi K3",
     id: "moonshotai/Kimi-K3",
     bestFor: "Frontier coding + agentic",

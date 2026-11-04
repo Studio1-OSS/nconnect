@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import "../styles/landing.css";
 import { ProviderBrand } from "../components/ProviderBrand";
-import { LaunchBanner, museSparkOpenPlaygroundUrl } from "../components/LaunchBanner";
+import { LaunchBanner, kimiK31ProPlaygroundUrl } from "../components/LaunchBanner";
 import { ThinkingState, useSequence } from "../components/ThinkingState";
 import { TaskRows, SpinnerRing, Badge, CheckIcon, TaskRow } from "../components/TaskRows";
 import { pageHead, siteUrl, structuredData } from "../lib/seo";
@@ -212,11 +212,16 @@ const modelHighlights: Array<{
   isNew?: boolean;
 }> = [
   {
+    name: "Kimi K3.1 Pro",
+    note: "Moonshot AI · 1M context · vision",
+    logo: "/logos/kimi.png",
+    href: kimiK31ProPlaygroundUrl,
+    isNew: true,
+  },
+  {
     name: "Muse Spark Open",
     note: "Meta · 1M context · vision",
     logo: "/logos/meta.svg",
-    href: museSparkOpenPlaygroundUrl,
-    isNew: true,
   },
   {
     name: "GLM 5.3 Flash",

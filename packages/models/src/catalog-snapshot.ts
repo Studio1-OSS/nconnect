@@ -268,6 +268,21 @@ export const CATALOG_SNAPSHOT: readonly NebiusApiModel[] = [
     supported_features: ["tools", "reasoning"],
   },
   {
+    id: "moonshotai/Kimi-K3.1-Pro",
+    name: "Kimi-K3.1-Pro",
+    description:
+      "Moonshot AI\u2019s open-weight multimodal mixture-of-experts model for reasoning, coding and agentic tool use. It accepts text and images and generates text, with a 1M-token context window, 2.8T total parameters and 104B active parameters.",
+    context_length: 1048576,
+    architecture: { modality: "text+image->text" },
+    pricing: {
+      prompt: "0.000002",
+      input_cache_read: "0.0000002",
+      completion: "0.00001",
+      image: "0",
+    },
+    supported_features: ["tools", "reasoning"],
+  },
+  {
     id: "moonshotai/Kimi-K3",
     name: "Kimi-K3",
     description:

@@ -8,6 +8,7 @@ import {
   acceptsReasoningEffort,
   GLM_5_2,
   KIMI_K2_7_CODE,
+  KIMI_K3_1_PRO,
   SELECTABLE_MODELS,
   buildCatalog,
   resolveModelByKeys,
@@ -75,6 +76,24 @@ describe("resolveModelByKeys", () => {
 
     expect(catalog.byId.has("example/Only-Live-Model")).toBe(true);
     expect(catalog.byId.get(DEEPSEEK_V4_PRO.id)?.limit.output).toBe(384_000);
+  });
+
+  it("selects Kimi K3.1 Pro by id and alias, with images, a 1M window and an effort", () => {
+    expect(
+      resolveModelByKeys(SELECTABLE_MODELS, "nebius-kimi-k3-1-pro", aliasAndId, DEFAULT_MODEL_ID)
+        ?.id,
+    ).toBe(KIMI_K3_1_PRO.id);
+    expect(KIMI_K3_1_PRO.id).toBe("moonshotai/Kimi-K3.1-Pro");
+    expect(KIMI_K3_1_PRO.limit).toEqual({ context: 1_048_576, output: 131_072 });
+    expect(KIMI_K3_1_PRO.cost.input).toBeCloseTo(2);
+    expect(KIMI_K3_1_PRO.cost.output).toBeCloseTo(10);
+    expect(KIMI_K3_1_PRO.cost.cache_read).toBeCloseTo(0.2);
+    expect(KIMI_K3_1_PRO.attachment).toBe(true);
+    expect(KIMI_K3_1_PRO.tool_call).toBe(true);
+    // Accepts none/low/medium/high/max; rejects xhigh (measured on Nebius 2026-11-04).
+    expect(acceptsReasoningEffort(KIMI_K3_1_PRO.id)).toBe(true);
+    // Bundled, so a cached catalog from before Nebius added it still lists it.
+    expect(buildCatalog([]).byId.has(KIMI_K3_1_PRO.id)).toBe(true);
   });
 
   it("returns undefined when the value matches no model", () => {

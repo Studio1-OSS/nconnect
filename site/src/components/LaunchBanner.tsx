@@ -1,24 +1,30 @@
 import { ArrowRight } from "lucide-react";
 
-export const museSparkOpenPlaygroundUrl =
-  "https://tokenfactory.nebius.com/playground?models=meta-models/muse-spark-open";
+export const kimiK31ProPlaygroundUrl =
+  "https://tokenfactory.nebius.com/playground?models=moonshotai/Kimi-K3.1-Pro";
 
 /** Thin announcement bar above the nav for the current model launch. */
 export function LaunchBanner() {
   return (
     <a
       className="launch-banner"
-      href={museSparkOpenPlaygroundUrl}
+      href={kimiK31ProPlaygroundUrl}
       target="_blank"
       rel="noopener noreferrer"
     >
       <span className="launch-banner-tag">New model launch</span>
-      <img src="/logos/meta.svg" alt="" width={18} height={18} />
+      <img
+        className="launch-banner-logo-chip"
+        src="/logos/kimi.png"
+        alt=""
+        width={18}
+        height={18}
+      />
       <span className="launch-banner-text">
-        <strong>Muse Spark Open</strong> by Meta is live on Nebius Token Factory.
+        <strong>Kimi K3.1 Pro</strong> by Moonshot AI is live on Nebius Token Factory.
         <span className="launch-banner-detail">
           {" "}
-          Use it today: <code>nconnect --model meta-models/muse-spark-open claude</code>
+          Use it today: <code>nconnect --model moonshotai/Kimi-K3.1-Pro claude</code>
         </span>
       </span>
       <span className="launch-banner-cta">
