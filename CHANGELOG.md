@@ -7,6 +7,13 @@ User-visible changes to NConnect, newest first. This changelog starts at
 
 ### Added
 
+- Kimi K3.1 Pro (`moonshotai/Kimi-K3.1-Pro`, Claude alias
+  `nebius-kimi-k3-1-pro`): 1M context, images, tools and reasoning, at $2.00 /
+  $10.00 per M tokens against Kimi K3's $3.00 / $15.00. It sits next to Kimi K3
+  in the picker and is in the bundled catalog. It rejects `xhigh` effort; the
+  Claude Code and Codex proxies already send `max` for it.
+- The site's launch banner now announces Kimi K3.1 Pro, replacing Muse Spark
+  Open.
 - New Nebius models with names and Claude aliases: DeepSeek V4.1 Flash 1017,
   DeepSeek V4.1 Flash, MiniMax M3.1 Flash, Reflection Beam, Qwen 3.8 27B,
   Nemotron 3.5 Super VL and Nemotron 3.5 Lightning. All are in the bundled

@@ -204,6 +204,15 @@ const CURATED_OVERRIDES: Record<string, ModelOverride> = {
     minContext: 1_024_000,
     order: 0, // the default model
   },
+  "moonshotai/Kimi-K3.1-Pro": {
+    name: "Kimi K3.1 Pro",
+    anthropicAlias: "nebius-kimi-k3-1-pro",
+    // Nebius publishes no output cap (max_tokens up to the 1M window is
+    // accepted); match Kimi K3's cap.
+    outputLimit: 131_072,
+    minContext: 1_048_576,
+    order: 1,
+  },
   "moonshotai/Kimi-K3": {
     name: "Kimi K3",
     anthropicAlias: "nebius-kimi-k3",
@@ -274,6 +283,7 @@ const BUNDLED_FALLBACK_MODEL_IDS: ReadonlySet<string> = new Set([
   "deepseek-ai/DeepSeek-V4-Flash-0731",
   "deepseek-ai/DeepSeek-V4-Pro-0813",
   "deepseek-ai/DeepSeek-V4-Pro",
+  "moonshotai/Kimi-K3.1-Pro",
 ]);
 
 /**
@@ -299,6 +309,7 @@ export const REASONING_EFFORT_MODEL_IDS: ReadonlySet<string> = new Set([
   "meta-models/muse-spark-open",
   "moonshotai/Kimi-K2.6",
   "moonshotai/Kimi-K3",
+  "moonshotai/Kimi-K3.1-Pro",
   "reflection/beam",
   "deepseek-ai/DeepSeek-V4.1-Flash",
   "deepseek-ai/DeepSeek-V4.1-Flash-1017",
@@ -674,6 +685,7 @@ export const DEEPSEEK_V4_FLASH_0731: ModelDefinition = fromSnapshot(
 );
 export const KIMI_K2_6: ModelDefinition = fromSnapshot("moonshotai/Kimi-K2.6");
 export const KIMI_K2_7_CODE: ModelDefinition = fromSnapshot("moonshotai/Kimi-K2.7-Code");
+export const KIMI_K3_1_PRO: ModelDefinition = fromSnapshot("moonshotai/Kimi-K3.1-Pro");
 export const MINIMAX_M3: ModelDefinition = fromSnapshot("MiniMaxAI/MiniMax-M3");
 export const QWEN_3_5_397B: ModelDefinition = fromSnapshot("Qwen/Qwen3.5-397B-A17B");
 export const DEEPSEEK_V4_PRO: ModelDefinition = fromSnapshot("deepseek-ai/DeepSeek-V4-Pro");

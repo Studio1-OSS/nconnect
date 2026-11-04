@@ -227,6 +227,7 @@ Other settings: `NCONNECT_AUTO_DECIDER_MODEL` (the Nebius model, Jev model or La
 | Model                            | Best for                     | Context | Vision |
 | -------------------------------- | ---------------------------- | ------- | ------ |
 | **GLM 5.3 Flash** _(default)_    | Fast, very low cost, agentic | 1M      | Yes    |
+| Kimi K3.1 Pro _(new)_            | Frontier coding + agentic    | 1M      | Yes    |
 | Kimi K3                          | Frontier coding + agentic    | 1M      | Yes    |
 | Muse Spark Open _(Meta)_         | Open MoE, coding + agentic   | 1M      | Yes    |
 | DeepSeek V4.1 Flash 1017 _(new)_ | Fast, cheap, images          | 1M      | Yes    |
