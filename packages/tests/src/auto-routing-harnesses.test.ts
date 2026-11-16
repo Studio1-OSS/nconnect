@@ -14,7 +14,7 @@ import { resolveAutoRequest } from "../../cli/src/lib/daemon/chat-passthrough.js
 import { buildOpencodeConfigJson } from "../../cli/src/lib/opencode/core.js";
 
 const KIMI_K3_ID = "moonshotai/Kimi-K3";
-const FAST_ID = "deepseek-ai/DeepSeek-V4-Flash-0731";
+const FAST_ID = "zai-org/GLM-5.3-Flash";
 const autoSession = { modelDefinition: autoModelDefinition() };
 const plainSession = { modelDefinition: GLM_5_2 };
 const decide = (messages: unknown[], extra: Record<string, unknown> = {}) =>

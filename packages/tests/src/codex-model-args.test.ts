@@ -16,10 +16,10 @@ afterEach(() => vi.clearAllMocks());
 
 describe("ncodex vision model selection", () => {
   test.each([
-    ["--model", "moonshotai/Kimi-K2.6"],
-    ["-m", "moonshotai/Kimi-K2.6"],
-    ["--model=moonshotai/Kimi-K2.6"],
-    ["-m=moonshotai/Kimi-K2.6"],
+    ["--model", "moonshotai/Kimi-K3.1-Pro"],
+    ["-m", "moonshotai/Kimi-K3.1-Pro"],
+    ["--model=moonshotai/Kimi-K3.1-Pro"],
+    ["-m=moonshotai/Kimi-K3.1-Pro"],
   ])("honors model arguments %j and preserves image attachments", async (...modelArgs) => {
     await codexHarness.run({
       home: "/unused",
@@ -28,11 +28,11 @@ describe("ncodex vision model selection", () => {
     });
     expect(runCodexNebius).toHaveBeenCalledWith(
       expect.objectContaining({
-        modelId: "moonshotai/Kimi-K2.6",
+        modelId: "moonshotai/Kimi-K3.1-Pro",
         args: ["-i", "/tmp/screen shot.png", "Describe this"],
       }),
     );
-    expect(recordAgentModel).toHaveBeenCalledWith("codex", "moonshotai/Kimi-K2.6");
+    expect(recordAgentModel).toHaveBeenCalledWith("codex", "moonshotai/Kimi-K3.1-Pro");
   });
 
   test("rejects a mistyped explicit model instead of silently selecting a text model", async () => {

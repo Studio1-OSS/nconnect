@@ -140,13 +140,13 @@ nconnect --model auto opencode
 
 Auto chooses between three tiers:
 
-| Tier     | Model                  | Price per M tokens (input / output) | Used for                       |
-| -------- | ---------------------- | ----------------------------------- | ------------------------------ |
-| Fast     | DeepSeek V4 Flash 0731 | $0.14 / $0.28                       | Routine work                   |
-| Balanced | Kimi K2.6              | $0.95 / $4.00                       | Work that takes some thought   |
-| Strong   | Kimi K3                | $3.00 / $15.00                      | Work that is hard to get right |
+| Tier     | Model         | Price per M tokens (input / output) | Used for                       |
+| -------- | ------------- | ----------------------------------- | ------------------------------ |
+| Fast     | GLM 5.3 Flash | $0.15 / $0.50                       | Routine work                   |
+| Balanced | GLM 5.3       | $1.40 / $4.40                       | Work that takes some thought   |
+| Strong   | Kimi K3       | $3.00 / $15.00                      | Work that is hard to get right |
 
-With Jev judging the tier (next section), this lineup cost 24% less than running Kimi K3 for everything on a 50-task coding benchmark, and 93% less on 30 extraction, classification, lookup and policy tasks.
+With Jev judging the tier (next section), an earlier lineup cost 24% less than running Kimi K3 for everything on a 50-task coding benchmark, and 93% less on 30 extraction, classification, lookup and policy tasks. That lineup used DeepSeek V4 Flash 0731 and Kimi K2.6 for the fast and balanced tiers. Nebius retired both on 16 November 2026, so each tier now starts at what was its second choice. The current lineup has not been benchmarked.
 
 A task is everything since your last prompt, so the tool calls that follow a prompt stay on the tier that prompt earned. Claude Code, Codex and Unreal remember Auto, so later launches stay on it until you pass another `--model`.
 
@@ -168,17 +168,17 @@ Options, all set in the environment you launch from:
 | `NCONNECT_AUTO_MODELS`                                                                   | Allow list. Only models matching one of these patterns may be picked. Ignored for a tier it would leave empty.                                                                                                                             |
 | `NCONNECT_AUTO_EXCLUDED_MODELS`                                                          | Exclude list. Models matching one of these patterns are never picked. Always wins.                                                                                                                                                         |
 
-Each tier is a short list of candidates, not a single model. Auto uses the first one that can do what the task needs. The fast tier's first choice, DeepSeek V4 Flash 0731, cannot read images, so a fast task that carries an image goes to GLM 5.3 Flash. The balanced tier's first choice, Kimi K2.6, holds 262K tokens, so a longer balanced conversation goes to GLM 5.3 (1M). If nothing in a tier fits, Auto looks one tier up. Auto tells your harness the smallest window of its three first choices, 262K by default, so the harness compacts in time for any of them.
+Each tier is a short list of candidates, not a single model. Auto uses the first one that can do what the task needs. If nothing in a tier fits, Auto looks one tier up: GLM 5.3 cannot read images, so a balanced task that carries an image goes to Kimi K3. Auto tells your harness the smallest window of its three first choices (1M by default), so the harness compacts in time for any of them.
 
 ```bash
-# Keep Auto on one provider's models, and never use Kimi K2.6
-NCONNECT_AUTO_MODELS="zai-org/*" NCONNECT_AUTO_EXCLUDED_MODELS="moonshotai/Kimi-K2.6" nconnect --model auto claude
+# Keep Auto on one provider's models, and never use Kimi K3
+NCONNECT_AUTO_MODELS="zai-org/*" NCONNECT_AUTO_EXCLUDED_MODELS="moonshotai/Kimi-K3" nconnect --model auto claude
 
 # Your own strong tier, in order of preference
 NCONNECT_AUTO_STRONG_MODEL="moonshotai/Kimi-K3,deepseek-ai/DeepSeek-V4-Pro-0813" nconnect --model auto codex
 ```
 
-To see what Auto picked: the cost line printed when a session ends lists each model it ran on (`[nconnect cost] by model: Kimi K3 $0.0840 · Kimi K2.6 $0.0315`), and `nconnect usage` shows the same split over time. Responses also carry the name of the model that ran, though Claude Code keeps showing "Auto" in its own display.
+To see what Auto picked: the cost line printed when a session ends lists each model it ran on (`[nconnect cost] by model: Kimi K3 $0.0840 · GLM 5.3 $0.0315`), and `nconnect usage` shows the same split over time. Responses also carry the name of the model that ran, though Claude Code keeps showing "Auto" in its own display.
 
 Routing is decided inside the NConnect daemon. A harness's own background calls, such as Codex's memory agent, always use the fast model. OpenCode, Pi, Prime, Hermes, DeepSeek Harness and Grok Build normally talk to Nebius directly; on Auto they go through the daemon, so it must be running.
 
@@ -224,33 +224,29 @@ A confident claim inside a prompt ("this is a trivial one-line change") can talk
 
 Other settings: `NCONNECT_AUTO_DECIDER_MODEL` (the Nebius model, Jev model or Laya checkpoint), `NCONNECT_AUTO_DECIDER_URL` (the Jev or Laya endpoint; Laya defaults to `http://127.0.0.1:8000/v1/systemone`), `NCONNECT_AUTO_DECIDER_TIMEOUT_MS` (default 2500), and `LAYA_API_KEY` for a protected Laya server.
 
-| Model                            | Best for                     | Context | Vision |
-| -------------------------------- | ---------------------------- | ------- | ------ |
-| **GLM 5.3 Flash** _(default)_    | Fast, very low cost, agentic | 1M      | Yes    |
-| Inkling 2 Small _(new)_          | Fast, cheap, images          | 1M      | Yes    |
-| Kimi K3.1 Pro                    | Frontier coding + agentic    | 1M      | Yes    |
-| Kimi K3                          | Frontier coding + agentic    | 1M      | Yes    |
-| Muse Spark Open _(Meta)_         | Open MoE, coding + agentic   | 1M      | Yes    |
-| DeepSeek V4.1 Flash 1017 _(new)_ | Fast, cheap, images          | 1M      | Yes    |
-| MiniMax M3.1 Flash _(new)_       | Fast, cheap, images          | 1M      | Yes    |
-| Reflection Beam _(new)_          | Open MoE, coding + agentic   | 1M      | No     |
-| Qwen 3.8 27B _(new)_             | Coding + agentic, images     | 262K    | Yes    |
-| Nemotron 3.5 Super VL _(new)_    | Multimodal, vision fallback  | 1M      | Yes    |
-| Nemotron 3.5 Lightning _(new)_   | Lowest cost, long context    | 1M      | No     |
-| Nemotron 3 Ultra _(new)_         | Reasoning + agentic          | 1M      | No     |
-| Nemotron 3 Super _(new)_         | Reasoning, low cost          | 262K    | No     |
-| Nemotron 3 Nano _(new)_          | Lowest cost                  | 262K    | No     |
-| gpt-oss 120B _(new)_             | Open-weight reasoning        | 131K    | No     |
-| Hermes 4 405B _(new)_            | General + coding             | 131K    | No     |
-| Qwen3 235B Instruct _(new)_      | General, no reasoning        | 262K    | No     |
-| Qwen3 30B Instruct _(new)_       | Fast, cheap                  | 262K    | No     |
-| Kimi K2.6                        | Vision flagship              | 262K    | Yes    |
-| Kimi K2.7 Code                   | Coding                       | 262K    | No     |
-| MiniMax M3                       | Fast, cheap                  | 1M      | No     |
-| Qwen 3.5 397B                    | General / coding flagship    | 262K    | No     |
-| DeepSeek V4 Pro                  | Long-context reasoning       | 1M      | No     |
+| Model                            | Best for                       | Context | Vision |
+| -------------------------------- | ------------------------------ | ------- | ------ |
+| **GLM 5.3 Flash** _(default)_    | Fast, very low cost, agentic   | 1M      | Yes    |
+| Inkling 2 Small _(new)_          | Fast, cheap, images            | 1M      | Yes    |
+| Kimi K3.1 Pro                    | Frontier coding + agentic      | 1M      | Yes    |
+| Kimi K3                          | Frontier coding + agentic      | 1M      | Yes    |
+| Muse Spark Open _(Meta)_         | Open MoE, coding + agentic     | 1M      | Yes    |
+| DeepSeek V4.1 Flash 1017 _(new)_ | Fast, cheap, images            | 1M      | Yes    |
+| MiniMax M3.1 Flash _(new)_       | Fast, cheap, images            | 1M      | Yes    |
+| Reflection Beam _(new)_          | Open MoE, coding + agentic     | 1M      | No     |
+| Qwen 3.8 27B _(new)_             | Coding + agentic, images       | 262K    | Yes    |
+| Nemotron 3.5 Super VL _(new)_    | Multimodal, image descriptions | 1M      | Yes    |
+| Nemotron 3.5 Lightning _(new)_   | Lowest cost, long context      | 1M      | No     |
+| Nemotron 3 Ultra _(new)_         | Reasoning + agentic            | 1M      | No     |
+| Nemotron 3 Super _(new)_         | Reasoning, low cost            | 262K    | No     |
+| Nemotron 3 Nano _(new)_          | Lowest cost                    | 262K    | No     |
+| gpt-oss 120B _(new)_             | Open-weight reasoning          | 131K    | No     |
+| Hermes 4 405B _(new)_            | General + coding               | 131K    | No     |
+| Qwen3 235B Instruct _(new)_      | General, no reasoning          | 262K    | No     |
+| Qwen3 30B Instruct _(new)_       | Fast, cheap                    | 262K    | No     |
+| MiniMax M3                       | Fast, cheap                    | 1M      | No     |
 
-Claude Code and Codex send images straight to a vision-capable model, such as the default GLM 5.3 Flash or Kimi K3, so the model sees the image itself. When Claude Code is on a text-only model, a vision model (Kimi K2.6, then Qwen2.5-VL) describes each image as text first. Claude Code keeps the 8 most recent images as images and describes older ones once; set `NCONNECT_CLAUDE_IMAGES=describe` to always describe. OpenCode uses a dedicated `@vision` subagent pinned to the vision flagship. Run `scripts/list-nebius-models.mjs` (with `NEBIUS_API_KEY` set) to print the raw catalog.
+Claude Code and Codex send images straight to a vision-capable model, such as the default GLM 5.3 Flash or Kimi K3, so the model sees the image itself. When Claude Code is on a text-only model, a vision model (Nemotron 3.5 Super VL first) describes each image as text first. Claude Code keeps the 8 most recent images as images and describes older ones once; set `NCONNECT_CLAUDE_IMAGES=describe` to always describe. OpenCode uses a dedicated `@vision` subagent pinned to the vision flagship. Run `scripts/list-nebius-models.mjs` (with `NEBIUS_API_KEY` set) to print the raw catalog.
 
 ## Claude Desktop (beta)
 
@@ -301,7 +297,7 @@ Claude Code and Codex expose a native `web_search` tool. Nebius has no hosted se
 | `TAVILY_API_KEY`                | Enables web search (or set via `configure`).                                                                                                                                                                                                                                                                             |
 | `NEBIUS_BASE_URL`               | Override the API base (default `https://api.tokenfactory.nebius.com/v1`).                                                                                                                                                                                                                                                |
 | `NCONNECT_REASONING_EFFORT`     | `none`\|`low`\|`medium`\|`high`\|`max`. Default `none` for speed; raise for harder tasks.                                                                                                                                                                                                                                |
-| `NCONNECT_FALLBACK_MODEL`       | Model to fail over to when the target model returns no response headers (down/overloaded). Default `moonshotai/Kimi-K2.6`; set `off` to disable.                                                                                                                                                                         |
+| `NCONNECT_FALLBACK_MODEL`       | Model to fail over to when the target model returns no response headers (down/overloaded). Default `moonshotai/Kimi-K3.1-Pro`; set `off` to disable.                                                                                                                                                                     |
 | `NCONNECT_DISABLE_AUTOUPDATE=1` | Stop the installed binary from self-updating.                                                                                                                                                                                                                                                                            |
 | `NCONNECT_TELEMETRY_URL`        | Opt in to telemetry by pointing at your own collector. Off by default.                                                                                                                                                                                                                                                   |
 | `NCONNECT_METER=1`              | Route the spawned harnesses (Pi, Prime, Hermes, DeepSeek, Grok) through the daemon, so they get cost metering, model fallback and retries. Off by default.                                                                                                                                                               |
@@ -310,8 +306,8 @@ Claude Code and Codex expose a native `web_search` tool. Nebius has no hosted se
 | `NCONNECT_BACKGROUND_MODEL`     | Model for Claude Code's background calls - the auto-mode safety classifier (one per shell command, normally sent to the expensive Sonnet tier) and the session title. Default: the catalog default (GLM 5.3 Flash); `off` keeps Claude Code's own choice. Read when the daemon starts (`nconnect daemon stop` to apply). |
 | `NCONNECT_CLAUDE_IMAGES`        | `describe` makes Claude Code always turn images into a text description from a vision model, even when the selected model can see. By default, vision-capable models receive images directly.                                                                                                                            |
 | `NCONNECT_AUTO_DECIDER`         | `nebius`, `jev` or `laya`: let a model judge how hard each Auto task is, instead of keyword rules. See "Smarter Auto" above.                                                                                                                                                                                             |
-| `NCONNECT_AUTO_FAST_MODEL`      | Candidates for Auto's fast tier: ids, wildcards, comma-separated. Default: DeepSeek V4 Flash 0731, then GLM 5.3 Flash for images.                                                                                                                                                                                        |
-| `NCONNECT_AUTO_BALANCED_MODEL`  | Candidates for Auto's balanced tier. Default: Kimi K2.6, then GLM 5.3 for conversations over 262K tokens.                                                                                                                                                                                                                |
+| `NCONNECT_AUTO_FAST_MODEL`      | Candidates for Auto's fast tier: ids, wildcards, comma-separated. Default: GLM 5.3 Flash (the catalog default).                                                                                                                                                                                                          |
+| `NCONNECT_AUTO_BALANCED_MODEL`  | Candidates for Auto's balanced tier. Default: GLM 5.3. An image task moves up to the strong tier.                                                                                                                                                                                                                        |
 | `NCONNECT_AUTO_STRONG_MODEL`    | Candidates for Auto's strong tier. Default: Kimi K3.                                                                                                                                                                                                                                                                     |
 | `NCONNECT_AUTO_MODELS`          | Allow list of model patterns for Auto.                                                                                                                                                                                                                                                                                   |
 | `NCONNECT_AUTO_EXCLUDED_MODELS` | Exclude list of model patterns for Auto. Always wins.                                                                                                                                                                                                                                                                    |

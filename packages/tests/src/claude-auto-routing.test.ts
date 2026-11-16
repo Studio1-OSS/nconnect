@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { GLM_5_2, KIMI_K2_6, getDefaultModel } from "../../models/src/index.js";
+import { GLM_5_2, GLM_5_3, KIMI_K3_1_PRO, getDefaultModel } from "../../models/src/index.js";
 import { decideAutoTier } from "../../cli/src/lib/claude/auto-routing.js";
 import {
   AUTO_MODEL_ALIAS,
@@ -18,7 +18,7 @@ import type {
 } from "../../cli/src/lib/claude/wire-types.js";
 
 const KIMI_K3_ID = "moonshotai/Kimi-K3";
-const AUTO_FAST_ID = "deepseek-ai/DeepSeek-V4-Flash-0731";
+const AUTO_FAST_ID = "zai-org/GLM-5.3-Flash";
 const reminder = (text: string) => `<system-reminder>\n${text}\n</system-reminder>`;
 const user = (text: string): AnthropicMessage => ({ role: "user", content: text });
 const toolCall = (id: string, name = "Bash"): AnthropicMessage => ({
@@ -241,7 +241,7 @@ describe("the Auto model", () => {
   test("chooses between three models, and fits any of them", () => {
     const { fast, balanced, strong } = autoCandidates({});
     expect(fast.id).toBe(AUTO_FAST_ID);
-    expect(balanced.id).toBe(KIMI_K2_6.id);
+    expect(balanced.id).toBe(GLM_5_3.id);
     expect(strong.id).toBe(KIMI_K3_ID);
     const auto = autoModelSelection({}).definition;
     expect(auto.name).toBe("Auto");
@@ -254,14 +254,14 @@ describe("the Auto model", () => {
     const { fast, balanced, strong } = autoCandidates({
       fastModel: GLM_5_2.id,
       balancedModel: getDefaultModel().id,
-      strongModel: KIMI_K2_6.anthropicAlias ?? "",
+      strongModel: KIMI_K3_1_PRO.anthropicAlias ?? "",
     });
     expect(fast.id).toBe(GLM_5_2.id);
     expect(balanced.id).toBe(getDefaultModel().id);
-    expect(strong.id).toBe(KIMI_K2_6.id);
+    expect(strong.id).toBe(KIMI_K3_1_PRO.id);
     // An unknown name falls back rather than breaking every request.
     expect(autoCandidates({ strongModel: "nope/none" }).strong.id).toBe(KIMI_K3_ID);
-    expect(autoCandidates({ balancedModel: "nope/none" }).balanced.id).toBe(KIMI_K2_6.id);
+    expect(autoCandidates({ balancedModel: "nope/none" }).balanced.id).toBe(GLM_5_3.id);
   });
 
   test("a request for Auto is always routed to a real model", () => {
@@ -309,8 +309,8 @@ describe("the Auto model", () => {
     expect(off.targetModel.definition.id).not.toBe(AUTO_MODEL_ID);
   });
 
-  // Auto budgets against its smallest tier: Kimi K2.6 holds 262K, so Claude
-  // Code is not told to expect 1M and compacts in time for any tier.
+  // Auto budgets against its smallest tier. Every default tier holds 1M
+  // tokens, so Claude Code is told to expect 1M ("[1m]").
   test("launching with Auto selects it in Claude Code, sized for its smallest tier", () => {
     const env = buildClaudeEnv({
       apiKey: "k",
@@ -320,7 +320,7 @@ describe("the Auto model", () => {
       proxyUrl: "http://127.0.0.1:7878/session/t",
       authToken: "tok",
     });
-    expect(env.ANTHROPIC_MODEL).toBe(AUTO_MODEL_ALIAS);
+    expect(env.ANTHROPIC_MODEL).toBe(`${AUTO_MODEL_ALIAS}[1m]`);
     expect(env.ANTHROPIC_CUSTOM_MODEL_OPTION).toBe(AUTO_MODEL_ALIAS);
     expect(env.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME).toBe("Auto");
     expect(env.ANTHROPIC_DEFAULT_OPUS_MODEL).not.toContain(AUTO_MODEL_ALIAS);

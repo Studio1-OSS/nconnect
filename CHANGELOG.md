@@ -5,6 +5,33 @@ User-visible changes to NConnect, newest first. This changelog starts at
 
 ## Unreleased
 
+### Removed
+
+- Models Nebius no longer serves (checked 2026-11-16): Kimi K2.6, Kimi K2.7
+  Code, DeepSeek V4 Pro, DeepSeek V4.1 Flash and Qwen 3.5 397B (404), and
+  DeepSeek V4 Flash 0731 (403). They are gone from the picker, the bundled
+  catalog, the docs and the site.
+
+### Fixed
+
+- Auto's fast tier sent every routine task to DeepSeek V4 Flash 0731 and got
+  a 403. Fast now uses GLM 5.3 Flash and balanced uses GLM 5.3 (each tier's
+  previous second choice); a balanced task with an image moves up to Kimi K3.
+  All three tiers hold 1M tokens, so Auto now advertises a 1M window. The
+  published 24% benchmark saving was measured on the old lineup.
+- Claude Code's built-in subagents (Explore and the other Haiku-tier calls)
+  went to Kimi K2.7 Code and failed. They now use MiniMax M3.1 Flash.
+- The outage fallback (`NCONNECT_FALLBACK_MODEL`) was Kimi K2.6, so a retried
+  request failed again. It is now Kimi K3.1 Pro.
+- Nemotron 3.5 Super VL is now the first model used to describe images for
+  text-only models, in place of Kimi K2.6.
+
+### Changed
+
+- The OpenCode and Unreal Agent tutorials now use Qwen 3.8 27B and Kimi K3.1
+  Pro, at new URLs (the old ones redirect). The DeepSeek Harness tutorial uses
+  DeepSeek V4 Pro 0813.
+
 ### Added
 
 - Inkling 2 Small by Thinking Machines (`thinkingmachines/Inkling-2-Small`,

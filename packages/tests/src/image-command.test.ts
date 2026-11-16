@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, describe, expect, test, vi } from "vitest";
-import { GLM_5_2, KIMI_K2_6, getDefaultModel } from "../../models/src/index.js";
+import { GLM_5_2, KIMI_K3_1_PRO, getDefaultModel } from "../../models/src/index.js";
 import {
   DEFAULT_IMAGE_PROMPT,
   describeImageFile,
@@ -91,8 +91,8 @@ describe("choosing the model", () => {
   });
 
   test("accepts a vision model by id or alias and refuses the rest", () => {
-    expect(pickImageModel(KIMI_K2_6.id).id).toBe(KIMI_K2_6.id);
-    expect(pickImageModel(KIMI_K2_6.anthropicAlias ?? "").id).toBe(KIMI_K2_6.id);
+    expect(pickImageModel(KIMI_K3_1_PRO.id).id).toBe(KIMI_K3_1_PRO.id);
+    expect(pickImageModel(KIMI_K3_1_PRO.anthropicAlias ?? "").id).toBe(KIMI_K3_1_PRO.id);
     expect(() => pickImageModel(GLM_5_2.id)).toThrow(/does not accept images. Models that do: /);
     expect(() => pickImageModel("nope/none")).toThrow(/Unknown model "nope\/none"/);
   });

@@ -14,25 +14,28 @@ import { claudeAutoSignals } from "../../cli/src/lib/claude/auto-routing.js";
 import { resolveClaudeRequestRoute } from "../../cli/src/lib/claude/request-routing.js";
 import { resolveAutoRequest } from "../../cli/src/lib/daemon/chat-passthrough.js";
 
-const FAST = "deepseek-ai/DeepSeek-V4-Flash-0731";
 const GLM_FLASH = getDefaultModel().id;
 const GLM_53 = "zai-org/GLM-5.3";
-const K26 = "moonshotai/Kimi-K2.6";
 const K3 = "moonshotai/Kimi-K3";
 const ids = (pool: Array<{ id: string }>) => pool.map((model) => model.id);
 
 describe("Auto's model pools", () => {
-  test("each tier has a first choice and an alternate for what it cannot do", () => {
+  test("each tier has one default model, and every one holds 1M tokens", () => {
     const pools = autoPools({});
-    // DeepSeek V4 Flash 0731 reads no images; GLM 5.3 Flash does.
-    expect(ids(pools.fast)).toEqual([FAST, GLM_FLASH]);
-    expect(pools.fast[0]?.attachment).toBe(false);
-    expect(pools.fast[1]?.attachment).toBe(true);
-    // Kimi K2.6 holds 262K tokens; GLM 5.3 holds 1M.
-    expect(ids(pools.balanced)).toEqual([K26, GLM_53]);
-    expect(pools.balanced[0]?.limit.context).toBeLessThan(pools.balanced[1]?.limit.context ?? 0);
+    expect(ids(pools.fast)).toEqual([GLM_FLASH]);
+    expect(ids(pools.balanced)).toEqual([GLM_53]);
     expect(ids(pools.strong)).toEqual([K3]);
-    expect(autoCandidates({}).balanced.id).toBe(K26);
+    expect(autoCandidates({}).balanced.id).toBe(GLM_53);
+    for (const pool of Object.values(pools)) {
+      expect(pool[0]?.limit.context).toBeGreaterThanOrEqual(1_000_000);
+    }
+  });
+
+  test("no default tier names a model Nebius has retired", () => {
+    const retired = ["deepseek-ai/DeepSeek-V4-Flash-0731", "moonshotai/Kimi-K2.6"];
+    for (const pool of Object.values(autoPools({}))) {
+      expect(ids(pool).some((id) => retired.includes(id))).toBe(false);
+    }
   });
 
   test("a tier takes a list of ids, aliases and wildcards, in the order given", () => {
@@ -50,7 +53,6 @@ describe("Auto's model pools", () => {
 
   test("a tier whose list matches nothing keeps its defaults", () => {
     expect(ids(autoPools({ balancedModel: "nope/none, also-*-nothing" }).balanced)).toEqual([
-      K26,
       GLM_53,
     ]);
   });
@@ -61,28 +63,27 @@ describe("Auto's model pools", () => {
       expect(pool.some((model) => model.id.startsWith("zai-org/"))).toBe(false);
       expect(pool.length).toBeGreaterThan(0);
     }
-    // The fast tier loses its image alternate, and keeps its first choice.
-    expect(ids(pools.fast)).toEqual([FAST]);
-    // The balanced tier's first choice is excluded, so its alternate takes over.
-    expect(autoPools({ excludedModels: K26 }).balanced[0]?.id).toBe(GLM_53);
+    // Fast and balanced lose their only model, so they borrow from strong.
+    expect(ids(pools.fast)).toEqual([K3]);
+    expect(ids(pools.balanced)).toEqual([K3]);
     // Excluding everything still leaves a model to serve the request.
     expect(autoPools({ excludedModels: "*" }).fast[0]?.id).toBe(GLM_FLASH);
     // Excluding a tier's only model leaves it to borrow from its neighbour.
-    expect(autoPools({ excludedModels: K3 }).strong[0]?.id).toBe(K26);
+    expect(autoPools({ excludedModels: K3 }).strong[0]?.id).toBe(GLM_53);
   });
 
   test("the allow list narrows a tier, and is ignored where it would empty one", () => {
-    const pools = autoPools({ allowModels: "moonshotai/*" });
-    expect(ids(pools.balanced)).toEqual([K26]);
+    const pools = autoPools({ allowModels: "moonshotai/*", balancedModel: "moonshotai/*" });
+    expect(ids(pools.balanced).every((id) => id.startsWith("moonshotai/"))).toBe(true);
     expect(ids(pools.strong)).toEqual([K3]);
     // Nothing in the fast tier is from that provider: the allow list is
     // ignored there rather than leaving the tier with no model.
-    expect(pools.fast[0]?.id).toBe(FAST);
+    expect(pools.fast[0]?.id).toBe(GLM_FLASH);
   });
 
   test("exclude beats allow", () => {
-    const pools = autoPools({ allowModels: "moonshotai/*", excludedModels: K26 });
-    expect(ids(pools.balanced)).not.toContain(K26);
+    const pools = autoPools({ allowModels: "moonshotai/*", excludedModels: K3 });
+    expect(ids(pools.strong)).not.toContain(K3);
   });
 
   test("settings are read from the environment", () => {
@@ -96,12 +97,14 @@ describe("Auto's model pools", () => {
 });
 
 describe("picking a model for what the request needs", () => {
-  test("a task with images gets a model that can see, in the same tier", () => {
-    expect(pickAutoModel("fast", {}).id).toBe(FAST);
+  test("a task with images gets a model that can see", () => {
+    // Fast and strong already see: nothing changes.
+    expect(pickAutoModel("fast", {}).id).toBe(GLM_FLASH);
     expect(pickAutoModel("fast", {}, { vision: true }).id).toBe(GLM_FLASH);
-    // The balanced and strong first choices already see: nothing changes.
-    expect(pickAutoModel("balanced", {}, { vision: true }).id).toBe(K26);
     expect(pickAutoModel("strong", {}, { vision: true }).id).toBe(K3);
+    // GLM 5.3 reads no images, so a balanced image task moves up to Kimi K3.
+    expect(pickAutoModel("balanced", {}).id).toBe(GLM_53);
+    expect(pickAutoModel("balanced", {}, { vision: true }).id).toBe(K3);
   });
 
   test("when nothing in the tier fits, it looks a tier up before settling", () => {
@@ -113,13 +116,18 @@ describe("picking a model for what the request needs", () => {
   });
 
   test("a conversation too large for a candidate skips it", () => {
-    const small = autoPools({}).balanced[0]?.limit.context ?? 0;
+    const settings = { balancedModel: "Qwen/Qwen3.8-27B, zai-org/GLM-5.3" };
+    const small = autoPools(settings).balanced[0]?.limit.context ?? 0;
     expect(small).toBeLessThan(1_000_000);
-    // K2.6's window is too small for this conversation; GLM 5.3's is not.
-    expect(pickAutoModel("balanced", {}, { contextTokens: small + 1 }).id).toBe(GLM_53);
-    expect(pickAutoModel("balanced", {}, { contextTokens: small - 1 }).id).toBe(K26);
+    // Qwen 3.8's window is too small for this conversation; GLM 5.3's is not.
+    expect(pickAutoModel("balanced", settings, { contextTokens: small + 1 }).id).toBe(GLM_53);
+    expect(pickAutoModel("balanced", settings, { contextTokens: small - 1 }).id).toBe(
+      "Qwen/Qwen3.8-27B",
+    );
     // With images too, nothing in the tier fits, so it looks a tier up.
-    expect(pickAutoModel("balanced", {}, { vision: true, contextTokens: small + 1 }).id).toBe(K3);
+    expect(pickAutoModel("balanced", settings, { vision: true, contextTokens: small + 1 }).id).toBe(
+      K3,
+    );
   });
 });
 
@@ -199,12 +207,12 @@ describe("end to end", () => {
         { ...session, autoSettings },
         {},
       );
-    expect(route(moderate).targetModel.definition.id).toBe(K26);
+    expect(route(moderate).targetModel.definition.id).toBe(GLM_53);
     const withImage = route([{ type: "text", text: moderate }, image]);
     expect(withImage.auto?.tier).toBe("balanced");
-    expect(withImage.targetModel.definition.id).toBe(K26);
-    // On the fast tier the first choice reads no images, so its alternate runs.
-    expect(route("rename foo to bar").targetModel.definition.id).toBe(FAST);
+    // GLM 5.3 reads no images, so the task moves up to Kimi K3.
+    expect(withImage.targetModel.definition.id).toBe(K3);
+    expect(route("rename foo to bar").targetModel.definition.id).toBe(GLM_FLASH);
     const quickImage = route([{ type: "text", text: "rename foo to bar" }, image]);
     expect(quickImage.auto?.tier).toBe("fast");
     expect(quickImage.targetModel.definition.id).toBe(GLM_FLASH);
@@ -233,13 +241,13 @@ describe("end to end", () => {
       ],
     };
     expect(resolveAutoRequest(body, { modelDefinition: autoModelDefinition({}) }).body.model).toBe(
-      K26,
+      K3,
     );
     expect(
       resolveAutoRequest(body, {
         modelDefinition: autoModelDefinition({}),
-        autoSettings: { excludedModels: K26 },
+        autoSettings: { excludedModels: K3 },
       }).body.model,
-    ).toBe(K3);
+    ).toBe(GLM_FLASH);
   });
 });

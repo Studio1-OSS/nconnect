@@ -15,28 +15,28 @@ const setup: Setup = {
   alias: "nunreal",
   binary: "unreal-agent-runner",
   install: "go install github.com/unreallabsai/unreal-agent/cmd/unreal-agent-runner@latest",
-  modelId: "moonshotai/Kimi-K2.7-Code",
+  modelId: "moonshotai/Kimi-K3.1-Pro",
 };
 
-export const kimiK27CodeUnreal: Tutorial = {
-  slug: "kimi-k2-7-code-unreal-agent",
-  title: "How to run Kimi K2.7 Code with Unreal Agent",
-  navLabel: "Kimi K2.7 Code + Unreal Agent",
+export const kimiK31ProUnreal: Tutorial = {
+  slug: "kimi-k3-1-pro-unreal-agent",
+  title: "How to run Kimi K3.1 Pro with Unreal Agent",
+  navLabel: "Kimi K3.1 Pro + Unreal Agent",
   description:
-    "Run Unreal Labs' async-first Unreal Agent runner on Moonshot AI's Kimi K2.7 Code, served by Nebius Token Factory through NConnect's Responses API proxy.",
+    "Run Unreal Labs' async-first Unreal Agent runner on Moonshot AI's Kimi K3.1 Pro, served by Nebius Token Factory through NConnect's Responses API proxy.",
   harness: setup.harness,
-  model: "Kimi K2.7 Code",
+  model: "Kimi K3.1 Pro",
   totalTime: "PT10M",
-  updated: "2026-10-01",
-  steps: setupHowTo(setup, "Kimi K2.7 Code"),
+  updated: "2026-11-16",
+  steps: setupHowTo(setup, "Kimi K3.1 Pro"),
   Content() {
     return (
       <>
         <P>
           Unreal Agent&apos;s runner only speaks the OpenAI Responses API, which Nebius does not
-          serve, so NConnect proxies it the same way it proxies Codex. Kimi K2.7 Code is Moonshot
-          AI&apos;s code-focused reasoning model for long-context software engineering and tool use,
-          with a 262K-token context window.
+          serve, so NConnect proxies it the same way it proxies Codex. Kimi K3.1 Pro is Moonshot
+          AI&apos;s open-weight model for reasoning, coding and agentic tool use, with image input
+          and a 1M-token context window.
         </P>
 
         <Prerequisites>
@@ -47,7 +47,7 @@ export const kimiK27CodeUnreal: Tutorial = {
         </Prerequisites>
         <SetupSteps
           setup={setup}
-          modelName="Kimi K2.7 Code"
+          modelName="Kimi K3.1 Pro"
           launchNote={
             <>
               <P>

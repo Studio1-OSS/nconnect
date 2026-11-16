@@ -7,17 +7,18 @@ prompt is one unified instruction that lets the model self-select by its own
 runtime capabilities, so it stays correct even if the user switches models
 mid-session:
 
-- Vision-capable primary models (Kimi K2.6, Kimi K2.7-Code, MiniMax M3, Qwen 3.7
-  Max): OpenCode sends the image directly to the model. This is the working path
+- Vision-capable primary models (GLM 5.3 Flash, Kimi K3, Kimi K3.1 Pro, Qwen
+  3.8 27B): OpenCode sends the image directly to the model. This is the working path
   for images.
-- Text-only primary models (GLM-5.2, DeepSeek V4 Pro): OpenCode strips the image
+- Text-only primary models (GLM 5.3, DeepSeek V4 Pro 0813): OpenCode strips the image
   bytes before they reach the model. The model tells the user plainly that it
   cannot see images, and that they should switch to a vision-capable model via
-  `/models` (Kimi K2.6, MiniMax M3, or Qwen 3.7 Max) and re-send the image.
+  `/models` (GLM 5.3 Flash, Kimi K3, or Qwen 3.8 27B) and re-send the image.
 
 ### The `@vision` subagent and clipboard images
 
-A `@vision` subagent is still registered and pinned to Kimi-K2.7-Code, but it
+A `@vision` subagent is still registered and pinned to the vision primary (Nemotron 3.5
+Super VL), but it
 does not work for clipboard-pasted images today: OpenCode has an open bug
 ([#25553][oc-25553]) where an image attached with `@vision` is not forwarded to
 the subagent. The subagent only errors with `"this model does not support image
@@ -59,14 +60,10 @@ field. The provider label stays the full `Nebius Token Factory`, and the model n
 kept short so the per-line provider suffix OpenCode appends does not push them
 past the picker's truncation width.
 
-| Model id                      | Vision | Use case                                |
-| ----------------------------- | ------ | --------------------------------------- |
-| `zai-org/GLM-5.2`             | No     | default, agentic coding (text-only)     |
-| `moonshotai/Kimi-K2.6`        | Yes    | reasoning + vision                      |
-| `moonshotai/Kimi-K2.7-Code`   | Yes    | code; also the `@vision` subagent model |
-| `MiniMaxAI/MiniMax-M3`        | Yes    | cheapest vision, 512K context           |
-| `Qwen/Qwen3.5-397B-A17B`      | Yes    | strongest Qwen flagship                 |
-| `deepseek-ai/DeepSeek-V4-Pro` | No     | long-context reasoning (512K)           |
+| Model id               | Vision | Use case                            |
+| ---------------------- | ------ | ----------------------------------- |
+| `zai-org/GLM-5.2`      | No     | default, agentic coding (text-only) |
+| `MiniMaxAI/MiniMax-M3` | Yes    | cheapest vision, 512K context       |
 
 That's all users see in `/models`. The curated set lives in
 [`@nconnect/models`](../../../../models/src/index.ts) (`SELECTABLE_MODELS`).

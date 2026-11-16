@@ -52,6 +52,16 @@
   ],
   "redirects": [
     {
+      "source": "/docs/tutorials/qwen-3-5-opencode",
+      "destination": "/docs/tutorials/qwen-3-8-opencode",
+      "permanent": true
+    },
+    {
+      "source": "/docs/tutorials/kimi-k2-7-code-unreal-agent",
+      "destination": "/docs/tutorials/kimi-k3-1-pro-unreal-agent",
+      "permanent": true
+    },
+    {
       "source": "/((?!latest\\.json$|nconnect\\.js$|nebiusrelay\\.js$|install\\.sh$|llms\\.txt$).*)",
       "has": [
         {

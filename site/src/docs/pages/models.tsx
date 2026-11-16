@@ -6,7 +6,7 @@ export const modelsPage: DocPage = {
   slug: "models",
   title: "Models",
   description:
-    "Every model Nebius Token Factory serves is available in NConnect: Thinking Machines' new Inkling 2 Small, Kimi K3.1 Pro, GLM 5.3, Kimi K3, Meta's Muse Spark Open, DeepSeek V4, Qwen 3.5, MiniMax M3 and more. Compare context windows and vision support.",
+    "Every model Nebius Token Factory serves is available in NConnect: Thinking Machines' new Inkling 2 Small, Kimi K3.1 Pro, GLM 5.3, Kimi K3, Meta's Muse Spark Open, DeepSeek V4 Pro 0813, Qwen 3.8, MiniMax M3 and more. Compare context windows and vision support.",
   group: "Models",
   Content() {
     return (

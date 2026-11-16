@@ -3,8 +3,8 @@ import { Readable } from "node:stream";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   GLM_5_2,
-  KIMI_K2_7_CODE,
-  KIMI_K2_6,
+  KIMI_K3_1_PRO,
+  QWEN_3_8_27B,
   NEBIUS_BASE_URL,
   type ModelDefinition,
 } from "../../models/src/index.js";
@@ -440,15 +440,16 @@ describe("Claude proxy compatibility API", () => {
       const env = buildClaudeEnv({
         apiKey: "test-together-key",
         baseUrl: NEBIUS_BASE_URL,
-        modelId: KIMI_K2_6.anthropicAlias ?? KIMI_K2_6.id,
-        modelName: KIMI_K2_6.name,
+        modelId: QWEN_3_8_27B.anthropicAlias ?? QWEN_3_8_27B.id,
+        modelName: QWEN_3_8_27B.name,
         proxyUrl: "http://127.0.0.1:7878/session/test",
         authToken: "local-token",
       });
 
-      expect(env.ANTHROPIC_MODEL).toBe(KIMI_K2_6.anthropicAlias);
-      expect(env.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe(EXPECTED_HAIKU_MODEL_ID);
-      expect(env.ANTHROPIC_DEFAULT_HAIKU_MODEL).not.toBe(KIMI_K2_6.anthropicAlias);
+      expect(env.ANTHROPIC_MODEL).toBe(QWEN_3_8_27B.anthropicAlias);
+      // MiniMax M3.1 Flash holds 1M tokens, so Claude Code is told "[1m]".
+      expect(env.ANTHROPIC_DEFAULT_HAIKU_MODEL).toBe(`${EXPECTED_HAIKU_MODEL_ID}[1m]`);
+      expect(env.ANTHROPIC_DEFAULT_HAIKU_MODEL).not.toBe(QWEN_3_8_27B.anthropicAlias);
       expect(env.CLAUDE_CODE_MAX_OUTPUT_TOKENS).toBe("32000");
 
       // The Fable tier (Claude Code 2.1.289+) must be a Nebius model, not
@@ -509,13 +510,13 @@ describe("Claude proxy compatibility API", () => {
       method: "POST",
       url: "/v1/messages/count_tokens",
       body: JSON.stringify({
-        model: KIMI_K2_7_CODE.anthropicAlias,
+        model: QWEN_3_8_27B.anthropicAlias,
         messages: [{ role: "user", content: hugePrompt }],
       }),
     });
 
     expect(response.status).toBe(200);
-    expect(response.body.input_tokens).toBeGreaterThan(KIMI_K2_7_CODE.limit.context - 4096);
+    expect(response.body.input_tokens).toBeGreaterThan(QWEN_3_8_27B.limit.context - 4096);
   });
 
   test("trims Claude compaction-sized input before sacrificing the summary budget", async () => {
@@ -550,7 +551,7 @@ describe("Claude proxy compatibility API", () => {
       method: "POST",
       url: "/v1/messages",
       body: JSON.stringify({
-        model: KIMI_K2_7_CODE.anthropicAlias,
+        model: QWEN_3_8_27B.anthropicAlias,
         max_tokens: 32_000,
         messages: [{ role: "user", content: nearFullContext }],
       }),
@@ -682,7 +683,7 @@ describe("Claude proxy compatibility API", () => {
 
     test("sends a pasted image as an image, with no describer call", async () => {
       const { chats, describes } = stubUpstream();
-      const response = await send(KIMI_K2_6.anthropicAlias, [
+      const response = await send(KIMI_K3_1_PRO.anthropicAlias, [
         { type: "text", text: "What is this?" },
         image("NATIVE_PASTE"),
       ]);
@@ -690,7 +691,7 @@ describe("Claude proxy compatibility API", () => {
       expect(response.status).toBe(200);
       expect(describes).toHaveLength(0);
       expect(chats).toHaveLength(1);
-      expect(chats[0]?.model).toBe(KIMI_K2_6.id);
+      expect(chats[0]?.model).toBe(KIMI_K3_1_PRO.id);
       expect(userParts(chats[0])).toEqual([
         { type: "text", text: "What is this?" },
         { type: "image_url", image_url: { url: "data:image/png;base64,NATIVE_PASTE" } },
@@ -699,7 +700,7 @@ describe("Claude proxy compatibility API", () => {
 
     test("carries an image a tool returned in the user message after the tool result", async () => {
       const { chats, describes } = stubUpstream();
-      const response = await send(KIMI_K2_6.anthropicAlias, [
+      const response = await send(KIMI_K3_1_PRO.anthropicAlias, [
         {
           type: "tool_result",
           tool_use_id: "call_read",
@@ -739,7 +740,7 @@ describe("Claude proxy compatibility API", () => {
     test("NCONNECT_CLAUDE_IMAGES=describe forces the description path", async () => {
       vi.stubEnv("NCONNECT_CLAUDE_IMAGES", "describe");
       const { chats, describes } = stubUpstream();
-      const response = await send(KIMI_K2_6.anthropicAlias, [image("FORCED_DESCRIBE")]);
+      const response = await send(KIMI_K3_1_PRO.anthropicAlias, [image("FORCED_DESCRIBE")]);
 
       expect(response.status).toBe(200);
       expect(describes.length).toBeGreaterThan(0);
@@ -750,7 +751,7 @@ describe("Claude proxy compatibility API", () => {
     test("keeps only the most recent images as images and describes older ones", async () => {
       const { chats, describes } = stubUpstream();
       const content = Array.from({ length: 10 }, (_, i) => image(`HISTORY_${i}`));
-      const response = await send(KIMI_K2_6.anthropicAlias, content);
+      const response = await send(KIMI_K3_1_PRO.anthropicAlias, content);
 
       expect(response.status).toBe(200);
       const parts = userParts(chats[0]) as Array<{ type: string; text?: string }>;
@@ -798,8 +799,8 @@ describe("Claude proxy compatibility API", () => {
       const bodies = stubUpstream();
 
       expect((await ask("rename foo to bar")).status).toBe(200);
-      expect(bodies[0]?.model).toBe("deepseek-ai/DeepSeek-V4-Flash-0731");
-      // Floored at low: at "none" it degenerates on agentic turns.
+      expect(bodies[0]?.model).toBe("zai-org/GLM-5.3-Flash");
+      // Floored at low: at "none" it leaks its reasoning into the reply.
       expect(bodies[0]?.reasoning_effort).toBe("low");
 
       const hard = await ask("debug the race condition in the session store");
@@ -1189,7 +1190,8 @@ describe("Claude proxy compatibility API", () => {
       chat_template_kwargs: { clear_thinking: false },
       stream: true,
     });
-    expect(upstreamBodies[0]?.reasoning_effort).toBeUndefined();
+    // MiniMax M3.1 Flash takes an effort; subagent turns get the fast default.
+    expect(upstreamBodies[0]?.reasoning_effort).toBe("none");
   });
 
   test("coalesces Claude title-generation system prompts for Haiku-tier requests", async () => {

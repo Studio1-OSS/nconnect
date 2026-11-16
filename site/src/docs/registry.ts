@@ -13,13 +13,13 @@ import { troubleshooting } from "./pages/troubleshooting";
 import { aiAgents } from "./pages/ai-agents";
 import { kimiK3ClaudeCode } from "./tutorials/kimi-k3-claude-code";
 import { glm53Codex } from "./tutorials/glm-5-3-codex";
-import { qwen35OpenCode } from "./tutorials/qwen-3-5-opencode";
+import { qwen38OpenCode } from "./tutorials/qwen-3-8-opencode";
 import { minimaxM3Pi } from "./tutorials/minimax-m3-pi";
 import { deepseekV4FlashPrime } from "./tutorials/deepseek-v4-flash-prime-agent";
 import { kimiK3Hermes } from "./tutorials/kimi-k3-hermes";
 import { deepseekV4ProHarness } from "./tutorials/deepseek-v4-pro-deepseek-harness";
 import { kimiK3GrokBuild } from "./tutorials/kimi-k3-grok-build";
-import { kimiK27CodeUnreal } from "./tutorials/kimi-k2-7-code-unreal-agent";
+import { kimiK31ProUnreal } from "./tutorials/kimi-k3-1-pro-unreal-agent";
 
 /**
  * Reading order of the reference docs. The sidebar, prev/next links and the
@@ -49,13 +49,13 @@ export const docPages: DocPage[] = [
 export const tutorials: Tutorial[] = [
   kimiK3ClaudeCode,
   glm53Codex,
-  qwen35OpenCode,
+  qwen38OpenCode,
   minimaxM3Pi,
   deepseekV4FlashPrime,
   kimiK3Hermes,
   deepseekV4ProHarness,
   kimiK3GrokBuild,
-  kimiK27CodeUnreal,
+  kimiK31ProUnreal,
 ];
 
 export const docGroups: DocGroup[] = [

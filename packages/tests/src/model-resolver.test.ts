@@ -1,13 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-  DEEPSEEK_V4_PRO,
   DEEPSEEK_V4_PRO_0813,
   GLM_5_3,
   DEFAULT_MODEL_ID,
   SNAPSHOT_CATALOG,
   acceptsReasoningEffort,
   GLM_5_2,
-  KIMI_K2_7_CODE,
   KIMI_K3_1_PRO,
   SELECTABLE_MODELS,
   buildCatalog,
@@ -42,8 +40,8 @@ describe("resolveModelByKeys", () => {
 
   it("matches by id", () => {
     expect(
-      resolveModelByKeys(SELECTABLE_MODELS, KIMI_K2_7_CODE.id, aliasAndId, GLM_5_2.id)?.id,
-    ).toBe(KIMI_K2_7_CODE.id);
+      resolveModelByKeys(SELECTABLE_MODELS, KIMI_K3_1_PRO.id, aliasAndId, GLM_5_2.id)?.id,
+    ).toBe(KIMI_K3_1_PRO.id);
   });
 
   it("matches by alias", () => {
@@ -57,13 +55,20 @@ describe("resolveModelByKeys", () => {
     ).toBe(GLM_5_2.id);
   });
 
-  it("includes the DeepSeek V4 Pro alias with long-context limits", () => {
-    expect(DEEPSEEK_V4_PRO.anthropicAlias).toBe("nebius-deepseek-v4-pro");
-    expect(DEEPSEEK_V4_PRO.limit.context).toBe(1_048_576);
-    expect(DEEPSEEK_V4_PRO.limit.output).toBe(384_000);
+  it("drops the models Nebius retired on 2026-11-16 from the bundled catalog", () => {
+    for (const id of [
+      "deepseek-ai/DeepSeek-V4-Pro",
+      "deepseek-ai/DeepSeek-V4.1-Flash",
+      "deepseek-ai/DeepSeek-V4-Flash-0731",
+      "moonshotai/Kimi-K2.6",
+      "moonshotai/Kimi-K2.7-Code",
+      "Qwen/Qwen3.5-397B-A17B",
+    ]) {
+      expect(SNAPSHOT_CATALOG.byId.has(id)).toBe(false);
+    }
   });
 
-  it("keeps bundled DeepSeek fallback rows when live catalog omits them", () => {
+  it("keeps bundled fallback rows when live catalog omits them", () => {
     const catalog = buildCatalog([
       {
         id: "example/Only-Live-Model",
@@ -75,7 +80,9 @@ describe("resolveModelByKeys", () => {
     ]);
 
     expect(catalog.byId.has("example/Only-Live-Model")).toBe(true);
-    expect(catalog.byId.get(DEEPSEEK_V4_PRO.id)?.limit.output).toBe(384_000);
+    expect(catalog.byId.get(KIMI_K3_1_PRO.id)?.limit.output).toBe(131_072);
+    // A retired model is not brought back.
+    expect(catalog.byId.has("deepseek-ai/DeepSeek-V4-Pro")).toBe(false);
   });
 
   it("selects Kimi K3.1 Pro by id and alias, with images, a 1M window and an effort", () => {

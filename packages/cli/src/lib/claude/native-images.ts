@@ -4,7 +4,7 @@ import { isVisionModel, type ModelDefinition } from "@nconnect/models";
  * Whether Claude Code's images go to the target model as images, or are first
  * turned into text by a separate vision model.
  *
- * A model Nebius lists with image input (GLM 5.3 Flash, Kimi K3, Kimi K2.6)
+ * A model Nebius lists with image input (GLM 5.3 Flash, Kimi K3, Inkling 2 Small)
  * sees the image itself: no extra vision call, and nothing lost in a
  * description. Text-only models keep the description path, which is the only
  * way an image can reach them at all.

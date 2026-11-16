@@ -6,7 +6,6 @@ import {
   GLM_5_2,
   MINIMAX_M3,
   NEMOTRON_3_5_SUPER_VL,
-  QWEN_3_5_397B,
   NEBIUS_BASE_URL,
 } from "@nconnect/models";
 import { handleCodexProxyRequest, type CodexProxyOptions } from "../../cli/src/lib/codex/proxy.js";
@@ -1693,7 +1692,7 @@ describe("Codex Responses proxy tool compatibility", () => {
     );
 
     const response = await postResponsesText({
-      model: QWEN_3_5_397B.id,
+      model: MINIMAX_M3.id,
       stream: true,
       input: [
         {
@@ -1712,7 +1711,7 @@ describe("Codex Responses proxy tool compatibility", () => {
       model?: string;
       messages: Array<{ role: string; content?: unknown }>;
     };
-    expect(upstream.model).toBe(QWEN_3_5_397B.id);
+    expect(upstream.model).toBe(MINIMAX_M3.id);
     expect(upstream.messages.at(-1)).toEqual({
       role: "user",
       content: [
@@ -1823,7 +1822,7 @@ describe("Codex Responses proxy tool compatibility", () => {
     });
 
     // Nebius silently caps omitted max_tokens at 2048, which truncates
-    // long-reasoning models (Kimi K2.6/K2.7) mid-turn; the proxy must always
+    // long-reasoning models (Kimi K3/K3.1 Pro) mid-turn; the proxy must always
     // send an explicit budget. A tiny input leaves the full output limit free.
     expect(requests[0]?.max_tokens).toBe(GLM_5_2.limit.output);
 
@@ -2016,7 +2015,7 @@ describe("Codex Responses proxy tool compatibility", () => {
     );
 
     await postResponsesText({
-      model: QWEN_3_5_397B.id,
+      model: MINIMAX_M3.id,
       stream: true,
       tools: [
         {

@@ -1,6 +1,6 @@
 import {
   GLM_5_2_ANTHROPIC_CAPABILITIES,
-  KIMI_K2_7_CODE,
+  MINIMAX_M3_1_FLASH,
   getDefaultModel,
   getSelectableModels,
   resolveModelByKeys,
@@ -32,7 +32,14 @@ export type ClaudeModelSelection = {
   definition: ModelDefinition;
 };
 
-export const CLAUDE_HAIKU_MODEL = KIMI_K2_7_CODE;
+/**
+ * The Haiku-tier backend for Claude Code's built-in subagents (Explore and the
+ * like). MiniMax M3.1 Flash: fast, $0.15 / M input, 1M window, clean tool
+ * calls. It was Kimi K2.7 Code until Nebius retired it (2026-11-16). It is
+ * kept off the default model, since a request for this model is not recorded
+ * as the user's pick.
+ */
+export const CLAUDE_HAIKU_MODEL = MINIMAX_M3_1_FLASH;
 export const CLAUDE_HAIKU_MODEL_SELECTION: ClaudeModelSelection = {
   alias: CLAUDE_HAIKU_MODEL.anthropicAlias ?? CLAUDE_HAIKU_MODEL.id,
   definition: CLAUDE_HAIKU_MODEL,

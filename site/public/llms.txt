@@ -12,13 +12,13 @@ This is the LLM-readable documentation file for the project. If you are an AI ag
 - Tutorials (one per harness): https://nconnect.sh/docs/tutorials
   - https://nconnect.sh/docs/tutorials/kimi-k3-claude-code
   - https://nconnect.sh/docs/tutorials/glm-5-3-codex
-  - https://nconnect.sh/docs/tutorials/qwen-3-5-opencode
+  - https://nconnect.sh/docs/tutorials/qwen-3-8-opencode
   - https://nconnect.sh/docs/tutorials/minimax-m3-pi
   - https://nconnect.sh/docs/tutorials/deepseek-v4-flash-prime-agent
   - https://nconnect.sh/docs/tutorials/kimi-k3-hermes-agent
   - https://nconnect.sh/docs/tutorials/deepseek-v4-pro-deepseek-harness
   - https://nconnect.sh/docs/tutorials/kimi-k3-grok-build
-  - https://nconnect.sh/docs/tutorials/kimi-k2-7-code-unreal-agent
+  - https://nconnect.sh/docs/tutorials/kimi-k3-1-pro-unreal-agent
 - Installer: https://nconnect.sh/install.sh
 - Version manifest: https://nconnect.sh/latest.json
 - README: https://github.com/Studio1-OSS/nconnect/blob/main/README.md
@@ -121,14 +121,14 @@ The model list is fetched live from Nebius (`GET /v1/models?verbose=true`) at st
 Put `--model` (or `--main` for Claude) BEFORE the harness subcommand - nconnect consumes it there and routes to that model:
 
 ```
-nconnect --model moonshotai/Kimi-K2.6 codex exec "task"
-nconnect --model moonshotai/Kimi-K2.6 claude -p "task"
-nconnect --main nebius-kimi-k2-7-code claude -p "task"   # Claude matches alias OR id
+nconnect --model moonshotai/Kimi-K3.1-Pro codex exec "task"
+nconnect --model moonshotai/Kimi-K3.1-Pro claude -p "task"
+nconnect --main nebius-kimi-k3-1-pro claude -p "task"   # Claude matches alias OR id
 ```
 
 The long form above works across harnesses. Since Relay 0.15.3, Codex also supports `ncodex --model MODEL_ID` and `ncodex -m MODEL_ID`; invalid explicit model names fail instead of silently using the default.
 
-Auto routing: `nconnect --model auto <harness>` picks a model per task, for every harness (claude, codex, chatgpt, claude-desktop, opencode, pi, prime, hermes, deepseek, grok, unreal). Three tiers: fast (DeepSeek V4 Flash 0731, $0.14 / $0.28 per M) for routine work, balanced (Kimi K2.6, $0.95 / $4) for work that takes some thought, strong (Kimi K3, $3 / $15) for work that is hard to get right. A task is everything since the last typed prompt; its tool-calling turns stay on the tier the prompt earned. Plan mode in Claude Code, an effort level above the default (max in Claude Code, where high is the default; high in Codex) and deep-thinking requests go to the strong tier. By default keyword rules decide the rest: a hard-work word (debug, refactor, migrate) earns strong, a long prompt earns balanced; three failed tool calls escalate a task. Settings, read from the launching environment: `NCONNECT_AUTO_COST_TIER` (`low`, `medium`, `high`: how readily Auto pays for a bigger model), `NCONNECT_AUTO_PER_TURN=on` (off by default; follow-up turns of a task run one tier down once it is under way, and go back up after a failed tool call), `NCONNECT_AUTO_EFFORT=on` (off by default; Auto raises reasoning effort on the first turn of a harder task), and the model pool: `NCONNECT_AUTO_FAST_MODEL`, `NCONNECT_AUTO_BALANCED_MODEL`, `NCONNECT_AUTO_STRONG_MODEL` each take an ordered list of candidates (ids, wildcards such as `*flash*` or `moonshotai/*`, comma-separated); `NCONNECT_AUTO_MODELS` is an allow list and `NCONNECT_AUTO_EXCLUDED_MODELS` an exclude list that always wins. Within a tier Auto uses the first candidate that can do what the task needs (image input, enough context), looking one tier up if none can; by default a fast task with an image goes to GLM 5.3 Flash because DeepSeek V4 Flash 0731 is text-only, and a balanced conversation over 262K tokens goes to GLM 5.3. Auto advertises the smallest window of its first choices (262K by default). The cost line printed when a session ends lists each model Auto ran on, and `nconnect usage` shows the split. A harness's own background calls use the fast model. Spawned harnesses (opencode, pi, prime, hermes, deepseek, grok) are routed through the daemon when on Auto.
+Auto routing: `nconnect --model auto <harness>` picks a model per task, for every harness (claude, codex, chatgpt, claude-desktop, opencode, pi, prime, hermes, deepseek, grok, unreal). Three tiers: fast (GLM 5.3 Flash, $0.15 / $0.50 per M) for routine work, balanced (GLM 5.3, $1.40 / $4.40) for work that takes some thought, strong (Kimi K3, $3 / $15) for work that is hard to get right. A task is everything since the last typed prompt; its tool-calling turns stay on the tier the prompt earned. Plan mode in Claude Code, an effort level above the default (max in Claude Code, where high is the default; high in Codex) and deep-thinking requests go to the strong tier. By default keyword rules decide the rest: a hard-work word (debug, refactor, migrate) earns strong, a long prompt earns balanced; three failed tool calls escalate a task. Settings, read from the launching environment: `NCONNECT_AUTO_COST_TIER` (`low`, `medium`, `high`: how readily Auto pays for a bigger model), `NCONNECT_AUTO_PER_TURN=on` (off by default; follow-up turns of a task run one tier down once it is under way, and go back up after a failed tool call), `NCONNECT_AUTO_EFFORT=on` (off by default; Auto raises reasoning effort on the first turn of a harder task), and the model pool: `NCONNECT_AUTO_FAST_MODEL`, `NCONNECT_AUTO_BALANCED_MODEL`, `NCONNECT_AUTO_STRONG_MODEL` each take an ordered list of candidates (ids, wildcards such as `*flash*` or `moonshotai/*`, comma-separated); `NCONNECT_AUTO_MODELS` is an allow list and `NCONNECT_AUTO_EXCLUDED_MODELS` an exclude list that always wins. Within a tier Auto uses the first candidate that can do what the task needs (image input, enough context), looking one tier up if none can; by default a balanced task with an image goes to Kimi K3, because GLM 5.3 is text-only. Auto advertises the smallest window of its first choices (1M by default). The cost line printed when a session ends lists each model Auto ran on, and `nconnect usage` shows the split. A harness's own background calls use the fast model. Spawned harnesses (opencode, pi, prime, hermes, deepseek, grok) are routed through the daemon when on Auto.
 
 Auto decider (optional): by default Auto judges task difficulty with keyword rules. Set `NCONNECT_AUTO_DECIDER` to let a model judge instead: `nebius` (a small Nebius model answering in one token, no extra setup), `jev` (TypeSafe's hosted Jev model; needs `TYPESAFE_API_KEY`; sends the typed prompt to TypeSafe), or `laya` (the open Laya model run locally with `laya-serve`; default endpoint `http://127.0.0.1:8000/v1/systemone`). It answers on three levels (routine, moderate, hard) that map to the three tiers. It applies to Auto requests only, is asked once per typed prompt, and falls back to the keyword rules when slow, down or unsure. Plan mode, a raised effort level and deep-thinking requests still take priority. Claude Code's output-limit and empty-reply nudges are not treated as new prompts, and permission refusals do not count as failed tool calls. Measured: the default lineup with `NCONNECT_AUTO_DECIDER=jev` cost 24% less than fixed Kimi K3 on 50 coding tasks (40 against 42 passed) and 93% less on 30 extraction, classification, lookup and policy tasks. Related settings: `NCONNECT_AUTO_DECIDER_MODEL`, `NCONNECT_AUTO_DECIDER_URL`, `NCONNECT_AUTO_DECIDER_TIMEOUT_MS`, `LAYA_API_KEY`.
 
@@ -138,23 +138,22 @@ Featured flagship models (any live Nebius id also works with `--model`):
 - `zai-org/GLM-5.3` - GLM 5.3. Text-only, coding and tool use, 1M context. Bundled since 0.15.4; Claude alias: `nebius-glm-5-3`.
 - `deepseek-ai/DeepSeek-V4-Pro-0813` - DeepSeek V4 Pro 0813. Text-only, reasoning and agentic coding, 1M context. Bundled since 0.15.4; Claude alias: `nebius-deepseek-v4-pro-0813`.
 - `meta-models/muse-spark-open` - Muse Spark Open (Meta, new). 816B-parameter mixture of experts with about 42B active, for coding and agentic work. Accepts images, reasoning and tool use, 1M context. $1.25 / $4.25 per M input/output tokens. Takes `reasoning_effort` low to xhigh only: NConnect raises `none` to `low` and sends `xhigh` for `max`. Claude alias: `nebius-muse-spark-open`. Try it in the playground: https://tokenfactory.nebius.com/playground?models=meta-models/muse-spark-open
+- `thinkingmachines/Inkling-2-Small` - Inkling 2 Small (Thinking Machines, new). Accepts images, reasoning and tool use, 1M context. $0.30 / $1.00 per M. At effort `none` NConnect also turns its thinking off through the chat template. Claude alias: `nebius-inkling-2-small`.
+- `moonshotai/Kimi-K3.1-Pro` - Kimi K3.1 Pro. Accepts images, reasoning + agentic coding, 1M context. The fallback when another model's endpoint stops answering. Claude alias: `nebius-kimi-k3-1-pro`.
 - `moonshotai/Kimi-K3` - Kimi K3. Accepts images, reasoning + agentic coding, 1M context.
-- `moonshotai/Kimi-K2.6` - Kimi K2.6. Vision + reasoning, 262K context. The vision flagship. Ignores `reasoning_effort`; at effort `none` NConnect turns its thinking off through the chat template.
-- `moonshotai/Kimi-K2.7-Code` - Kimi K2.7 Code. Text-only coding model, 262K context.
 - `MiniMaxAI/MiniMax-M3` - MiniMax M3. Text-only, 1M context, fast and cheap.
-- `Qwen/Qwen3.5-397B-A17B` - Qwen 3.5 397B. Text-only, 262K context, general/coding flagship.
-- `deepseek-ai/DeepSeek-V4-Pro` - DeepSeek V4 Pro. Text-only, 1M context, long-context reasoning.
 - `deepseek-ai/DeepSeek-V4.1-Flash-1017` - DeepSeek V4.1 Flash 1017 (new). Accepts images, reasoning and tool use, 1M context. Claude alias: `nebius-deepseek-v4-1-flash-1017`.
-- `deepseek-ai/DeepSeek-V4.1-Flash` - DeepSeek V4.1 Flash. Accepts images, reasoning and tool use, 1M context. Claude alias: `nebius-deepseek-v4-1-flash`.
-- `MiniMaxAI/MiniMax-M3.1-Flash` - MiniMax M3.1 Flash (new). Accepts images, reasoning and tool use, 1M context. Claude alias: `nebius-minimax-m3-1-flash`.
+- `MiniMaxAI/MiniMax-M3.1-Flash` - MiniMax M3.1 Flash (new). Accepts images, reasoning and tool use, 1M context. Claude Code's Haiku tier (Explore and other built-in subagents). Claude alias: `nebius-minimax-m3-1-flash`.
 - `reflection/beam` - Reflection Beam (new). Text-only, coding and agentic work, 1M context. Rejects effort `none`, so NConnect sends `low` instead. Claude alias: `nebius-reflection-beam`.
 - `Qwen/Qwen3.8-27B` - Qwen 3.8 27B (new). Accepts images, reasoning and tool use, 262K context. Rejects effort `max`, so NConnect sends `xhigh` instead. Claude alias: `nebius-qwen-3-8-27b`.
-- `nvidia/Nemotron-3.5-Super-VL` - Nemotron 3.5 Super VL (new). Accepts images, reasoning and tool use, 1M context. The vision fallback. Claude alias: `nebius-nemotron-3-5-super-vl`.
+- `nvidia/Nemotron-3.5-Super-VL` - Nemotron 3.5 Super VL (new). Accepts images, reasoning and tool use, 1M context. The vision primary: describes images for text-only models. Claude alias: `nebius-nemotron-3-5-super-vl`.
 - `nvidia/Nemotron-3_5-Lightning` - Nemotron 3.5 Lightning (new). Text-only, reasoning and tool use, 1M context. Claude alias: `nebius-nemotron-3-5-lightning`.
 
-Note: `zai-org/GLM-5.2` was the previous default. `deepseek-ai/DeepSeek-V4-Flash` and `Qwen/Qwen2.5-VL-72B-Instruct` are no longer served by Nebius.
+Also available: Nemotron 3 Ultra, Nemotron 3 Super, Nemotron 3 Nano, gpt-oss 120B, Hermes 4 405B, Qwen3 235B Instruct and Qwen3 30B Instruct.
 
-Vision-capable models (those whose API modality includes image input, e.g. GLM 5.3 Flash, Kimi K3, Kimi K2.6 and Nemotron 3.5 Super VL) accept image attachments directly in Claude Code and Codex. For a text-only model, the Claude Code proxy replaces images with a text description from a vision model (Kimi K2.6, then Qwen2.5-VL). With a vision-capable model it keeps the 8 most recent images as images and describes older ones; `NCONNECT_CLAUDE_IMAGES=describe` always describes. OpenCode routes images for text-only models to the `@vision` subagent.
+Note: `zai-org/GLM-5.2` was the previous default. No longer served by Nebius: `deepseek-ai/DeepSeek-V4-Flash`, `Qwen/Qwen2.5-VL-72B-Instruct`, and since 2026-11-16 `moonshotai/Kimi-K2.6`, `moonshotai/Kimi-K2.7-Code`, `deepseek-ai/DeepSeek-V4-Pro`, `deepseek-ai/DeepSeek-V4.1-Flash`, `deepseek-ai/DeepSeek-V4-Flash-0731` and `Qwen/Qwen3.5-397B-A17B`.
+
+Vision-capable models (those whose API modality includes image input, e.g. GLM 5.3 Flash, Kimi K3, Inkling 2 Small and Nemotron 3.5 Super VL) accept image attachments directly in Claude Code and Codex. For a text-only model, the Claude Code proxy replaces images with a text description from a vision model (Nemotron 3.5 Super VL first). With a vision-capable model it keeps the 8 most recent images as images and describes older ones; `NCONNECT_CLAUDE_IMAGES=describe` always describes. OpenCode routes images for text-only models to the `@vision` subagent.
 
 ## Claude Desktop (beta)
 

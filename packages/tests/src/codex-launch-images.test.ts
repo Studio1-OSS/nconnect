@@ -15,7 +15,7 @@ describe("Codex image launch arguments", () => {
       args: [
         "--ignore-user-config",
         "--model",
-        "moonshotai/Kimi-K2.6",
+        "moonshotai/Kimi-K3.1-Pro",
         "--image",
         "/tmp/screen shot.png",
         "--",
@@ -23,7 +23,7 @@ describe("Codex image launch arguments", () => {
       ],
     });
     const spec = vi.mocked(runProxiedSession).mock.calls.at(-1)![0];
-    expect(spec.modelId).toBe("moonshotai/Kimi-K2.6");
+    expect(spec.modelId).toBe("moonshotai/Kimi-K3.1-Pro");
     expect(spec.modelDefinition.modalities.input).toContain("image");
     const args = spec.buildArgs({
       proxyUrl: "http://127.0.0.1:9999",
@@ -33,7 +33,7 @@ describe("Codex image launch arguments", () => {
       beforeSpawnResult: { path: "/tmp/catalog.json" },
     });
     expect(args.slice(0, 3)).toEqual(["--ignore-user-config", "--image", "/tmp/screen shot.png"]);
-    expect(args).toContain('model="moonshotai/Kimi-K2.6"');
+    expect(args).toContain('model="moonshotai/Kimi-K3.1-Pro"');
     expect(args.slice(-2)).toEqual(["--", "--model is literal prompt text"]);
     expect(args).not.toContain("--model");
   });

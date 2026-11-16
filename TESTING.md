@@ -86,8 +86,8 @@ Pick a backend for one launch:
 
 ```bash
 pnpm -F @nconnect/cli exec nconnect --main nebius-glm-5-2 claude
-pnpm -F @nconnect/cli exec nconnect --main nebius-kimi-k2-7-code claude
-pnpm -F @nconnect/cli exec nconnect --main Qwen/Qwen3.5-397B-A17B claude
+pnpm -F @nconnect/cli exec nconnect --main nebius-kimi-k3-1-pro claude
+pnpm -F @nconnect/cli exec nconnect --main Qwen/Qwen3.8-27B claude
 ```
 
 ### Codex
@@ -117,7 +117,7 @@ Codex App support is an alpha feature. Unlike `nconnect codex`, it persistently 
 export NEBIUS_API_KEY="..."
 
 pnpm -F @nconnect/cli exec nconnect codex-app
-pnpm -F @nconnect/cli exec nconnect codex-app --model moonshotai/Kimi-K2.7-Code
+pnpm -F @nconnect/cli exec nconnect codex-app --model moonshotai/Kimi-K3.1-Pro
 ```
 
 Restore the previous Codex config:
