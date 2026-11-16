@@ -161,7 +161,7 @@ function applyClaudeModelMenuEnv(env: NodeJS.ProcessEnv, selectedAlias: string):
 
   // Claude Code currently exposes a single generic custom-model slot in
   // addition to the three tier slots. Point that at the selected backend so a
-  // `--main nebius-kimi-k2-7-code` launch also marks Kimi as the custom row.
+  // `--main nebius-kimi-k3` launch also marks Kimi K3 as the custom row.
   env.ANTHROPIC_CUSTOM_MODEL_OPTION = selected.alias;
   env.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME = selected.definition.name;
   env.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION = "Local Anthropic-to-Nebius proxy";

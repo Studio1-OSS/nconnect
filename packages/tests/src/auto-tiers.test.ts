@@ -26,8 +26,8 @@ import { buildSession } from "../../cli/src/lib/daemon/state.js";
 import { formatModelSplit } from "../../cli/src/lib/proxied-session.js";
 import type { AnthropicMessage } from "../../cli/src/lib/claude/wire-types.js";
 
-const FAST = "deepseek-ai/DeepSeek-V4-Flash-0731";
-const BALANCED = "moonshotai/Kimi-K2.6";
+const FAST = "zai-org/GLM-5.3-Flash";
+const BALANCED = "zai-org/GLM-5.3";
 const STRONG = "moonshotai/Kimi-K3";
 const base: AutoSignals = { prompt: "do the thing", toolErrors: 0 };
 
@@ -429,9 +429,7 @@ describe("the end-of-session cost line", () => {
         { model: STRONG, costUsd: 0.0412 },
         { model: BALANCED, costUsd: 0.0031 },
       ]),
-    ).toBe(
-      "[nconnect cost] by model: Kimi K3 $0.0412 · Kimi K2.6 $0.0031 · DeepSeek V4 Flash 0731 $0.0008",
-    );
+    ).toBe("[nconnect cost] by model: Kimi K3 $0.0412 · GLM 5.3 $0.0031 · GLM 5.3 Flash $0.0008");
   });
 
   test("says nothing for a session on a single model", () => {

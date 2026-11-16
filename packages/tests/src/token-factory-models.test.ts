@@ -9,7 +9,6 @@ import {
   maximumReasoningEffort,
   minimumReasoningEffort,
   NEMOTRON_3_5_SUPER_VL,
-  QWEN_3_5_397B,
   QWEN_3_8_27B,
   REFLECTION_BEAM,
   requiresSingleSystemMessage,
@@ -57,11 +56,9 @@ describe("the catalog lineup", () => {
     }
   });
 
-  test("the vision fallback after Kimi K2.6 is Nemotron 3.5 Super VL", () => {
-    expect(VISION_MODELS.slice(0, 2).map((model) => model.id)).toEqual([
-      "moonshotai/Kimi-K2.6",
-      NEMOTRON_3_5_SUPER_VL.id,
-    ]);
+  test("Nemotron 3.5 Super VL is the vision primary since Kimi K2.6 was retired", () => {
+    expect(VISION_MODELS[0]?.id).toBe(NEMOTRON_3_5_SUPER_VL.id);
+    expect(VISION_MODELS.some((model) => model.id === "moonshotai/Kimi-K2.6")).toBe(false);
   });
 });
 
@@ -207,7 +204,7 @@ describe("models that take one system message", () => {
   } as unknown as AnthropicMessagesRequest;
 
   test("Claude Code requests fold for the Qwen models", () => {
-    for (const model of [QWEN_3_5_397B, QWEN_3_8_27B]) {
+    for (const model of [QWEN_3_8_27B]) {
       expect(requiresSingleSystemMessage(model.id)).toBe(true);
       const messages = toOpenAIMessages(claudeBody, model);
       expect(messages.map((message) => message.role)).toEqual(["system", "user", "user"]);

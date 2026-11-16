@@ -15,34 +15,34 @@ const setup: Setup = {
   alias: "nopencode",
   binary: "opencode",
   install: "npm install -g opencode-ai@latest",
-  modelId: "Qwen/Qwen3.5-397B-A17B",
+  modelId: "Qwen/Qwen3.8-27B",
 };
 
-export const qwen35OpenCode: Tutorial = {
-  slug: "qwen-3-5-opencode",
-  title: "How to run Qwen 3.5 with OpenCode",
-  navLabel: "Qwen 3.5 + OpenCode",
+export const qwen38OpenCode: Tutorial = {
+  slug: "qwen-3-8-opencode",
+  title: "How to run Qwen 3.8 with OpenCode",
+  navLabel: "Qwen 3.8 + OpenCode",
   description:
-    "Run the OpenCode terminal agent on Alibaba's Qwen 3.5 397B, served by Nebius Token Factory through NConnect, without editing your OpenCode config.",
+    "Run the OpenCode terminal agent on Alibaba's Qwen 3.8 27B, served by Nebius Token Factory through NConnect, without editing your OpenCode config.",
   harness: setup.harness,
-  model: "Qwen 3.5 397B",
+  model: "Qwen 3.8 27B",
   totalTime: "PT5M",
-  updated: "2026-10-01",
-  steps: setupHowTo(setup, "Qwen 3.5"),
+  updated: "2026-11-16",
+  steps: setupHowTo(setup, "Qwen 3.8"),
   Content() {
     return (
       <>
         <P>
           OpenCode already speaks the OpenAI-compatible format Nebius serves, so NConnect needs no
           proxy here: it launches OpenCode with Nebius configured as a provider for that one run.
-          Qwen 3.5 397B is Alibaba&apos;s mixture-of-experts flagship for general and coding work,
-          with a 262K-token context window.
+          Qwen 3.8 27B is Alibaba&apos;s dense reasoning model for coding and long-horizon agent
+          work, with tool calling, image input and a 262K-token context window.
         </P>
 
         <Prerequisites />
         <SetupSteps
           setup={setup}
-          modelName="Qwen 3.5"
+          modelName="Qwen 3.8"
           launchNote={
             <>
               <P>
@@ -59,8 +59,8 @@ export const qwen35OpenCode: Tutorial = {
         <ul>
           <li>
             Passes a generated config with a <Code>nebius</Code> provider through the environment,
-            and selects <Code>nebius/Qwen/Qwen3.5-397B-A17B</Code> on the command line so it wins
-            over the default model in your own <Code>~/.config/opencode</Code>.
+            and selects <Code>nebius/Qwen/Qwen3.8-27B</Code> on the command line so it wins over the
+            default model in your own <Code>~/.config/opencode</Code>.
           </li>
           <li>
             Limits <Code>/models</Code> to the NConnect catalog, with real context limits and
@@ -78,7 +78,8 @@ export const qwen35OpenCode: Tutorial = {
         <H2 id="switching">Switch models in the session</H2>
         <P>
           Use <Code>/models</Code> inside OpenCode to move between Nebius models without restarting.
-          Pick a vision model such as Kimi K2.6 before pasting images.
+          Qwen 3.8 reads images itself; on a text-only model, pick one that does, such as Kimi K3,
+          before pasting images.
         </P>
       </>
     );

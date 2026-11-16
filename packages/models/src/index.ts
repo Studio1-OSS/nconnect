@@ -153,11 +153,6 @@ const CURATED_OVERRIDES: Record<string, ModelOverride> = {
     anthropicAlias: "nebius-deepseek-v4-pro-0813",
     order: 3,
   },
-  "deepseek-ai/DeepSeek-V4-Flash-0731": {
-    name: "DeepSeek V4 Flash 0731",
-    anthropicAlias: "nebius-deepseek-v4-flash-0731",
-    order: 6,
-  },
   "meta-models/muse-spark-open": {
     name: "Muse Spark Open",
     anthropicAlias: "nebius-muse-spark-open",
@@ -187,13 +182,6 @@ const CURATED_OVERRIDES: Record<string, ModelOverride> = {
     name: "MiniMax M3.1 Flash",
     anthropicAlias: "nebius-minimax-m3-1-flash",
     order: 9,
-  },
-  "moonshotai/Kimi-K2.6": {
-    name: "Kimi K2.6 · vision",
-    anthropicAlias: "nebius-kimi-k2-6",
-    outputLimit: 131_000,
-    order: 10,
-    visionRank: 0, // vision flagship: primary for image description
   },
   "zai-org/GLM-5.3-Flash": {
     name: "GLM 5.3 Flash · default",
@@ -267,13 +255,6 @@ const CURATED_OVERRIDES: Record<string, ModelOverride> = {
     minContext: 1_048_576,
     order: 1,
   },
-  "moonshotai/Kimi-K2.7-Code": {
-    name: "Kimi K2.7 Code",
-    anthropicAlias: "nebius-kimi-k2-7-code",
-    outputLimit: 131_072,
-    minContext: 262_144, // API reports a placeholder 8000
-    order: 20,
-  },
   "Qwen/Qwen3.8-27B": {
     name: "Qwen 3.8 27B",
     anthropicAlias: "nebius-qwen-3-8-27b",
@@ -283,35 +264,19 @@ const CURATED_OVERRIDES: Record<string, ModelOverride> = {
     name: "Nemotron 3.5 Super VL",
     anthropicAlias: "nebius-nemotron-3-5-super-vl",
     order: 14,
-    visionRank: 1, // vision fallback
+    // Primary for image description since Nebius retired Kimi K2.6 (2026-11-16).
+    visionRank: 0,
   },
   "nvidia/Nemotron-3_5-Lightning": {
     name: "Nemotron 3.5 Lightning",
     anthropicAlias: "nebius-nemotron-3-5-lightning",
     order: 16,
   },
-  "deepseek-ai/DeepSeek-V4.1-Flash": {
-    name: "DeepSeek V4.1 Flash",
-    anthropicAlias: "nebius-deepseek-v4-1-flash",
-    order: 18,
-  },
   "MiniMaxAI/MiniMax-M3": {
     name: "MiniMax M3",
     outputLimit: 128_000,
     minContext: 196_608, // API reports a placeholder 8000
     order: 30,
-  },
-  "Qwen/Qwen3.5-397B-A17B": {
-    name: "Qwen 3.5 397B · flagship",
-    outputLimit: 65_536,
-    order: 40,
-  },
-  "deepseek-ai/DeepSeek-V4-Pro": {
-    name: "DeepSeek V4 Pro",
-    anthropicAlias: "nebius-deepseek-v4-pro",
-    outputLimit: 384_000,
-    minContext: 1_048_576,
-    order: 50,
   },
 };
 
@@ -324,9 +289,7 @@ const CURATED_OVERRIDES: Record<string, ModelOverride> = {
 const BUNDLED_FALLBACK_MODEL_IDS: ReadonlySet<string> = new Set([
   "zai-org/GLM-5.3",
   "meta-models/muse-spark-open",
-  "deepseek-ai/DeepSeek-V4-Flash-0731",
   "deepseek-ai/DeepSeek-V4-Pro-0813",
-  "deepseek-ai/DeepSeek-V4-Pro",
   "moonshotai/Kimi-K3.1-Pro",
   "thinkingmachines/Inkling-2-Small",
 ]);
@@ -350,13 +313,10 @@ export const REASONING_EFFORT_MODEL_IDS: ReadonlySet<string> = new Set([
   "zai-org/GLM-5.3-Flash",
   "zai-org/GLM-5.3",
   "zai-org/GLM-5.2",
-  "deepseek-ai/DeepSeek-V4-Flash-0731",
   "meta-models/muse-spark-open",
-  "moonshotai/Kimi-K2.6",
   "moonshotai/Kimi-K3",
   "moonshotai/Kimi-K3.1-Pro",
   "reflection/beam",
-  "deepseek-ai/DeepSeek-V4.1-Flash",
   "deepseek-ai/DeepSeek-V4.1-Flash-1017",
   "MiniMaxAI/MiniMax-M3.1-Flash",
   "Qwen/Qwen3.8-27B",
@@ -382,11 +342,6 @@ export const REASONING_EFFORT_MODEL_IDS: ReadonlySet<string> = new Set([
  * small coding prompt, against 2,249 with no effort sent); "low" all but
  * stops it (6). Measured on Nebius, 2026-10-15.
  *
- * DeepSeek V4 Flash 0731 does stop reasoning at "none", but then degenerates
- * on agentic turns: in Claude Code it invented context and looped for 17k and
- * 28k output tokens in a single reply, ending in tool calls written as text.
- * "low" reasons briefly (about 300 tokens) and stays on task.
- *
  * Muse Spark Open rejects "none" with a 400 ("Expected one of: low, medium,
  * high, xhigh"). Measured on Nebius, 2026-10-16.
  *
@@ -402,7 +357,6 @@ export const REASONING_EFFORT_MODEL_IDS: ReadonlySet<string> = new Set([
 const MIN_REASONING_EFFORT: Record<string, string> = {
   "zai-org/GLM-5.3-Flash": "low",
   "zai-org/GLM-5.3": "low",
-  "deepseek-ai/DeepSeek-V4-Flash-0731": "low",
   "meta-models/muse-spark-open": "low",
   "reflection/beam": "low",
   "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B": "low",
@@ -423,15 +377,11 @@ const MAX_REASONING_EFFORT: Record<string, string> = {
 
 /**
  * Models that ignore `reasoning_effort` and switch reasoning off only through
- * their chat template. Kimi K2.6 reasoned at length at every effort level
- * (11k characters at "none", once running out of tokens before answering);
- * `chat_template_kwargs: { thinking: false }` stopped it. Measured on Nebius,
- * 2026-10-15. Inkling 2 Small accepts every effort but still reasons at
- * "none"; `thinking: false` brings it to zero reasoning tokens (measured
- * 2026-11-16).
+ * their chat template. Inkling 2 Small accepts every effort but still reasons
+ * at "none"; `chat_template_kwargs: { thinking: false }` brings it to zero
+ * reasoning tokens. Measured on Nebius, 2026-11-16.
  */
 const TEMPLATE_THINKING_SWITCH_MODEL_IDS: ReadonlySet<string> = new Set([
-  "moonshotai/Kimi-K2.6",
   "thinkingmachines/Inkling-2-Small",
 ]);
 
@@ -464,7 +414,6 @@ export function requiresReasoningOnAssistantTurns(modelId: string): boolean {
  * roles must alternate"). Measured on Nebius, 2026-11-01.
  */
 const SINGLE_SYSTEM_MESSAGE_MODEL_IDS = new Set<string>([
-  "Qwen/Qwen3.5-397B-A17B",
   "Qwen/Qwen3.8-27B",
   "google/gemma-3-27b-it",
 ]);
@@ -744,11 +693,6 @@ export const DEEPSEEK_V4_PRO_0813: ModelDefinition = fromSnapshot(
   "deepseek-ai/DeepSeek-V4-Pro-0813",
 );
 export const MUSE_SPARK_OPEN: ModelDefinition = fromSnapshot("meta-models/muse-spark-open");
-export const DEEPSEEK_V4_FLASH_0731: ModelDefinition = fromSnapshot(
-  "deepseek-ai/DeepSeek-V4-Flash-0731",
-);
-export const KIMI_K2_6: ModelDefinition = fromSnapshot("moonshotai/Kimi-K2.6");
-export const KIMI_K2_7_CODE: ModelDefinition = fromSnapshot("moonshotai/Kimi-K2.7-Code");
 export const KIMI_K3_1_PRO: ModelDefinition = fromSnapshot("moonshotai/Kimi-K3.1-Pro");
 export const INKLING_2_SMALL: ModelDefinition = fromSnapshot("thinkingmachines/Inkling-2-Small");
 export const GPT_OSS_120B: ModelDefinition = fromSnapshot("openai/gpt-oss-120b");
@@ -756,8 +700,6 @@ export const NEMOTRON_3_NANO: ModelDefinition = fromSnapshot(
   "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
 );
 export const MINIMAX_M3: ModelDefinition = fromSnapshot("MiniMaxAI/MiniMax-M3");
-export const QWEN_3_5_397B: ModelDefinition = fromSnapshot("Qwen/Qwen3.5-397B-A17B");
-export const DEEPSEEK_V4_PRO: ModelDefinition = fromSnapshot("deepseek-ai/DeepSeek-V4-Pro");
 export const REFLECTION_BEAM: ModelDefinition = fromSnapshot("reflection/beam");
 export const DEEPSEEK_V4_1_FLASH_1017: ModelDefinition = fromSnapshot(
   "deepseek-ai/DeepSeek-V4.1-Flash-1017",

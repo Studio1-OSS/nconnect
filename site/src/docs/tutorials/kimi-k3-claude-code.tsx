@@ -72,8 +72,8 @@ export const kimiK3ClaudeCode: Tutorial = {
           </li>
           <li>
             Fills Claude Code&apos;s <Code>/model</Code> menu with Nebius models, each labelled
-            &quot;via nconnect - not Anthropic&quot;. Built-in exploration subagents use Kimi K2.7
-            Code in the Haiku slot.
+            &quot;via nconnect - not Anthropic&quot;. Built-in exploration subagents use MiniMax
+            M3.1 Flash in the Haiku slot.
           </li>
           <li>
             Sends the 1M-context hint for Kimi K3, so Claude Code uses the full window instead of

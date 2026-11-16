@@ -33,7 +33,7 @@ const envVars: Array<[string, ReactNode]> = [
     "NCONNECT_FALLBACK_MODEL",
     <>
       Model to fail over to when the target returns no response headers. Default{" "}
-      <Code>moonshotai/Kimi-K2.6</Code>; set <Code>off</Code> to disable.
+      <Code>moonshotai/Kimi-K3.1-Pro</Code>; set <Code>off</Code> to disable.
     </>,
   ],
   [

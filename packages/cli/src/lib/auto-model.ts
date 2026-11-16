@@ -18,8 +18,6 @@ export const AUTO_FAST_MODEL_ENV = "NCONNECT_AUTO_FAST_MODEL";
 export const AUTO_STRONG_MODEL_ENV = "NCONNECT_AUTO_STRONG_MODEL";
 /** Kimi K3: the frontier coding model in the lineup, and its most expensive. */
 const AUTO_STRONG_DEFAULT_ID = "moonshotai/Kimi-K3";
-/** DeepSeek V4 Flash 0731: the cheapest capable model, $0.14 / $0.28 per M. */
-const AUTO_FAST_DEFAULT_ID = "deepseek-ai/DeepSeek-V4-Flash-0731";
 
 export function isAutoModel(value: string | undefined | null): boolean {
   const name = value?.trim().toLowerCase();
@@ -43,8 +41,8 @@ export const AUTO_EFFORT_ENV = "NCONNECT_AUTO_EFFORT";
 export const AUTO_PER_TURN_ENV = "NCONNECT_AUTO_PER_TURN";
 export const AUTO_MODELS_ENV = "NCONNECT_AUTO_MODELS";
 export const AUTO_EXCLUDED_MODELS_ENV = "NCONNECT_AUTO_EXCLUDED_MODELS";
-/** Kimi K2.6: about a third of Kimi K3's price, and reads images. */
-const AUTO_BALANCED_DEFAULT_ID = "moonshotai/Kimi-K2.6";
+/** GLM 5.3: under half of Kimi K3's price, with a 1M window. */
+const AUTO_BALANCED_DEFAULT_ID = "zai-org/GLM-5.3";
 
 export type AutoCostTier = "low" | "medium" | "high";
 
@@ -144,15 +142,18 @@ export type AutoCandidates = Record<AutoTierName, ModelDefinition>;
 
 /**
  * Each tier's candidates when the user names none, most preferred first. The
- * first is the tier's model. The rest are there for what the first cannot do:
- * DeepSeek V4 Flash 0731 reads no images, so an image task on the fast tier
- * goes to GLM 5.3 Flash; Kimi K2.6 holds 262K tokens, so a longer balanced
- * task goes to GLM 5.3 (1M). This is the lineup measured against fixed
- * Kimi K3 on the 50-task benchmark (24% cheaper overall).
+ * first is the tier's model. Fast is the catalog default, GLM 5.3 Flash.
+ * GLM 5.3 reads no images, so an image task on the balanced tier moves up to
+ * Kimi K3 (see pickAutoModel).
+ *
+ * The 50-task benchmark (24% cheaper than fixed Kimi K3) measured an earlier
+ * lineup: DeepSeek V4 Flash 0731 on fast, with GLM 5.3 Flash for images, and
+ * Kimi K2.6 on balanced, with GLM 5.3 past 262K tokens. Nebius retired both
+ * on 2026-11-16, so each tier now starts at what was its second choice.
  */
 const DEFAULT_POOLS: Record<AutoTierName, readonly string[]> = {
-  fast: [AUTO_FAST_DEFAULT_ID, "@default"],
-  balanced: [AUTO_BALANCED_DEFAULT_ID, "zai-org/GLM-5.3"],
+  fast: ["@default"],
+  balanced: [AUTO_BALANCED_DEFAULT_ID],
   strong: [AUTO_STRONG_DEFAULT_ID],
 };
 

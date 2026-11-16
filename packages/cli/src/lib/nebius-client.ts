@@ -55,8 +55,10 @@ const DEFAULT_RESPONSE_HEADER_TIMEOUT_MS = 45_000;
 // break sessions mid-flight. A short-lived per-model circuit breaker then skips
 // the dead model entirely for a cooldown window, so only the first failing turn
 // pays the timeout. Configure with NCONNECT_FALLBACK_MODEL (set to
-// "off"/"none" to disable) and NCONNECT_FALLBACK_COOLDOWN_MS.
-const DEFAULT_FALLBACK_MODEL = "moonshotai/Kimi-K2.6";
+// "off"/"none" to disable) and NCONNECT_FALLBACK_COOLDOWN_MS. Kimi K3.1 Pro:
+// a separate deployment from Kimi K3, with images and a 1M window, so a K3
+// outage lands on a model that can take the same request.
+const DEFAULT_FALLBACK_MODEL = "moonshotai/Kimi-K3.1-Pro";
 const DEFAULT_FALLBACK_COOLDOWN_MS = 60_000;
 
 /** model id -> epoch ms of its last response-header timeout (circuit breaker). */

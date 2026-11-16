@@ -82,8 +82,8 @@ export const glm53Codex: Tutorial = {
 
         <H2 id="images">Attaching images</H2>
         <P>
-          GLM 5.3 is text-only. To attach screenshots, launch with a vision model such as Kimi K2.6.
-          See <a href="/docs/vision">Images &amp; vision</a>.
+          GLM 5.3 is text-only. To attach screenshots, launch with a vision model such as Kimi K3.1
+          Pro. See <a href="/docs/vision">Images &amp; vision</a>.
         </P>
       </>
     );

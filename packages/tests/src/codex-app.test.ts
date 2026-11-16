@@ -191,7 +191,7 @@ describe("Codex App alpha config", () => {
     expect(first?.input_modalities).toEqual(["text", "image"]);
 
     // A vision-capable model in the catalog must advertise image input.
-    const vision = catalog.models.find((m) => m.slug === "moonshotai/Kimi-K2.6");
+    const vision = catalog.models.find((m) => m.slug === "moonshotai/Kimi-K3.1-Pro");
     expect(vision?.supports_image_detail_original).toBe(true);
     expect(vision?.input_modalities).toEqual(["text", "image"]);
   });

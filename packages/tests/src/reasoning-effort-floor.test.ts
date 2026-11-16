@@ -39,15 +39,10 @@ describe("reasoning-effort floor", () => {
     expect(minimumReasoningEffort("zai-org/GLM-5.3")).toBe("low");
   });
 
-  test("DeepSeek V4 Flash 0731 degenerates at none, so it is raised to low", () => {
-    const id = "deepseek-ai/DeepSeek-V4-Flash-0731";
-    expect(acceptsReasoningEffort(id)).toBe(true);
-    expect(minimumReasoningEffort(id)).toBe("low");
-  });
-
-  test("Kimi K2.6 turns reasoning off through its template at effort none", () => {
-    expect(noReasoningTemplateArgs("moonshotai/Kimi-K2.6", "none")).toEqual({ thinking: false });
-    expect(noReasoningTemplateArgs("moonshotai/Kimi-K2.6", "high")).toEqual({});
+  test("Inkling 2 Small turns reasoning off through its template at effort none", () => {
+    const id = "thinkingmachines/Inkling-2-Small";
+    expect(noReasoningTemplateArgs(id, "none")).toEqual({ thinking: false });
+    expect(noReasoningTemplateArgs(id, "high")).toEqual({});
     expect(noReasoningTemplateArgs("moonshotai/Kimi-K3", "none")).toEqual({});
   });
 

@@ -237,10 +237,9 @@ const modelHighlights: Array<{
   { name: "GLM 5.3", note: "coding and tool use", logo: "/zai-logo.svg" },
   { name: "DeepSeek V4 Pro 0813", note: "979K context", mark: <DeepSeekMark /> },
   { name: "Kimi K3", note: "frontier coding", logo: "/logos/kimi.png" },
-  { name: "Kimi K2.6", note: "vision", logo: "/logos/kimi.png" },
-  { name: "DeepSeek V4 Flash", note: "fast 1M context", mark: <DeepSeekMark /> },
-  { name: "DeepSeek V4 Pro", note: "long-context reasoning", mark: <DeepSeekMark /> },
-  { name: "Qwen 3.5", note: "flagship", logo: "/logos/qwen.png" },
+  { name: "DeepSeek V4.1 Flash 1017", note: "fast 1M context", mark: <DeepSeekMark /> },
+  { name: "MiniMax M3.1 Flash", note: "fast, images", logo: "/logos/minimax.png" },
+  { name: "Qwen 3.8 27B", note: "coding, images", logo: "/logos/qwen.png" },
 ];
 
 export const Route = createFileRoute("/")({

@@ -6,18 +6,18 @@ export const vision: DocPage = {
   title: "Images and vision",
   navLabel: "Images & vision",
   description:
-    "Attach screenshots and images to Codex on Nebius by selecting a vision-capable model such as Kimi K2.6, using the clipboard shortcut or a file path.",
+    "Attach screenshots and images to Codex on Nebius by selecting a vision-capable model such as Kimi K3.1 Pro, using the clipboard shortcut or a file path.",
   group: "Models",
   Content() {
     return (
       <>
         <P>
           Codex sends images to the selected model, so it must accept images. The default GLM 5.3
-          Flash, Kimi K3 and Kimi K2.6 do; GLM 5.3 and most other models are text-only. Image
+          Flash, Kimi K3 and Kimi K3.1 Pro do; GLM 5.3 and most other models are text-only. Image
           options belong to Codex, not every harness; other agents keep their native attachment
           controls.
         </P>
-        <CopyBox text="ncodex --model moonshotai/Kimi-K2.6" />
+        <CopyBox text="ncodex --model moonshotai/Kimi-K3.1-Pro" />
         <P>
           Use Codex&apos;s clipboard-image shortcut where your terminal supports it. Normal terminal
           paste may paste text only; NConnect does not monitor your clipboard. For a reliable
@@ -25,7 +25,7 @@ export const vision: DocPage = {
         </P>
         <CopyBox
           text={
-            'ncodex --model moonshotai/Kimi-K2.6 --image "/path/to/screenshot.png" "Describe this image"'
+            'ncodex --model moonshotai/Kimi-K3.1-Pro --image "/path/to/screenshot.png" "Describe this image"'
           }
         />
         <Callout>
