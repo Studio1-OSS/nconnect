@@ -227,7 +227,8 @@ Other settings: `NCONNECT_AUTO_DECIDER_MODEL` (the Nebius model, Jev model or La
 | Model                            | Best for                     | Context | Vision |
 | -------------------------------- | ---------------------------- | ------- | ------ |
 | **GLM 5.3 Flash** _(default)_    | Fast, very low cost, agentic | 1M      | Yes    |
-| Kimi K3.1 Pro _(new)_            | Frontier coding + agentic    | 1M      | Yes    |
+| Inkling 2 Small _(new)_          | Fast, cheap, images          | 1M      | Yes    |
+| Kimi K3.1 Pro                    | Frontier coding + agentic    | 1M      | Yes    |
 | Kimi K3                          | Frontier coding + agentic    | 1M      | Yes    |
 | Muse Spark Open _(Meta)_         | Open MoE, coding + agentic   | 1M      | Yes    |
 | DeepSeek V4.1 Flash 1017 _(new)_ | Fast, cheap, images          | 1M      | Yes    |
@@ -236,6 +237,13 @@ Other settings: `NCONNECT_AUTO_DECIDER_MODEL` (the Nebius model, Jev model or La
 | Qwen 3.8 27B _(new)_             | Coding + agentic, images     | 262K    | Yes    |
 | Nemotron 3.5 Super VL _(new)_    | Multimodal, vision fallback  | 1M      | Yes    |
 | Nemotron 3.5 Lightning _(new)_   | Lowest cost, long context    | 1M      | No     |
+| Nemotron 3 Ultra _(new)_         | Reasoning + agentic          | 1M      | No     |
+| Nemotron 3 Super _(new)_         | Reasoning, low cost          | 262K    | No     |
+| Nemotron 3 Nano _(new)_          | Lowest cost                  | 262K    | No     |
+| gpt-oss 120B _(new)_             | Open-weight reasoning        | 131K    | No     |
+| Hermes 4 405B _(new)_            | General + coding             | 131K    | No     |
+| Qwen3 235B Instruct _(new)_      | General, no reasoning        | 262K    | No     |
+| Qwen3 30B Instruct _(new)_       | Fast, cheap                  | 262K    | No     |
 | Kimi K2.6                        | Vision flagship              | 262K    | Yes    |
 | Kimi K2.7 Code                   | Coding                       | 262K    | No     |
 | MiniMax M3                       | Fast, cheap                  | 1M      | No     |

@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import "../styles/landing.css";
 import { ProviderBrand } from "../components/ProviderBrand";
-import { LaunchBanner, kimiK31ProPlaygroundUrl } from "../components/LaunchBanner";
+import { LaunchBanner, inkling2SmallPlaygroundUrl } from "../components/LaunchBanner";
 import { ThinkingState, useSequence } from "../components/ThinkingState";
 import { TaskRows, SpinnerRing, Badge, CheckIcon, TaskRow } from "../components/TaskRows";
 import { pageHead, siteUrl, structuredData } from "../lib/seo";
@@ -212,11 +212,16 @@ const modelHighlights: Array<{
   isNew?: boolean;
 }> = [
   {
+    name: "Inkling 2 Small",
+    note: "Thinking Machines · 1M context · vision",
+    logo: "/logos/thinkingmachines.png",
+    href: inkling2SmallPlaygroundUrl,
+    isNew: true,
+  },
+  {
     name: "Kimi K3.1 Pro",
     note: "Moonshot AI · 1M context · vision",
     logo: "/logos/kimi.png",
-    href: kimiK31ProPlaygroundUrl,
-    isNew: true,
   },
   {
     name: "Muse Spark Open",

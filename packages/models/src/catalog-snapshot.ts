@@ -312,4 +312,125 @@ export const CATALOG_SNAPSHOT: readonly NebiusApiModel[] = [
     },
     supported_features: ["tools", "reasoning"],
   },
+  // Added from the live catalog on 2026-11-16.
+  {
+    id: "thinkingmachines/Inkling-2-Small",
+    name: "Inkling-2-Small",
+    description:
+      "Thinking Machines Lab's multimodal model. It accepts text and images and generates text, with a 1M-token context window and 594B total parameters.",
+    context_length: 1048576,
+    architecture: { modality: "text+image->text" },
+    pricing: {
+      prompt: "0.0000003",
+      input_cache_read: "0.00000006",
+      completion: "0.000001",
+      image: "0",
+    },
+    supported_features: ["tools", "json_mode", "structured_outputs", "reasoning"],
+  },
+  {
+    id: "nvidia/Nemotron-3-Ultra-550b-a55b",
+    name: "Nemotron-3-Ultra-550b-a55b",
+    description:
+      "Nemotron 3 Ultra is a 550B hybrid MoE model from NVIDIA, optimized for the most demanding multi-agent AI and complex reasoning tasks.",
+    context_length: 1048576,
+    architecture: { modality: "text->text" },
+    pricing: {
+      prompt: "0.000001",
+      input_cache_read: "0.00000012",
+      completion: "0.000003",
+      image: "0",
+    },
+    supported_features: ["tools", "reasoning"],
+  },
+  {
+    id: "nvidia/nemotron-3-super-120b-a12b",
+    name: "Nemotron-3-Super-120b-a12b",
+    description:
+      "Nemotron 3 Super is a 120B hybrid MoE model optimized for efficient multi-agent AI and complex reasoning tasks.",
+    context_length: 262144,
+    architecture: { modality: "text->text" },
+    pricing: {
+      prompt: "0.0000003",
+      input_cache_read: "0.00000006",
+      completion: "0.0000009",
+      image: "0",
+    },
+    supported_features: ["tools", "reasoning"],
+  },
+  {
+    id: "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+    name: "Nemotron-3-Nano-30B-A3B",
+    description:
+      "Compact MoE model optimized for efficient reasoning, chat, and coding with strong multilingual support and long-context RAG/agent workflows.",
+    context_length: 262144,
+    architecture: { modality: "text->text" },
+    pricing: {
+      prompt: "0.00000006",
+      input_cache_read: "0.000000012",
+      completion: "0.00000024",
+      image: "0",
+    },
+    supported_features: ["tools", "reasoning"],
+  },
+  {
+    id: "openai/gpt-oss-120b",
+    name: "gpt-oss-120b",
+    description:
+      "Open-weight agentic model with configurable reasoning, full CoT visibility, strong tool use, and fine-tuning support.",
+    context_length: 131072,
+    architecture: { modality: "text->text" },
+    pricing: {
+      prompt: "0.00000015",
+      input_cache_read: "0.0000001",
+      completion: "0.0000006",
+      image: "0",
+    },
+    supported_features: ["tools", "json_mode", "structured_outputs", "reasoning"],
+  },
+  {
+    id: "NousResearch/Hermes-4-405B",
+    name: "Hermes-4-405B",
+    description:
+      "Hybrid-reasoning model trained on verified CoT traces for strong math, coding, and step-by-step reliability.",
+    context_length: 131072,
+    architecture: { modality: "text->text" },
+    pricing: {
+      prompt: "0.000001",
+      input_cache_read: "0.0000002",
+      completion: "0.000003",
+      image: "0",
+    },
+    supported_features: ["tools", "json_mode", "structured_outputs", "reasoning"],
+  },
+  {
+    id: "Qwen/Qwen3-235B-A22B-Instruct-2507",
+    name: "Qwen3-235B-A22B-Instruct-2507",
+    description:
+      "Balanced Qwen3 flagship tuned for strong general reasoning, chat quality, and tool use.",
+    context_length: 262144,
+    architecture: { modality: "text->text" },
+    pricing: {
+      prompt: "0.0000002",
+      input_cache_read: "0.00000005",
+      completion: "0.0000006",
+      image: "0",
+    },
+    supported_features: ["tools", "json_mode", "structured_outputs"],
+  },
+  {
+    id: "Qwen/Qwen3-30B-A3B-Instruct-2507",
+    name: "Qwen3-30B-A3B-Instruct-2507",
+    description:
+      "Versatile 30B instruct model optimized for high-quality chat, reasoning, and coding.",
+    context_length: 262144,
+    architecture: { modality: "text->text" },
+    pricing: {
+      prompt: "0.0000001",
+      input_cache_read: "0.0000001",
+      completion: "0.0000003",
+      image: "0",
+    },
+    supported_features: ["tools", "json_mode", "structured_outputs"],
+  },
 ];

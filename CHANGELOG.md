@@ -7,6 +7,18 @@ User-visible changes to NConnect, newest first. This changelog starts at
 
 ### Added
 
+- Inkling 2 Small by Thinking Machines (`thinkingmachines/Inkling-2-Small`,
+  Claude alias `nebius-inkling-2-small`): 1M context, images, tools and
+  reasoning at $0.30 / $1.00 per M tokens. It is in the bundled catalog. It
+  still reasons at effort `none`, so `none` also sends
+  `chat_template_kwargs.thinking: false`, which stops it.
+- The site's launch banner now announces Inkling 2 Small, replacing Kimi K3.1
+  Pro.
+- More Nebius models with names and Claude aliases: Nemotron 3 Ultra, Nemotron
+  3 Super, Nemotron 3 Nano, gpt-oss 120B, Hermes 4 405B, Qwen3 235B Instruct
+  and Qwen3 30B Instruct. gpt-oss 120B only takes `low`, `medium` and `high`,
+  so `none` is sent as `low` and `max` as `high`. Nemotron 3 Nano answers
+  with an empty reply at `none`, so it is raised to `low`.
 - Kimi K3.1 Pro (`moonshotai/Kimi-K3.1-Pro`, Claude alias
   `nebius-kimi-k3-1-pro`): 1M context, images, tools and reasoning, at $2.00 /
   $10.00 per M tokens against Kimi K3's $3.00 / $15.00. It sits next to Kimi K3

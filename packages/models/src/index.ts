@@ -213,6 +213,50 @@ const CURATED_OVERRIDES: Record<string, ModelOverride> = {
     minContext: 1_048_576,
     order: 1,
   },
+  "thinkingmachines/Inkling-2-Small": {
+    name: "Inkling 2 Small",
+    anthropicAlias: "nebius-inkling-2-small",
+    // Nebius publishes no output cap; 131,072 is accepted (measured 2026-11-16).
+    outputLimit: 131_072,
+    minContext: 1_048_576,
+    order: 2,
+  },
+  "nvidia/Nemotron-3-Ultra-550b-a55b": {
+    name: "Nemotron 3 Ultra",
+    anthropicAlias: "nebius-nemotron-3-ultra",
+    outputLimit: 131_072,
+    order: 15,
+  },
+  "nvidia/nemotron-3-super-120b-a12b": {
+    name: "Nemotron 3 Super",
+    anthropicAlias: "nebius-nemotron-3-super",
+    order: 17,
+  },
+  "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B": {
+    name: "Nemotron 3 Nano",
+    anthropicAlias: "nebius-nemotron-3-nano",
+    order: 19,
+  },
+  "openai/gpt-oss-120b": {
+    name: "gpt-oss 120B",
+    anthropicAlias: "nebius-gpt-oss-120b",
+    order: 22,
+  },
+  "NousResearch/Hermes-4-405B": {
+    name: "Hermes 4 405B",
+    anthropicAlias: "nebius-hermes-4-405b",
+    order: 24,
+  },
+  "Qwen/Qwen3-235B-A22B-Instruct-2507": {
+    name: "Qwen3 235B Instruct",
+    anthropicAlias: "nebius-qwen3-235b-instruct",
+    order: 26,
+  },
+  "Qwen/Qwen3-30B-A3B-Instruct-2507": {
+    name: "Qwen3 30B Instruct",
+    anthropicAlias: "nebius-qwen3-30b-instruct",
+    order: 28,
+  },
   "moonshotai/Kimi-K3": {
     name: "Kimi K3",
     anthropicAlias: "nebius-kimi-k3",
@@ -284,6 +328,7 @@ const BUNDLED_FALLBACK_MODEL_IDS: ReadonlySet<string> = new Set([
   "deepseek-ai/DeepSeek-V4-Pro-0813",
   "deepseek-ai/DeepSeek-V4-Pro",
   "moonshotai/Kimi-K3.1-Pro",
+  "thinkingmachines/Inkling-2-Small",
 ]);
 
 /**
@@ -317,6 +362,11 @@ export const REASONING_EFFORT_MODEL_IDS: ReadonlySet<string> = new Set([
   "Qwen/Qwen3.8-27B",
   "nvidia/Nemotron-3.5-Super-VL",
   "nvidia/Nemotron-3_5-Lightning",
+  "thinkingmachines/Inkling-2-Small",
+  "nvidia/Nemotron-3-Ultra-550b-a55b",
+  "nvidia/nemotron-3-super-120b-a12b",
+  "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "openai/gpt-oss-120b",
 ]);
 
 /**
@@ -343,6 +393,11 @@ export const REASONING_EFFORT_MODEL_IDS: ReadonlySet<string> = new Set([
  * Reflection Beam rejects "none" with a 400 ("reasoning_effort must be an int
  * or one of: minimal, low, medium, high, xhigh, max"). Measured on Nebius,
  * 2026-11-01.
+ *
+ * Nemotron 3 Nano at "none" puts its whole answer in `reasoning_content` and
+ * returns an empty `content`; "low" answers normally. gpt-oss 120B rejects
+ * "none" with a 400 ("Harmony does not support reasoning_effort='none'").
+ * Measured on Nebius, 2026-11-16.
  */
 const MIN_REASONING_EFFORT: Record<string, string> = {
   "zai-org/GLM-5.3-Flash": "low",
@@ -350,16 +405,20 @@ const MIN_REASONING_EFFORT: Record<string, string> = {
   "deepseek-ai/DeepSeek-V4-Flash-0731": "low",
   "meta-models/muse-spark-open": "low",
   "reflection/beam": "low",
+  "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B": "low",
+  "openai/gpt-oss-120b": "low",
 };
 
 /**
  * Models that reject the top effort the proxies send ("max") and take a lower
  * name for it. Muse Spark Open and Qwen 3.8 27B answer "max" with a 400 and
- * accept "xhigh".
+ * accept "xhigh". gpt-oss 120B takes only low, medium and high (measured
+ * 2026-11-16).
  */
 const MAX_REASONING_EFFORT: Record<string, string> = {
   "meta-models/muse-spark-open": "xhigh",
   "Qwen/Qwen3.8-27B": "xhigh",
+  "openai/gpt-oss-120b": "high",
 };
 
 /**
@@ -367,9 +426,14 @@ const MAX_REASONING_EFFORT: Record<string, string> = {
  * their chat template. Kimi K2.6 reasoned at length at every effort level
  * (11k characters at "none", once running out of tokens before answering);
  * `chat_template_kwargs: { thinking: false }` stopped it. Measured on Nebius,
- * 2026-10-15.
+ * 2026-10-15. Inkling 2 Small accepts every effort but still reasons at
+ * "none"; `thinking: false` brings it to zero reasoning tokens (measured
+ * 2026-11-16).
  */
-const TEMPLATE_THINKING_SWITCH_MODEL_IDS: ReadonlySet<string> = new Set(["moonshotai/Kimi-K2.6"]);
+const TEMPLATE_THINKING_SWITCH_MODEL_IDS: ReadonlySet<string> = new Set([
+  "moonshotai/Kimi-K2.6",
+  "thinkingmachines/Inkling-2-Small",
+]);
 
 /** The lowest `reasoning_effort` this model handles correctly, if constrained. */
 export function minimumReasoningEffort(modelId: string): string | undefined {
@@ -686,6 +750,11 @@ export const DEEPSEEK_V4_FLASH_0731: ModelDefinition = fromSnapshot(
 export const KIMI_K2_6: ModelDefinition = fromSnapshot("moonshotai/Kimi-K2.6");
 export const KIMI_K2_7_CODE: ModelDefinition = fromSnapshot("moonshotai/Kimi-K2.7-Code");
 export const KIMI_K3_1_PRO: ModelDefinition = fromSnapshot("moonshotai/Kimi-K3.1-Pro");
+export const INKLING_2_SMALL: ModelDefinition = fromSnapshot("thinkingmachines/Inkling-2-Small");
+export const GPT_OSS_120B: ModelDefinition = fromSnapshot("openai/gpt-oss-120b");
+export const NEMOTRON_3_NANO: ModelDefinition = fromSnapshot(
+  "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+);
 export const MINIMAX_M3: ModelDefinition = fromSnapshot("MiniMaxAI/MiniMax-M3");
 export const QWEN_3_5_397B: ModelDefinition = fromSnapshot("Qwen/Qwen3.5-397B-A17B");
 export const DEEPSEEK_V4_PRO: ModelDefinition = fromSnapshot("deepseek-ai/DeepSeek-V4-Pro");
