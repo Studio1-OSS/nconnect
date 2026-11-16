@@ -3,7 +3,7 @@
 User-visible changes to NConnect, newest first. This changelog starts at
 0.14.0; earlier release history remains in Git.
 
-## Unreleased
+## 0.27.0 - 2026-11-16
 
 ### Removed
 
