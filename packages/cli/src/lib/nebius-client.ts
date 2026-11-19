@@ -248,13 +248,13 @@ async function postChatCompletionOnce(
       }
       if (err instanceof NebiusResponseHeaderTimeoutError) {
         if (attempt < responseHeaderRetries()) {
-          await sleep(backoffMs(attempt));
+          await sleep(backoffMs(attempt), signal);
           continue;
         }
         throw err;
       }
       if (attempt < MAX_RETRIES) {
-        await sleep(backoffMs(attempt));
+        await sleep(backoffMs(attempt), signal);
         continue;
       }
       return syntheticOverloadedResponse(err instanceof Error ? err.message : String(err));
@@ -266,7 +266,7 @@ async function postChatCompletionOnce(
     // Drain the retryable response body before sleeping (the body is small for
     // 429/503 and we must not leak the stream).
     await response.arrayBuffer().catch(() => undefined);
-    await sleep(parseRetryAfter(response.headers.get("retry-after")) ?? backoffMs(attempt));
+    await sleep(parseRetryAfter(response.headers.get("retry-after")) ?? backoffMs(attempt), signal);
   }
   // Unreachable: the loop returns on every path. Defensive fallback.
   return syntheticOverloadedResponse("Nebius request failed after retries.");
@@ -312,14 +312,14 @@ async function streamFetchOnce(
       if (signal?.aborted || attempt >= allowedRetries) {
         throw err;
       }
-      await sleep(backoffMs(attempt));
+      await sleep(backoffMs(attempt), signal);
       continue;
     }
     if (response.ok || !RETRYABLE_STATUSES.has(response.status) || attempt >= maxRetries) {
       return response;
     }
     await response.arrayBuffer().catch(() => undefined);
-    await sleep(parseRetryAfter(response.headers.get("retry-after")) ?? backoffMs(attempt));
+    await sleep(parseRetryAfter(response.headers.get("retry-after")) ?? backoffMs(attempt), signal);
   }
   throw new Error("Nebius stream request failed after retries.");
 }
