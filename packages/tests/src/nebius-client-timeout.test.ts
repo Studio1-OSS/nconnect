@@ -16,6 +16,7 @@ describe("Nebius response-header timeout", () => {
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
     if (temporaryHome) {
       await rm(temporaryHome, { recursive: true, force: true });
       temporaryHome = undefined;
@@ -131,6 +132,43 @@ describe("Nebius response-header timeout", () => {
       reason: "caller_abort",
     });
   });
+
+  test.each([
+    ["streaming", postChatCompletionStream, true],
+    ["non-streaming", postChatCompletion, false],
+  ] as const)(
+    "stops a %s request when the caller aborts during Retry-After",
+    async (_, post, stream) => {
+      vi.useFakeTimers();
+      vi.stubEnv("NCONNECT_REQUEST_DIAGNOSTICS", "0");
+      vi.stubEnv("NCONNECT_STREAM_RETRIES", "1");
+      vi.stubEnv("NCONNECT_RESPONSE_HEADER_RETRIES", "1");
+      const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+        init?.signal?.throwIfAborted();
+        return new Response(null, { status: 429, headers: { "Retry-After": "60" } });
+      });
+      vi.stubGlobal("fetch", fetchMock);
+      const caller = new AbortController();
+      const reason = new DOMException("Client disconnected", "AbortError");
+      const onRejected = vi.fn<(reason: unknown) => void>();
+
+      void post(
+        { model: "fault-injection", messages: [], stream },
+        { apiKey: "redacted" },
+        caller.signal,
+      ).catch(onRejected);
+
+      await vi.advanceTimersByTimeAsync(1_000);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(onRejected).not.toHaveBeenCalled();
+
+      caller.abort(reason);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(onRejected).toHaveBeenCalledExactlyOnceWith(reason);
+      expect(vi.getTimerCount()).toBe(0);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    },
+  );
 
   test("keeps caller cancellation connected after response headers arrive", async () => {
     vi.stubEnv("NCONNECT_REQUEST_DIAGNOSTICS", "0");
